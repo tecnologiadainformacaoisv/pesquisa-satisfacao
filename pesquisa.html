@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a3d62">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="shared/assets/logo-192.png">
+<link rel="apple-touch-icon" href="shared/assets/logo-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
+<link rel="stylesheet" href="shared/styles/instituto.css">
+<title>Pesquisa de Satisfação</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0a3d62 0%, #1e5f8a 50%, #2980b9 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 44px;
+    width: min(680px, 95vw);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #0a3d62, #2980b9, #27ae60);
+  }
+
+  .logo-area {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .logo-icon {
+    font-size: 52px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .hospital-name {
+    font-size: 18px;
+    color: #1e5f8a;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .progress-bar {
+    background: #e8f4f8;
+    border-radius: 99px;
+    height: 8px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    background: linear-gradient(90deg, #1e5f8a, #2980b9);
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  .step { display: none; }
+  .step.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .question-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.35;
+    margin-bottom: 32px;
+  }
+
+  /* NPS */
+  .nps-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .nps-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    border: 2px solid #dce6f0;
+    background: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #2c3e50;
+  }
+
+  .nps-btn:hover { border-color: #2980b9; background: #eaf4fb; transform: scale(1.08); }
+  .nps-btn.selected { color: white; border-color: transparent; transform: scale(1.12); }
+
+  .nps-btn[data-v="0"],.nps-btn[data-v="1"],.nps-btn[data-v="2"],
+  .nps-btn[data-v="3"],.nps-btn[data-v="4"],.nps-btn[data-v="5"],
+  .nps-btn[data-v="6"] { --color: #e74c3c; }
+  .nps-btn[data-v="7"],.nps-btn[data-v="8"] { --color: #f39c12; }
+  .nps-btn[data-v="9"],.nps-btn[data-v="10"] { --color: #27ae60; }
+  .nps-btn.selected { background: var(--color); }
+
+  .nps-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #95a5a6;
+    margin-bottom: 28px;
+    padding: 0 4px;
+  }
+
+  /* Stars */
+  .stars {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+
+  .star-btn {
+    font-size: 48px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    background: none;
+    border: none;
+    line-height: 1;
+  }
+
+  .star-btn:hover { transform: scale(1.15); }
+  .star-btn.lit { filter: drop-shadow(0 0 6px rgba(243,156,18,0.5)); }
+
+  .star-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #95a5a6;
+    margin-bottom: 28px;
+    margin-top: -20px;
+  }
+
+  /* Textarea */
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 2px solid #dce6f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    color: #2c3e50;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 24px;
+  }
+
+  textarea:focus { border-color: #2980b9; }
+  textarea::placeholder { color: #bdc3c7; }
+
+  /* Buttons */
+  .btn-next {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #1e5f8a, #2980b9);
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(41,128,185,0.4); }
+  .btn-next:active { transform: translateY(0); }
+  .btn-next:disabled { background: #bdc3c7; cursor: default; transform: none; box-shadow: none; }
+
+  .btn-skip {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 2px solid #dce6f0;
+    background: white;
+    color: #7f8c8d;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-skip:hover { border-color: #95a5a6; color: #2c3e50; }
+
+  /* Welcome */
+  .welcome-icon { font-size: 72px; text-align: center; margin-bottom: 20px; }
+  .welcome-title { font-size: 28px; font-weight: 800; color: #1e5f8a; text-align: center; margin-bottom: 12px; }
+  .welcome-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.6; margin-bottom: 36px; }
+  .time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eaf4fb;
+    color: #1e5f8a;
+    border-radius: 99px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 auto 36px;
+    display: flex;
+    width: fit-content;
+  }
+
+  /* Thank you */
+  .thanks-icon { font-size: 80px; text-align: center; margin-bottom: 20px; animation: pop 0.5s ease; }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  .thanks-title { font-size: 28px; font-weight: 800; color: #27ae60; text-align: center; margin-bottom: 12px; }
+  .thanks-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.6; margin-bottom: 12px; }
+  .countdown { font-size: 48px; font-weight: 800; color: #1e5f8a; text-align: center; margin: 20px 0; }
+
+  /* Admin link */
+  .admin-link {
+    position: fixed;
+    bottom: 16px;
+    right: 20px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo-area">
+    <span class="logo-icon">🏥</span>
+    <div class="hospital-name">PESQUISA DE SATISFAÇÃO</div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <!-- STEP 0: Welcome -->
+  <div class="step active" id="step-0">
+    <div class="welcome-icon">👋</div>
+    <div class="welcome-title">Sua opinião importa!</div>
+    <div class="welcome-sub">
+      Ajude-nos a melhorar o atendimento respondendo algumas perguntas rápidas sobre sua experiência de hoje.
+    </div>
+    <div class="time-badge">⏱ Menos de 1 minuto</div>
+    <button class="btn-next" onclick="nextStep()">Iniciar Pesquisa</button>
+  </div>
+
+  <!-- STEP 1: NPS -->
+  <div class="step" id="step-1">
+    <div class="question-label">Pergunta 1 de 5</div>
+    <div class="question-text">De 0 a 10, o quanto você recomendaria nosso hospital a um amigo ou familiar?</div>
+    <div class="nps-grid">
+      <button class="nps-btn" data-v="0" onclick="selectNPS(0)">0</button>
+      <button class="nps-btn" data-v="1" onclick="selectNPS(1)">1</button>
+      <button class="nps-btn" data-v="2" onclick="selectNPS(2)">2</button>
+      <button class="nps-btn" data-v="3" onclick="selectNPS(3)">3</button>
+      <button class="nps-btn" data-v="4" onclick="selectNPS(4)">4</button>
+      <button class="nps-btn" data-v="5" onclick="selectNPS(5)">5</button>
+      <button class="nps-btn" data-v="6" onclick="selectNPS(6)">6</button>
+      <button class="nps-btn" data-v="7" onclick="selectNPS(7)">7</button>
+      <button class="nps-btn" data-v="8" onclick="selectNPS(8)">8</button>
+      <button class="nps-btn" data-v="9" onclick="selectNPS(9)">9</button>
+      <button class="nps-btn" data-v="10" onclick="selectNPS(10)">10</button>
+    </div>
+    <div class="nps-labels"><span>Muito improvável</span><span>Muito provável</span></div>
+    <button class="btn-next" id="btnNPS" onclick="nextStep()" disabled>Continuar</button>
+  </div>
+
+  <!-- STEP 2: Recepção -->
+  <div class="step" id="step-2">
+    <div class="question-label">Pergunta 2 de 5</div>
+    <div class="question-text">Como você avalia o atendimento da nossa recepção?</div>
+    <div class="stars" id="stars-recepcao"></div>
+    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
+    <button class="btn-next" id="btnRecepcao" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('recepcao')">Prefiro não avaliar</button>
+  </div>
+
+  <!-- STEP 3: Limpeza -->
+  <div class="step" id="step-3">
+    <div class="question-label">Pergunta 3 de 5</div>
+    <div class="question-text">Como você avalia a limpeza e o conforto das instalações?</div>
+    <div class="stars" id="stars-limpeza"></div>
+    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
+    <button class="btn-next" id="btnLimpeza" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('limpeza')">Prefiro não avaliar</button>
+  </div>
+
+  <!-- STEP 4: Atendimento médico -->
+  <div class="step" id="step-4">
+    <div class="question-label">Pergunta 4 de 5</div>
+    <div class="question-text">Como você avalia o atendimento médico/clínico recebido?</div>
+    <div class="stars" id="stars-atendimento"></div>
+    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
+    <button class="btn-next" id="btnAtendimento" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('atendimento')">Prefiro não avaliar</button>
+  </div>
+
+  <!-- STEP 5: Espera -->
+  <div class="step" id="step-5">
+    <div class="question-label">Pergunta 5 de 5</div>
+    <div class="question-text">Como você avalia o tempo de espera para ser atendido?</div>
+    <div class="stars" id="stars-espera"></div>
+    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
+    <button class="btn-next" id="btnEspera" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('espera')">Prefiro não avaliar</button>
+  </div>
+
+  <!-- STEP 6: Comentário -->
+  <div class="step" id="step-6">
+    <div class="question-label">Comentário (opcional)</div>
+    <div class="question-text">Quer deixar alguma sugestão ou observação?</div>
+    <textarea id="comentario" placeholder="Escreva aqui sua opinião, sugestão ou elogio..."></textarea>
+    <button class="btn-next" onclick="salvarResposta()">Enviar Pesquisa</button>
+    <button class="btn-skip" onclick="salvarResposta()">Enviar sem comentário</button>
+  </div>
+
+  <!-- STEP 7: Obrigado -->
+  <div class="step" id="step-7">
+    <div class="thanks-icon">✅</div>
+    <div class="thanks-title">Muito obrigado!</div>
+    <div class="thanks-sub">Sua avaliação foi registrada com sucesso.<br>Seu feedback nos ajuda a melhorar cada dia mais.</div>
+    <div class="countdown" id="countdown">5</div>
+    <div style="text-align:center;color:#95a5a6;font-size:14px;">segundos para nova pesquisa</div>
+  </div>
+</div>
+
+<a class="admin-link" href="dashboard.html">⚙</a>
+
+<iframe id="form_target" name="form_target" style="display:none"></iframe>
+
+<script>
+  // Cole aqui a URL gerada ao publicar o Apps Script como aplicativo da Web
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZ7wnmZJ2jyfw4uaLUROKKpjio6Kk39SPt7hzyTfVexZ1EvvdHN_vTWXY9DcqV8NLEBg/exec';
+
+  const STORAGE_KEY = 'pesquisa_satisfacao_v1';
+  let currentStep = 0;
+  const totalSteps = 7;
+
+  // ======= Offline queue & sync (mesma abordagem do projeto de visitas) =======
+  const QUEUE_KEY = 'pesquisa_form_queue';
+
+  function getQueue() {
+    try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch(e) { return []; }
+  }
+
+  function saveQueue(q) {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+  }
+
+  async function postDataComIframe(data, iframeId) {
+    return new Promise((resolve) => {
+      try {
+        const anterior = document.getElementById(iframeId);
+        if (anterior && iframeId !== 'form_target') anterior.remove();
+
+        let iframe;
+        if (iframeId === 'form_target') {
+          iframe = document.getElementById('form_target');
+        } else {
+          iframe = document.createElement('iframe');
+          iframe.name = iframeId;
+          iframe.id = iframeId;
+          iframe.style.display = 'none';
+          document.body.appendChild(iframe);
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = SCRIPT_URL;
+        form.target = iframeId;
+        form.style.display = 'none';
+
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = 'payload';
+        inp.value = JSON.stringify(data);
+        form.appendChild(inp);
+        document.body.appendChild(form);
+
+        const onLoad = () => {
+          iframe.removeEventListener('load', onLoad);
+          try { document.body.removeChild(form); } catch(e) {}
+          if (iframeId !== 'form_target') {
+            try { document.body.removeChild(iframe); } catch(e) {}
+          }
+          resolve(true);
+        };
+        iframe.addEventListener('load', onLoad);
+
+        setTimeout(() => {
+          iframe.removeEventListener('load', onLoad);
+          try { document.body.removeChild(form); } catch(e) {}
+          if (iframeId !== 'form_target') {
+            try { document.body.removeChild(iframe); } catch(e) {}
+          }
+          resolve(false);
+        }, 10000);
+
+        form.submit();
+      } catch(e) {
+        console.error('[POST] Erro:', e.message);
+        resolve(false);
+      }
+    });
+  }
+
+  function postData(data) { return postDataComIframe(data, 'form_target'); }
+
+  async function trySyncQueue() {
+    const q = getQueue();
+    if (q.length === 0) return;
+    const remaining = [];
+    for (let i = 0; i < q.length; i++) {
+      const item = q[i];
+      const ok = await postDataComIframe(item, 'pesquisa_sync_' + Date.now() + '_' + i);
+      if (!ok) remaining.push(item);
+      // small delay between sends
+      if (i < q.length - 1) await new Promise(r => setTimeout(r, 800));
+    }
+    saveQueue(remaining);
+  }
+
+  function updateOnlineStatus() {
+    if (navigator.onLine) setTimeout(trySyncQueue, 800);
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  // ============================================================================
+
+  const respostas = {
+    nps: null,
+    recepcao: null,
+    limpeza: null,
+    atendimento: null,
+    espera: null,
+    comentario: ''
+  };
+
+  const starGroups = ['recepcao', 'limpeza', 'atendimento', 'espera'];
+  const btnIds = { recepcao: 'btnRecepcao', limpeza: 'btnLimpeza', atendimento: 'btnAtendimento', espera: 'btnEspera' };
+
+  function buildStars() {
+    starGroups.forEach(group => {
+      const container = document.getElementById('stars-' + group);
+      container.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'star-btn';
+        btn.dataset.v = i;
+        btn.dataset.group = group;
+        btn.textContent = '☆';
+        btn.onclick = () => selectStar(group, i);
+        container.appendChild(btn);
+      }
+    });
+  }
+
+  function selectNPS(v) {
+    respostas.nps = v;
+    document.querySelectorAll('.nps-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`.nps-btn[data-v="${v}"]`).classList.add('selected');
+    document.getElementById('btnNPS').disabled = false;
+  }
+
+  function selectStar(group, v) {
+    respostas[group] = v;
+    const stars = document.querySelectorAll(`#stars-${group} .star-btn`);
+    stars.forEach(s => {
+      const sv = parseInt(s.dataset.v);
+      s.textContent = sv <= v ? '⭐' : '☆';
+      s.classList.toggle('lit', sv <= v);
+    });
+    document.getElementById(btnIds[group]).disabled = false;
+  }
+
+  function skipStar(group) {
+    respostas[group] = null;
+    nextStep();
+  }
+
+  function nextStep() {
+    currentStep++;
+    showStep(currentStep);
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+    const pct = n === 0 ? 0 : Math.min(100, Math.round((n / 6) * 100));
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  async function salvarResposta() {
+    respostas.comentario = document.getElementById('comentario').value.trim();
+
+    const entrada = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      nps: respostas.nps,
+      recepcao: respostas.recepcao,
+      limpeza: respostas.limpeza,
+      atendimento: respostas.atendimento,
+      espera: respostas.espera,
+      comentario: respostas.comentario
+    };
+
+    // Backup local (funciona mesmo offline)
+    const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    local.push(entrada);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
+
+    // Envia ao Google Sheets (fila offline + envio via iframe)
+    try {
+      if (!SCRIPT_URL || SCRIPT_URL === 'COLE_SUA_URL_AQUI') {
+        // sem endpoint configurado — apenas salva local
+      } else if (!navigator.onLine) {
+        const q = getQueue(); q.push(entrada); saveQueue(q);
+      } else {
+        const ok = await postData(entrada);
+        if (!ok) {
+          const q = getQueue(); q.push(entrada); saveQueue(q);
+        }
+      }
+    } catch (e) {
+      const q = getQueue(); q.push(entrada); saveQueue(q);
+    }
+
+    currentStep = 7;
+    showStep(7);
+    iniciarContagem();
+  }
+
+  function iniciarContagem() {
+    let n = 5;
+    document.getElementById('countdown').textContent = n;
+    const timer = setInterval(() => {
+      n--;
+      document.getElementById('countdown').textContent = n;
+      if (n <= 0) {
+        clearInterval(timer);
+        resetar();
+      }
+    }, 1000);
+  }
+
+  function resetar() {
+    respostas.nps = null;
+    respostas.recepcao = null;
+    respostas.limpeza = null;
+    respostas.atendimento = null;
+    respostas.espera = null;
+    respostas.comentario = '';
+
+    document.querySelectorAll('.nps-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('btnNPS').disabled = true;
+    starGroups.forEach(group => {
+      document.querySelectorAll(`#stars-${group} .star-btn`).forEach(s => {
+        s.textContent = '☆';
+        s.classList.remove('lit');
+      });
+      document.getElementById(btnIds[group]).disabled = true;
+    });
+    document.getElementById('comentario').value = '';
+
+    currentStep = 0;
+    showStep(0);
+  }
+
+  buildStars();
+
+  // Sincroniza fila offline acumulada ao abrir a página
+  if (navigator.onLine) setTimeout(trySyncQueue, 1500);
+
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/pesquisa-satisfacao/sw.js', { scope: '/pesquisa-satisfacao/' })
+      .catch(err => console.warn('[SW] Falha no registro:', err));
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a3d62">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="shared/assets/logo-192.png">
+<link rel="apple-touch-icon" href="shared/assets/logo-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
+<link rel="stylesheet" href="shared/styles/instituto.css">
+<title>Dashboard — Pesquisa de Satisfação</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f0f4f8;
+    color: #2c3e50;
+  }
+
+  /* Login overlay */
+  #loginOverlay {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #0a3d62, #2980b9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+  }
+
+  .login-box {
+    background: white;
+    border-radius: 20px;
+    padding: 48px 44px;
+    width: min(400px, 90vw);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+
+  .login-box h2 { font-size: 22px; color: #1e5f8a; margin-bottom: 8px; }
+  .login-box p { color: #7f8c8d; font-size: 14px; margin-bottom: 28px; }
+
+  .login-box input {
+    width: 100%; padding: 14px 16px;
+    border: 2px solid #dce6f0; border-radius: 12px;
+    font-size: 16px; outline: none; margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .login-box input:focus { border-color: #2980b9; }
+
+  .login-box button {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #1e5f8a, #2980b9);
+    color: white; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .login-box button:hover { opacity: 0.9; }
+  .login-error { color: #e74c3c; font-size: 13px; margin-top: 10px; display: none; }
+
+  /* Filters */
+  .filters {
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filters label { font-size: 14px; font-weight: 600; color: #7f8c8d; }
+
+  .filters select {
+    padding: 10px 14px; border: 2px solid #dce6f0; border-radius: 10px;
+    font-size: 14px; color: #2c3e50; outline: none; cursor: pointer;
+    background: white;
+  }
+  .filters select:focus { border-color: #2980b9; }
+
+  .total-badge {
+    margin-left: auto;
+    background: #eaf4fb;
+    color: #1e5f8a;
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  /* Cards */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .metric-card {
+    padding: 24px;
+    border-left: 5px solid var(--accent, #2980b9);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card .label {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: #7f8c8d; margin-bottom: 8px;
+  }
+
+  .metric-card .value {
+    font-size: 38px; font-weight: 800; color: var(--accent, #2980b9);
+    line-height: 1;
+  }
+
+  .metric-card .sub {
+    font-size: 13px; color: #95a5a6; margin-top: 6px;
+  }
+
+  .metric-card .icon {
+    position: absolute; right: 16px; top: 16px;
+    font-size: 32px; opacity: 0.12;
+  }
+
+  /* Charts grid */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    main { padding: 20px 16px; }
+    header { padding: 16px 20px; }
+  }
+
+  .chart-card {
+    padding: 24px;
+  }
+
+  .chart-card.full { grid-column: 1 / -1; }
+
+  .chart-title {
+    font-size: 16px; font-weight: 700; color: #2c3e50;
+    margin-bottom: 6px;
+  }
+
+  .chart-sub {
+    font-size: 13px; color: #95a5a6; margin-bottom: 20px;
+  }
+
+  .chart-wrap { position: relative; height: 260px; }
+  .chart-wrap.tall { height: 320px; }
+
+  /* NPS gauge */
+  .nps-gauge-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .nps-score-display {
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .nps-score-display .score {
+    font-size: 64px; font-weight: 900;
+    line-height: 1;
+  }
+
+  .nps-score-display .score-label {
+    font-size: 13px; color: #7f8c8d; margin-top: 4px;
+  }
+
+  .nps-breakdown {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .nps-segment {
+    flex: 1;
+    min-width: 100px;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .nps-segment .seg-pct { font-size: 28px; font-weight: 800; }
+  .nps-segment .seg-label { font-size: 12px; margin-top: 2px; font-weight: 600; }
+  .nps-segment .seg-count { font-size: 12px; opacity: 0.7; }
+
+  .seg-promoters { background: #eafaf1; color: #27ae60; }
+  .seg-passives { background: #fef9e7; color: #f39c12; }
+  .seg-detractors { background: #fdedec; color: #e74c3c; }
+
+  /* Comments table */
+  .comments-section {
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .comments-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+  .comment-item {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #f8fafc;
+    margin-bottom: 10px;
+    border-left: 4px solid #dce6f0;
+  }
+
+  .comment-item .meta {
+    font-size: 12px; color: #95a5a6; margin-bottom: 6px;
+  }
+
+  .comment-item .text {
+    font-size: 14px; color: #2c3e50; line-height: 1.5;
+  }
+
+  .empty-state {
+    text-align: center; padding: 48px 24px;
+    color: #95a5a6; font-size: 16px;
+  }
+
+  .empty-state .big { font-size: 48px; margin-bottom: 12px; }
+
+  /* Print styles */
+  @media print {
+    #loginOverlay, header .btn-outline, .filters select, .btn-green { display: none !important; }
+    body { background: white; }
+    .chart-card, .metric-card, .comments-section, .filters { box-shadow: none; border: 1px solid #dce6f0; }
+    .charts-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div style="font-size:48px;margin-bottom:16px">🔒</div>
+    <h2>Área Administrativa</h2>
+    <p>Digite a senha para acessar o dashboard</p>
+    <input type="password" id="senhaInput" placeholder="Senha" onkeydown="if(event.key==='Enter')fazerLogin()">
+    <button onclick="fazerLogin()">Entrar</button>
+    <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
+    <div style="margin-top:16px;font-size:12px;color:#bdc3c7">Senha padrão: hospital123</div>
+  </div>
+</div>
+
+<header class="page-header">
+  <div class="header-left">
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação</h1>
+    <p class="page-header__subtitle" id="headerDate">Carregando...</p>
+  </div>
+  <div class="page-header__actions">
+    <button class="btn btn-green" onclick="exportarCSV()">⬇ Exportar CSV</button>
+    <button class="btn btn-white" onclick="window.print()">🖨 Imprimir Relatório</button>
+    <button class="btn btn-outline" onclick="window.location='pesquisa.html'">← Voltar à Pesquisa</button>
+  </div>
+</header>
+
+<main class="page-content page-content--wide">
+  <!-- Filtros -->
+  <div class="card-panel filters">
+    <label>Mês:</label>
+    <select id="filtroMes" onchange="atualizar()"></select>
+    <label>Ano:</label>
+    <select id="filtroAno" onchange="atualizar()"></select>
+    <div class="total-badge" id="totalBadge">0 respostas</div>
+  </div>
+
+  <!-- Cards de métricas -->
+  <div class="cards-grid">
+    <div class="card-panel metric-card" style="--accent:#1e5f8a">
+      <div class="icon">📊</div>
+      <div class="label">NPS Score</div>
+      <div class="value" id="cardNPS">—</div>
+      <div class="sub" id="cardNPSsub">Net Promoter Score</div>
+    </div>
+    <div class="card-panel metric-card" style="--accent:#8e44ad">
+      <div class="icon">👩‍💼</div>
+      <div class="label">Recepção</div>
+      <div class="value" id="cardRecepcao">—</div>
+      <div class="sub">média de ⭐ (máx 5)</div>
+    </div>
+    <div class="card-panel metric-card" style="--accent:#16a085">
+      <div class="icon">🧹</div>
+      <div class="label">Limpeza</div>
+      <div class="value" id="cardLimpeza">—</div>
+      <div class="sub">média de ⭐ (máx 5)</div>
+    </div>
+    <div class="card-panel metric-card" style="--accent:#d35400">
+      <div class="icon">🩺</div>
+      <div class="label">Atendimento Médico</div>
+      <div class="value" id="cardAtendimento">—</div>
+      <div class="sub">média de ⭐ (máx 5)</div>
+    </div>
+    <div class="card-panel metric-card" style="--accent:#c0392b">
+      <div class="icon">⏱</div>
+      <div class="label">Tempo de Espera</div>
+      <div class="value" id="cardEspera">—</div>
+      <div class="sub">média de ⭐ (máx 5)</div>
+    </div>
+  </div>
+
+  <!-- NPS Detalhado -->
+  <div class="card-panel chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Net Promoter Score (NPS)</div>
+    <div class="chart-sub">Promotores (9–10) menos Detratores (0–6)</div>
+    <div class="nps-gauge-row">
+      <div class="nps-score-display">
+        <div class="score" id="npsScoreBig" style="color:#1e5f8a">—</div>
+        <div class="score-label">NPS</div>
+      </div>
+      <div class="nps-breakdown">
+        <div class="nps-segment seg-promoters">
+          <div class="seg-pct" id="pctPromoters">—%</div>
+          <div class="seg-label">Promotores</div>
+          <div class="seg-count" id="cntPromoters">—</div>
+        </div>
+        <div class="nps-segment seg-passives">
+          <div class="seg-pct" id="pctPassives">—%</div>
+          <div class="seg-label">Neutros</div>
+          <div class="seg-count" id="cntPassives">—</div>
+        </div>
+        <div class="nps-segment seg-detractors">
+          <div class="seg-pct" id="pctDetractors">—%</div>
+          <div class="seg-label">Detratores</div>
+          <div class="seg-count" id="cntDetractors">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chartNPS"></canvas>
+    </div>
+  </div>
+
+  <!-- Charts grid -->
+  <div class="charts-grid">
+    <div class="card-panel chart-card">
+      <div class="chart-title">Avaliações por Categoria</div>
+      <div class="chart-sub">Média de estrelas (1–5) no período</div>
+      <div class="chart-wrap"><canvas id="chartCategorias"></canvas></div>
+    </div>
+
+    <div class="card-panel chart-card">
+      <div class="chart-title">Distribuição de Notas NPS</div>
+      <div class="chart-sub">Quantas vezes cada nota foi dada</div>
+      <div class="chart-wrap"><canvas id="chartNPSdist"></canvas></div>
+    </div>
+
+    <div class="card-panel chart-card full">
+      <div class="chart-title">Evolução Mensal — NPS</div>
+      <div class="chart-sub">Histórico dos últimos 12 meses</div>
+      <div class="chart-wrap tall"><canvas id="chartTrend"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Comentários -->
+  <div class="card-panel comments-section">
+    <h3>💬 Comentários dos Pacientes <span id="commentCount" style="font-weight:400;color:#95a5a6"></span></h3>
+    <div id="commentsList"></div>
+  </div>
+</main>
+
+<script>
+  // Cole aqui a URL gerada ao publicar o Apps Script como aplicativo da Web
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZ7wnmZJ2jyfw4uaLUROKKpjio6Kk39SPt7hzyTfVexZ1EvvdHN_vTWXY9DcqV8NLEBg/exec';
+
+  const STORAGE_KEY = 'pesquisa_satisfacao_v1';
+  const SENHA = 'hospital123';
+
+  let charts = {};
+  let dadosFiltrados = [];
+  let todosDados = [];
+
+  // --- LOGIN ---
+  function fazerLogin() {
+    const v = document.getElementById('senhaInput').value;
+    if (v === SENHA) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      iniciar();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('senhaInput').value = '';
+    }
+  }
+
+  // --- INIT ---
+  async function iniciar() {
+    const now = new Date();
+    document.getElementById('headerDate').textContent =
+      'Relatório gerado em ' + now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    document.getElementById('totalBadge').textContent = 'Carregando...';
+    todosDados = await carregarDados();
+    popularFiltros(todosDados);
+    atualizar();
+  }
+
+  async function carregarDados() {
+    if (SCRIPT_URL !== 'COLE_SUA_URL_AQUI') {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+
+        const resp = await fetch(SCRIPT_URL, { signal: controller.signal });
+        clearTimeout(timeout);
+
+        const linhas = await resp.json();
+
+        if (!Array.isArray(linhas)) throw new Error('Resposta inesperada do servidor');
+
+        return linhas.map(r => ({
+          id: r.ID,
+          timestamp: r.Timestamp,
+          nps:         r.NPS         !== '' ? Number(r.NPS)         : null,
+          recepcao:    r.Recepcao    !== '' ? Number(r.Recepcao)    : null,
+          limpeza:     r.Limpeza     !== '' ? Number(r.Limpeza)     : null,
+          atendimento: r.Atendimento !== '' ? Number(r.Atendimento) : null,
+          espera:      r.Espera      !== '' ? Number(r.Espera)      : null,
+          comentario:  r.Comentario  || ''
+        }));
+      } catch (err) {
+        const motivo = err.name === 'AbortError' ? 'timeout' : err.message;
+        console.warn(`[Dashboard] Falha ao buscar do Sheets (${motivo}), usando backup local.`);
+      }
+    }
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  }
+
+  function popularFiltros(dados) {
+    const anos = [...new Set(dados.map(d => new Date(d.timestamp).getFullYear()))].sort();
+    const now = new Date();
+
+    const selAno = document.getElementById('filtroAno');
+    selAno.innerHTML = '';
+    const anosDisp = anos.length ? anos : [now.getFullYear()];
+    anosDisp.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a; o.textContent = a;
+      selAno.appendChild(o);
+    });
+    selAno.value = now.getFullYear();
+
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const selMes = document.getElementById('filtroMes');
+    selMes.innerHTML = '';
+    meses.forEach((m, i) => {
+      const o = document.createElement('option');
+      o.value = i + 1; o.textContent = m;
+      selMes.appendChild(o);
+    });
+    selMes.value = now.getMonth() + 1;
+  }
+
+  async function atualizar() {
+    // Se ainda não carregou (mudança de filtro após o init), recarrega do Sheets
+    if (todosDados.length === 0 && SCRIPT_URL !== 'COLE_SUA_URL_AQUI') {
+      todosDados = await carregarDados();
+    }
+
+    const mes = parseInt(document.getElementById('filtroMes').value);
+    const ano = parseInt(document.getElementById('filtroAno').value);
+
+    dadosFiltrados = todosDados.filter(d => {
+      const dt = new Date(d.timestamp);
+      return dt.getMonth() + 1 === mes && dt.getFullYear() === ano;
+    });
+
+    document.getElementById('totalBadge').textContent = dadosFiltrados.length + ' resposta' + (dadosFiltrados.length !== 1 ? 's' : '');
+
+    calcularMetricas();
+    renderizarGraficos(todosDados);
+    renderizarComentarios();
+  }
+
+  function media(campo) {
+    const vals = dadosFiltrados.map(d => d[campo]).filter(v => v !== null && v !== undefined);
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }
+
+  function fmt(v, casas = 1) {
+    return v === null ? '—' : v.toFixed(casas);
+  }
+
+  function calcularMetricas() {
+    const n = dadosFiltrados.length;
+
+    // NPS
+    const comNPS = dadosFiltrados.filter(d => d.nps !== null);
+    const total = comNPS.length;
+    const promoters = comNPS.filter(d => d.nps >= 9).length;
+    const passives = comNPS.filter(d => d.nps >= 7 && d.nps <= 8).length;
+    const detractors = comNPS.filter(d => d.nps <= 6).length;
+    const nps = total ? Math.round(((promoters - detractors) / total) * 100) : null;
+
+    const npsStr = nps === null ? '—' : (nps > 0 ? '+' : '') + nps;
+    document.getElementById('cardNPS').textContent = npsStr;
+    document.getElementById('npsScoreBig').textContent = npsStr;
+    document.getElementById('npsScoreBig').style.color = nps === null ? '#95a5a6' : nps >= 50 ? '#27ae60' : nps >= 0 ? '#f39c12' : '#e74c3c';
+
+    const pPro = total ? Math.round((promoters / total) * 100) : 0;
+    const pPas = total ? Math.round((passives / total) * 100) : 0;
+    const pDet = total ? Math.round((detractors / total) * 100) : 0;
+
+    document.getElementById('pctPromoters').textContent = total ? pPro + '%' : '—';
+    document.getElementById('pctPassives').textContent = total ? pPas + '%' : '—';
+    document.getElementById('pctDetractors').textContent = total ? pDet + '%' : '—';
+    document.getElementById('cntPromoters').textContent = promoters + ' paciente' + (promoters !== 1 ? 's' : '');
+    document.getElementById('cntPassives').textContent = passives + ' paciente' + (passives !== 1 ? 's' : '');
+    document.getElementById('cntDetractors').textContent = detractors + ' paciente' + (detractors !== 1 ? 's' : '');
+
+    document.getElementById('cardRecepcao').textContent = fmt(media('recepcao'));
+    document.getElementById('cardLimpeza').textContent = fmt(media('limpeza'));
+    document.getElementById('cardAtendimento').textContent = fmt(media('atendimento'));
+    document.getElementById('cardEspera').textContent = fmt(media('espera'));
+  }
+
+  function renderizarGraficos(todos) {
+    renderNPSbar();
+    renderCategorias();
+    renderNPSdist();
+    renderTrend(todos);
+  }
+
+  function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  }
+
+  function renderNPSbar() {
+    destroyChart('nps');
+    const comNPS = dadosFiltrados.filter(d => d.nps !== null);
+    const total = comNPS.length;
+    if (!total) { renderEmpty('chartNPS'); return; }
+    const promoters = comNPS.filter(d => d.nps >= 9).length;
+    const passives = comNPS.filter(d => d.nps >= 7 && d.nps <= 8).length;
+    const detractors = comNPS.filter(d => d.nps <= 6).length;
+
+    charts.nps = new Chart(document.getElementById('chartNPS'), {
+      type: 'bar',
+      data: {
+        labels: ['Detratores (0–6)', 'Neutros (7–8)', 'Promotores (9–10)'],
+        datasets: [{
+          data: [detractors, passives, promoters],
+          backgroundColor: ['#e74c3c', '#f39c12', '#27ae60'],
+          borderRadius: 10,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f0f4f8' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderCategorias() {
+    destroyChart('cat');
+    const labels = ['Recepção', 'Limpeza', 'Atend. Médico', 'Tempo Espera'];
+    const vals = ['recepcao', 'limpeza', 'atendimento', 'espera'].map(c => media(c));
+    const colors = ['#8e44ad', '#16a085', '#d35400', '#c0392b'];
+
+    if (vals.every(v => v === null)) { renderEmpty('chartCategorias'); return; }
+
+    charts.cat = new Chart(document.getElementById('chartCategorias'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: vals.map(v => v || 0),
+          backgroundColor: colors.map(c => c + 'cc'),
+          borderColor: colors,
+          borderWidth: 2,
+          borderRadius: 10,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + (ctx.raw || 0).toFixed(1) + ' ⭐' } }
+        },
+        scales: {
+          x: { min: 0, max: 5, ticks: { stepSize: 1 }, grid: { color: '#f0f4f8' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderNPSdist() {
+    destroyChart('dist');
+    const counts = Array(11).fill(0);
+    dadosFiltrados.filter(d => d.nps !== null).forEach(d => counts[d.nps]++);
+
+    if (counts.every(c => c === 0)) { renderEmpty('chartNPSdist'); return; }
+
+    const colors = counts.map((_, i) => i <= 6 ? '#e74c3c' : i <= 8 ? '#f39c12' : '#27ae60');
+
+    charts.dist = new Chart(document.getElementById('chartNPSdist'), {
+      type: 'bar',
+      data: {
+        labels: ['0','1','2','3','4','5','6','7','8','9','10'],
+        datasets: [{ data: counts, backgroundColor: colors, borderRadius: 8 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f0f4f8' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderTrend(todos) {
+    destroyChart('trend');
+    const now = new Date();
+    const meses = [];
+    const npsMensal = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const m = d.getMonth() + 1;
+      const a = d.getFullYear();
+      const nome = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+      meses.push(nome);
+
+      const mensal = todos.filter(r => {
+        const dt = new Date(r.timestamp);
+        return dt.getMonth() + 1 === m && dt.getFullYear() === a && r.nps !== null;
+      });
+
+      if (mensal.length === 0) { npsMensal.push(null); continue; }
+
+      const prom = mensal.filter(r => r.nps >= 9).length;
+      const det = mensal.filter(r => r.nps <= 6).length;
+      npsMensal.push(Math.round(((prom - det) / mensal.length) * 100));
+    }
+
+    charts.trend = new Chart(document.getElementById('chartTrend'), {
+      type: 'line',
+      data: {
+        labels: meses,
+        datasets: [{
+          label: 'NPS',
+          data: npsMensal,
+          borderColor: '#1e5f8a',
+          backgroundColor: 'rgba(30,95,138,0.08)',
+          borderWidth: 3,
+          pointRadius: 6,
+          pointBackgroundColor: npsMensal.map(v =>
+            v === null ? '#dce6f0' : v >= 50 ? '#27ae60' : v >= 0 ? '#f39c12' : '#e74c3c'
+          ),
+          pointBorderColor: 'white',
+          pointBorderWidth: 2,
+          tension: 0.3,
+          fill: true,
+          spanGaps: true,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.raw !== null ? 'NPS: ' + (ctx.raw > 0 ? '+' : '') + ctx.raw : 'Sem dados' } }
+        },
+        scales: {
+          y: { min: -100, max: 100, grid: { color: '#f0f4f8' },
+            ticks: { callback: v => (v > 0 ? '+' : '') + v } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderEmpty(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function renderizarComentarios() {
+    const lista = document.getElementById('commentsList');
+    const comComentario = dadosFiltrados.filter(d => d.comentario && d.comentario.trim());
+    document.getElementById('commentCount').textContent = '(' + comComentario.length + ')';
+
+    if (!comComentario.length) {
+      lista.innerHTML = '<div class="empty-state"><div class="big">💬</div>Nenhum comentário no período selecionado.</div>';
+      return;
+    }
+
+    lista.innerHTML = comComentario
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .map(d => {
+        const dt = new Date(d.timestamp);
+        const data = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const npsTag = d.nps !== null ? ` · NPS: ${d.nps}` : '';
+        return `<div class="comment-item">
+          <div class="meta">${data}${npsTag}</div>
+          <div class="text">${d.comentario.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+        </div>`;
+      }).join('');
+  }
+
+  function exportarCSV() {
+    const mes = parseInt(document.getElementById('filtroMes').value);
+    const ano = parseInt(document.getElementById('filtroAno').value);
+
+    const dados = todosDados.filter(d => {
+      const dt = new Date(d.timestamp);
+      return dt.getMonth() + 1 === mes && dt.getFullYear() === ano;
+    });
+
+    if (!dados.length) { alert('Nenhum dado para exportar no período selecionado.'); return; }
+
+    const header = 'Data,Hora,NPS,Recepcao,Limpeza,Atendimento,Espera,Comentario';
+    const rows = dados.map(d => {
+      const dt = new Date(d.timestamp);
+      return [
+        dt.toLocaleDateString('pt-BR'),
+        dt.toLocaleTimeString('pt-BR'),
+        d.nps ?? '',
+        d.recepcao ?? '',
+        d.limpeza ?? '',
+        d.atendimento ?? '',
+        d.espera ?? '',
+        '"' + (d.comentario || '').replace(/"/g, '""') + '"'
+      ].join(',');
+    });
+
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const meses = ['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    a.download = `satisfacao_${meses[mes]}_${ano}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/pesquisa-satisfacao/sw.js', { scope: '/pesquisa-satisfacao/' })
+      .catch(err => console.warn('[SW] Falha no registro:', err));
+  }
+</script>
+</body>
+</html>
