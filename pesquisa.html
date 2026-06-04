@@ -264,6 +264,22 @@
     cursor: pointer;
     user-select: none;
   }
+
+  .home-link {
+    position: fixed;
+    top: 16px;
+    left: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .home-link:hover { color: #fff; }
 </style>
 </head>
 <body>
@@ -367,6 +383,7 @@
   </div>
 </div>
 
+<a class="home-link" href="index.html">← Início</a>
 <a class="admin-link" href="dashboard.html">⚙</a>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
