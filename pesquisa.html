@@ -245,6 +245,14 @@
     text-decoration: none; transition: color 0.2s;
   }
   .home-link:hover { color: #fff; }
+
+  .btn-config-inline {
+    display: block; width: 100%; margin-top: 12px; padding: 12px;
+    border-radius: 14px; border: 2px solid #dce6f0; background: white;
+    color: #95a5a6; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; font-family: inherit;
+  }
+  .btn-config-inline:hover { border-color: #1e5f8a; color: #1e5f8a; }
 </style>
 </head>
 <body>
@@ -304,7 +312,8 @@
     </div>
     <div class="unit-badge" id="unitBadge">📍 Carregando...</div>
     <div class="time-badge">⏱ Menos de 1 minuto</div>
-    <button class="btn-next" onclick="nextStep()">Iniciar Pesquisa</button>
+    <button class="btn-next" id="btnIniciar" onclick="nextStep()">Iniciar Pesquisa</button>
+    <button class="btn-config-inline" id="btnConfigInline">⚙ Configurar unidade</button>
   </div>
 
   <!-- STEP 1: Tipo de paciente -->
@@ -406,7 +415,7 @@
 </div>
 
 <a class="home-link" href="index.html">← Início</a>
-<button class="admin-link" onclick="abrirConfig()" title="Configurar tablet">⚙</button>
+<button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -666,6 +675,11 @@
   // ── Init ────────────────────────────────────────────────────────────────────
   buildStars();
   aplicarConfig();
+
+  document.getElementById('btnConfigInline').addEventListener('click', abrirConfig);
+  document.getElementById('adminBtn') && document.getElementById('adminBtn').addEventListener('click', abrirConfig);
+  document.getElementById('unitBadge').addEventListener('click', function() { abrirConfig(); });
+
   if (navigator.onLine) setTimeout(trySyncQueue, 1500);
 
   if ('serviceWorker' in navigator) {
