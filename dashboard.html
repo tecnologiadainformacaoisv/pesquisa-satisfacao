@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.1.2">
+<meta name="app-version" content="0.2.0">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -276,6 +276,20 @@
     <select id="filtroMes" onchange="atualizar()"></select>
     <label>Ano:</label>
     <select id="filtroAno" onchange="atualizar()"></select>
+    <label>Tipo:</label>
+    <select id="filtroTipo" onchange="atualizar()">
+      <option value="">Todos</option>
+      <option value="internacao">Internação</option>
+      <option value="ambulatorial">Ambulatorial</option>
+    </select>
+    <label>Município:</label>
+    <select id="filtroMunicipio" onchange="atualizar()">
+      <option value="">Todos</option>
+    </select>
+    <label>Unidade:</label>
+    <select id="filtroUnidade" onchange="atualizar()">
+      <option value="">Todas</option>
+    </select>
     <div class="total-badge" id="totalBadge">0 respostas</div>
   </div>
 
@@ -425,8 +439,11 @@
         if (!Array.isArray(linhas)) throw new Error('Resposta inesperada do servidor');
 
         return linhas.map(r => ({
-          id: r.ID,
-          timestamp: r.Timestamp,
+          id:           r.ID,
+          timestamp:    r.Timestamp,
+          tipo_paciente: r.TipoPaciente || '',
+          municipio:    r.Municipio    || '',
+          unidade:      r.Unidade      || '',
           nps:         r.NPS         !== '' ? Number(r.NPS)         : null,
           recepcao:    r.Recepcao    !== '' ? Number(r.Recepcao)    : null,
           limpeza:     r.Limpeza     !== '' ? Number(r.Limpeza)     : null,
@@ -443,29 +460,42 @@
   }
 
   function popularFiltros(dados) {
-    const anos = [...new Set(dados.map(d => new Date(d.timestamp).getFullYear()))].sort();
     const now = new Date();
 
+    // Ano
+    const anos = [...new Set(dados.map(d => new Date(d.timestamp).getFullYear()))].sort();
     const selAno = document.getElementById('filtroAno');
     selAno.innerHTML = '';
-    const anosDisp = anos.length ? anos : [now.getFullYear()];
-    anosDisp.forEach(a => {
-      const o = document.createElement('option');
-      o.value = a; o.textContent = a;
-      selAno.appendChild(o);
+    (anos.length ? anos : [now.getFullYear()]).forEach(a => {
+      const o = document.createElement('option'); o.value = a; o.textContent = a; selAno.appendChild(o);
     });
     selAno.value = now.getFullYear();
 
+    // Mês
     const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                    'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const selMes = document.getElementById('filtroMes');
     selMes.innerHTML = '';
     meses.forEach((m, i) => {
-      const o = document.createElement('option');
-      o.value = i + 1; o.textContent = m;
-      selMes.appendChild(o);
+      const o = document.createElement('option'); o.value = i + 1; o.textContent = m; selMes.appendChild(o);
     });
     selMes.value = now.getMonth() + 1;
+
+    // Município
+    const municipios = [...new Set(dados.map(d => d.municipio).filter(Boolean))].sort();
+    const selMun = document.getElementById('filtroMunicipio');
+    selMun.innerHTML = '<option value="">Todos</option>';
+    municipios.forEach(m => {
+      const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
+    });
+
+    // Unidade
+    const unidades = [...new Set(dados.map(d => d.unidade).filter(Boolean))].sort();
+    const selUni = document.getElementById('filtroUnidade');
+    selUni.innerHTML = '<option value="">Todas</option>';
+    unidades.forEach(u => {
+      const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
+    });
   }
 
   async function atualizar() {
@@ -477,9 +507,16 @@
     const mes = parseInt(document.getElementById('filtroMes').value);
     const ano = parseInt(document.getElementById('filtroAno').value);
 
+    const tipo      = document.getElementById('filtroTipo').value;
+    const municipio = document.getElementById('filtroMunicipio').value;
+    const unidade   = document.getElementById('filtroUnidade').value;
+
     dadosFiltrados = todosDados.filter(d => {
       const dt = new Date(d.timestamp);
-      return dt.getMonth() + 1 === mes && dt.getFullYear() === ano;
+      return dt.getMonth() + 1 === mes && dt.getFullYear() === ano
+        && (!tipo      || d.tipo_paciente === tipo)
+        && (!municipio || d.municipio     === municipio)
+        && (!unidade   || d.unidade       === unidade);
     });
 
     document.getElementById('totalBadge').textContent = dadosFiltrados.length + ' resposta' + (dadosFiltrados.length !== 1 ? 's' : '');
