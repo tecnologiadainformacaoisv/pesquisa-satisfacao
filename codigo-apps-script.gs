@@ -27,15 +27,20 @@ function getOrCreateSheet() {
 
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
-    sheet.appendRow(HEADERS);
+  }
+
+  // Cria/recria cabeçalho sempre que a planilha estiver vazia
+  if (sheet.getLastRow() === 0) {
+    const header = sheet.getRange(1, 1, 1, HEADERS.length);
+    header.setValues([HEADERS]);
+    header.setFontWeight('bold').setBackground('#0a3d62').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
-    sheet.getRange(1, 1, 1, HEADERS.length)
-      .setFontWeight('bold')
-      .setBackground('#0a3d62')
-      .setFontColor('#ffffff');
-    sheet.setColumnWidth(1, 160);
-    sheet.setColumnWidth(2, 180);
-    sheet.setColumnWidth(8, 320);
+    sheet.setColumnWidth(1,  160); // ID
+    sheet.setColumnWidth(2,  200); // Timestamp
+    sheet.setColumnWidth(3,  130); // TipoPaciente
+    sheet.setColumnWidth(4,  140); // Municipio
+    sheet.setColumnWidth(5,  160); // Unidade
+    sheet.setColumnWidth(11, 320); // Comentario
   }
 
   return sheet;
