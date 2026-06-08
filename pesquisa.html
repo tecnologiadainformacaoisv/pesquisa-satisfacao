@@ -191,12 +191,15 @@
 
   /* Config overlay */
   .config-overlay {
-    position: fixed; inset: 0;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(10, 61, 98, 0.85);
-    display: none; align-items: center; justify-content: center;
-    z-index: 100; padding: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
   }
-  .config-overlay.open { display: flex; }
 
   .config-box {
     background: white; border-radius: 24px; padding: 40px 36px;
@@ -441,12 +444,12 @@
     document.getElementById('configSenhaErro').style.display = 'none';
     document.getElementById('configAuthArea').style.display = 'block';
     document.getElementById('configFormArea').style.display = 'none';
-    document.getElementById('configOverlay').classList.add('open');
+    document.getElementById('configOverlay').style.display = 'flex';
     setTimeout(() => document.getElementById('configSenha').focus(), 100);
   }
 
   function fecharConfig() {
-    document.getElementById('configOverlay').classList.remove('open');
+    document.getElementById('configOverlay').style.display = 'none';
   }
 
   function autenticarConfig() {
