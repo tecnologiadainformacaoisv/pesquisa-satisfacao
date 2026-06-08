@@ -384,7 +384,10 @@
   let dadosFiltrados = [];
   let todosDados = [];
 
-  // --- LOGIN ---
+  // --- LOGIN --- (senha desativada temporariamente para testes)
+  document.getElementById('loginOverlay').style.display = 'none';
+  iniciar();
+
   function fazerLogin() {
     const v = document.getElementById('senhaInput').value;
     if (v === SENHA) {
