@@ -1,25 +1,29 @@
 // =============================================================
-// Pesquisa de Satisfação — Google Apps Script
+// Pesquisa de Satisfação — Google Apps Script (standalone)
 //
 // COMO USAR:
-// 1. Abra a planilha no Google Sheets
-// 2. Extensões > Apps Script
-// 3. Cole este código, salve (Ctrl+S)
+// 1. Acesse script.google.com → "Novo projeto"
+//    (NÃO abra de dentro da planilha — isso cria um script bound)
+// 2. Cole este código, salve (Ctrl+S)
+// 3. Preencha o SPREADSHEET_ID abaixo com o ID da planilha:
+//    → Abra a planilha → copie o ID da URL:
+//    docs.google.com/spreadsheets/d/  **ESTE-TRECHO**  /edit
 // 4. Clique em "Implantar" > "Nova implantação"
 //    - Tipo: Aplicativo da Web
 //    - Executar como: Eu (minha conta)
 //    - Quem tem acesso: Qualquer pessoa
 // 5. Clique em "Implantar" e copie a URL gerada
 // 6. Cole a URL em pesquisa.html e dashboard.html
-//    onde está escrito 'COLE_SUA_URL_AQUI'
+//    onde está a constante SCRIPT_URL
 // =============================================================
 
-const SHEET_NAME = 'Respostas';
-const HEADERS = ['ID', 'Timestamp', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
+const SPREADSHEET_ID = 'COLE_O_ID_DA_PLANILHA_AQUI';
+const SHEET_NAME     = 'Respostas';
+const HEADERS        = ['ID', 'Timestamp', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
 
 function getOrCreateSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_NAME);
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let   sheet = ss.getSheetByName(SHEET_NAME);
 
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
@@ -29,9 +33,9 @@ function getOrCreateSheet() {
       .setFontWeight('bold')
       .setBackground('#0a3d62')
       .setFontColor('#ffffff');
-    sheet.setColumnWidth(1, 160); // ID
-    sheet.setColumnWidth(2, 180); // Timestamp
-    sheet.setColumnWidth(8, 320); // Comentario
+    sheet.setColumnWidth(1, 160);
+    sheet.setColumnWidth(2, 180);
+    sheet.setColumnWidth(8, 320);
   }
 
   return sheet;
@@ -44,17 +48,17 @@ function doPost(e) {
 
   try {
     const sheet = getOrCreateSheet();
-    const data = JSON.parse(e.parameter.payload);
+    const data  = JSON.parse(e.parameter.payload);
 
     sheet.appendRow([
-      data.id        || Date.now(),
-      data.timestamp || new Date().toISOString(),
-      data.nps        != null ? data.nps        : '',
-      data.recepcao   != null ? data.recepcao   : '',
-      data.limpeza    != null ? data.limpeza    : '',
+      data.id          || Date.now(),
+      data.timestamp   || new Date().toISOString(),
+      data.nps         != null ? data.nps         : '',
+      data.recepcao    != null ? data.recepcao    : '',
+      data.limpeza     != null ? data.limpeza     : '',
       data.atendimento != null ? data.atendimento : '',
-      data.espera     != null ? data.espera     : '',
-      data.comentario || ''
+      data.espera      != null ? data.espera      : '',
+      data.comentario  || ''
     ]);
 
     return ContentService
@@ -82,9 +86,9 @@ function doGet() {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    const values = sheet.getDataRange().getValues();
+    const values  = sheet.getDataRange().getValues();
     const headers = values[0];
-    const rows = values.slice(1).map(row => {
+    const rows    = values.slice(1).map(row => {
       const obj = {};
       headers.forEach((h, i) => { obj[h] = row[i]; });
       return obj;
