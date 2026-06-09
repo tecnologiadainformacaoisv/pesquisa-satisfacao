@@ -427,7 +427,7 @@
     // Busca senha da planilha em background — se falhar mantém o fallback
     fetch(SCRIPT_URL + '?action=configuracao')
       .then(r => r.json())
-      .then(cfg => { if (cfg && cfg.Senha) SENHA = cfg.Senha; })
+      .then(cfg => { if (cfg && cfg.senha) SENHA = cfg.senha; })
       .catch(() => {});
 
     todosDados = await carregarDados();

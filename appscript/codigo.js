@@ -106,7 +106,7 @@ function getConfiguracao() {
 
   if (sheet.getLastRow() > 1) {
     sheet.getDataRange().getValues().slice(1).forEach(r => {
-      if (r[0]) config[String(r[0]).trim()] = String(r[1]).trim();
+      if (r[0]) config[String(r[0]).trim().toLowerCase()] = String(r[1]).trim();
     });
   }
 
