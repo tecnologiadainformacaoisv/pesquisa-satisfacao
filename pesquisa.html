@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.2.5">
+<meta name="app-version" content="0.2.6">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -261,9 +261,36 @@
     transition: all 0.2s; font-family: inherit;
   }
   .btn-config-inline:hover { border-color: #1e5f8a; color: #1e5f8a; }
+
+  /* Offline feedback */
+  #offline-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+    background: #d97706; color: white; text-align: center;
+    padding: 10px 16px; font-size: 14px; font-weight: 600;
+    display: none;
+  }
+  #queue-info {
+    position: fixed; bottom: 16px; left: 20px;
+    background: rgba(10,61,98,0.88); color: white;
+    border-radius: 99px; padding: 7px 14px;
+    font-size: 13px; font-weight: 600;
+    display: none; z-index: 50;
+  }
+  #sync-toast {
+    position: fixed; bottom: 52px; left: 20px;
+    background: rgba(10,61,98,0.92); color: white;
+    border-radius: 12px; padding: 10px 16px;
+    font-size: 13px; font-weight: 600;
+    display: none; z-index: 51;
+    max-width: min(300px, 85vw);
+  }
 </style>
 </head>
 <body>
+
+<div id="offline-banner">📵 Sem conexão — pesquisas salvas localmente e enviadas ao reconectar</div>
+<div id="queue-info"></div>
+<div id="sync-toast"></div>
 
 <!-- Config Overlay -->
 <div class="config-overlay" id="configOverlay">
@@ -556,7 +583,44 @@
   function getQueue() {
     try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch(e) { return []; }
   }
-  function saveQueue(q) { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); }
+  function refreshQueueInfo() {
+    const q = getQueue();
+    const info = document.getElementById('queue-info');
+    if (!info) return;
+    if (q.length > 0) {
+      info.textContent = '📦 ' + q.length + ' pendente' + (q.length > 1 ? 's' : '');
+      info.style.display = 'block';
+    } else {
+      info.style.display = 'none';
+    }
+  }
+
+  function saveQueue(q) {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    refreshQueueInfo();
+  }
+
+  let _toastTimer = null;
+  function showSyncToast(msg) {
+    const el = document.getElementById('sync-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { el.style.display = 'none'; }, 4000);
+  }
+
+  function updateOnlineStatus() {
+    const banner = document.getElementById('offline-banner');
+    if (banner) banner.style.display = navigator.onLine ? 'none' : 'block';
+    if (navigator.onLine) {
+      const q = getQueue();
+      if (q.length > 0) {
+        showSyncToast('🔄 Conexão restaurada! Sincronizando ' + q.length + ' resposta' + (q.length > 1 ? 's' : '') + '...');
+        setTimeout(trySyncQueue, 1200);
+      }
+    }
+  }
 
   async function postDataComIframe(data, iframeId) {
     return new Promise((resolve) => {
@@ -608,15 +672,21 @@
     if (q.length === 0) return;
     const remaining = [];
     for (let i = 0; i < q.length; i++) {
+      showSyncToast('🔄 Sincronizando ' + (i + 1) + ' de ' + q.length + '...');
       const ok = await postDataComIframe(q[i], 'pesquisa_sync_' + Date.now() + '_' + i);
       if (!ok) remaining.push(q[i]);
       if (i < q.length - 1) await new Promise(r => setTimeout(r, 800));
     }
     saveQueue(remaining);
+    if (remaining.length === 0) {
+      showSyncToast('✅ ' + q.length + ' resposta' + (q.length > 1 ? 's' : '') + ' enviada' + (q.length > 1 ? 's' : '') + ' com sucesso!');
+    } else if (remaining.length > 0) {
+      showSyncToast('⚠ ' + remaining.length + ' resposta' + (remaining.length > 1 ? 's' : '') + ' ainda pendente' + (remaining.length > 1 ? 's' : '') + '.');
+    }
   }
 
-  window.addEventListener('online',  () => setTimeout(trySyncQueue, 800));
-  window.addEventListener('offline', () => {});
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
 
   // ── Respostas ───────────────────────────────────────────────────────────────
   const respostas = {
@@ -772,7 +842,8 @@
     document.getElementById('btnSalvarConfig').disabled = !document.getElementById('configUnidade').value;
   });
 
-  if (navigator.onLine) setTimeout(trySyncQueue, 1500);
+  refreshQueueInfo();
+  updateOnlineStatus();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/pesquisa-satisfacao/sw.js', { scope: '/pesquisa-satisfacao/' })
