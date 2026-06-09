@@ -277,7 +277,7 @@
     <label>Ano:</label>
     <select id="filtroAno" onchange="atualizar()"></select>
     <label>Município:</label>
-    <select id="filtroMunicipio" onchange="atualizar()">
+    <select id="filtroMunicipio" onchange="municipioChanged()">
       <option value="">Todos</option>
     </select>
     <label>Unidade:</label>
@@ -490,6 +490,23 @@
     unidades.forEach(u => {
       const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
     });
+  }
+
+  function municipioChanged() {
+    const municipio = document.getElementById('filtroMunicipio').value;
+    const selUni = document.getElementById('filtroUnidade');
+    const unidades = [...new Set(
+      todosDados
+        .filter(d => !municipio || d.municipio === municipio)
+        .map(d => d.unidade)
+        .filter(Boolean)
+    )].sort();
+
+    selUni.innerHTML = '<option value="">Todas</option>';
+    unidades.forEach(u => {
+      const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
+    });
+    atualizar();
   }
 
   async function atualizar() {
