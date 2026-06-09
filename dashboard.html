@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.2.2">
+<meta name="app-version" content="0.2.3">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -265,6 +265,7 @@
   <div class="page-header__actions">
     <button class="btn btn-green" onclick="exportarCSV()">⬇ Exportar CSV</button>
     <button class="btn btn-white" onclick="window.print()">🖨 Imprimir Relatório</button>
+    <button class="btn btn-outline" id="btnRefresh">🔄 Atualizar</button>
     <button class="btn btn-outline" onclick="window.location='index.html'">← Início</button>
   </div>
 </header>
@@ -285,6 +286,7 @@
       <option value="">Todas</option>
     </select>
     <div class="total-badge" id="totalBadge">0 respostas</div>
+    <span id="ultimaAtualizacao" style="font-size:12px;color:#95a5a6;white-space:nowrap"></span>
   </div>
 
   <!-- Cards de métricas -->
@@ -401,6 +403,7 @@
   document.getElementById('filtroAno').addEventListener('change', atualizar);
   document.getElementById('filtroMunicipio').addEventListener('change', municipioChanged);
   document.getElementById('filtroUnidade').addEventListener('change', atualizar);
+  document.getElementById('btnRefresh').addEventListener('click', recarregarDados);
 
   function fazerLogin() {
     const v = document.getElementById('senhaInput').value;
@@ -423,6 +426,47 @@
     todosDados = await carregarDados();
     popularFiltros(todosDados);
     atualizar();
+
+    document.getElementById('ultimaAtualizacao').textContent =
+      'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+    setInterval(recarregarDados, 30000);
+  }
+
+  // --- AUTO-REFRESH ---
+  async function recarregarDados() {
+    const btn = document.getElementById('btnRefresh');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Atualizando...'; }
+
+    const savedMun = document.getElementById('filtroMunicipio').value;
+    const savedUni = document.getElementById('filtroUnidade').value;
+
+    todosDados = await carregarDados();
+
+    const municipios = [...new Set(todosDados.map(d => d.municipio).filter(Boolean))].sort();
+    const selMun = document.getElementById('filtroMunicipio');
+    selMun.innerHTML = '<option value="">Todos</option>';
+    municipios.forEach(m => {
+      const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
+    });
+    if ([...selMun.options].some(o => o.value === savedMun)) selMun.value = savedMun;
+
+    const municipioAtual = selMun.value;
+    const unidades = [...new Set(
+      todosDados.filter(d => !municipioAtual || d.municipio === municipioAtual)
+        .map(d => d.unidade).filter(Boolean)
+    )].sort();
+    const selUni = document.getElementById('filtroUnidade');
+    selUni.innerHTML = '<option value="">Todas</option>';
+    unidades.forEach(u => {
+      const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
+    });
+    if ([...selUni.options].some(o => o.value === savedUni)) selUni.value = savedUni;
+
+    atualizar();
+
+    document.getElementById('ultimaAtualizacao').textContent =
+      'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Atualizar'; }
   }
 
   async function carregarDados() {
