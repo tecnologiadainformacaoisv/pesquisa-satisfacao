@@ -421,7 +421,7 @@
   const QUEUE_KEY   = 'pesquisa_form_queue';
   const CONFIG_KEY  = 'pesquisa_config_v1';
   const EQUIP_KEY   = 'pesquisa_equipamentos_cache';
-  const SENHA_CONFIG = 'hospital123';
+  let SENHA_CONFIG = 'hospital123'; // fallback — substituído pela planilha ao carregar
 
   let currentStep = 0;
 
@@ -459,6 +459,7 @@
   }
 
   async function autenticarConfig() {
+    await configSenhaPromise; // garante que a senha da planilha foi carregada
     const v = document.getElementById('configSenha').value;
     if (v !== SENHA_CONFIG) {
       document.getElementById('configSenhaErro').style.display = 'block';
@@ -750,6 +751,12 @@
   // ── Init ────────────────────────────────────────────────────────────────────
   buildStars();
   aplicarConfig();
+
+  // Busca senha da planilha imediatamente (antes de qualquer interação)
+  const configSenhaPromise = fetch(SCRIPT_URL + '?action=configuracao')
+    .then(r => r.json())
+    .then(cfg => { if (cfg && cfg.senha) SENHA_CONFIG = cfg.senha; })
+    .catch(() => {});
 
   document.getElementById('btnConfigInline').addEventListener('click', abrirConfig);
   document.getElementById('adminBtn') && document.getElementById('adminBtn').addEventListener('click', abrirConfig);
