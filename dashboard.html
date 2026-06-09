@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.2.1">
+<meta name="app-version" content="0.2.2">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -273,15 +273,15 @@
   <!-- Filtros -->
   <div class="card-panel filters">
     <label>Mês:</label>
-    <select id="filtroMes" onchange="atualizar()"></select>
+    <select id="filtroMes"></select>
     <label>Ano:</label>
-    <select id="filtroAno" onchange="atualizar()"></select>
+    <select id="filtroAno"></select>
     <label>Município:</label>
-    <select id="filtroMunicipio" onchange="municipioChanged()">
+    <select id="filtroMunicipio">
       <option value="">Todos</option>
     </select>
     <label>Unidade:</label>
-    <select id="filtroUnidade" onchange="atualizar()">
+    <select id="filtroUnidade">
       <option value="">Todas</option>
     </select>
     <div class="total-badge" id="totalBadge">0 respostas</div>
@@ -395,6 +395,12 @@
   // --- LOGIN --- (senha desativada temporariamente para testes)
   document.getElementById('loginOverlay').style.display = 'none';
   iniciar();
+
+  // --- LISTENERS DOS FILTROS ---
+  document.getElementById('filtroMes').addEventListener('change', atualizar);
+  document.getElementById('filtroAno').addEventListener('change', atualizar);
+  document.getElementById('filtroMunicipio').addEventListener('change', municipioChanged);
+  document.getElementById('filtroUnidade').addEventListener('change', atualizar);
 
   function fazerLogin() {
     const v = document.getElementById('senhaInput').value;
