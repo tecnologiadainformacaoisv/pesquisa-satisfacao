@@ -2,7 +2,7 @@ const SPREADSHEET_ID  = '1b-QuMPD99jZm36JqC3A1tSzhkAaRfjKPvhqalnw_jmw';
 const SHEET_NAME      = 'Respostas';
 const SHEET_CONFIG    = 'Equipamentos';
 const SHEET_CFG       = 'Configuracao';
-const HEADERS         = ['ID', 'Timestamp', 'TipoPaciente', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
+const HEADERS         = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
 const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 const HEADERS_CFG     = ['Chave', 'Valor'];
 
@@ -19,10 +19,9 @@ function getOrCreateSheet() {
     sheet.setFrozenRows(1);
     sheet.setColumnWidth(1,  160);
     sheet.setColumnWidth(2,  200);
-    sheet.setColumnWidth(3,  130);
-    sheet.setColumnWidth(4,  140);
-    sheet.setColumnWidth(5,  160);
-    sheet.setColumnWidth(11, 320);
+    sheet.setColumnWidth(3,  140);
+    sheet.setColumnWidth(4,  160);
+    sheet.setColumnWidth(10, 320);
   }
 
   return sheet;
@@ -57,7 +56,6 @@ function doPost(e) {
     sheet.appendRow([
       data.id            || Date.now(),
       data.timestamp     || new Date().toISOString(),
-      data.tipo_paciente || '',
       data.municipio     || '',
       data.unidade       || '',
       data.nps         != null ? data.nps         : '',

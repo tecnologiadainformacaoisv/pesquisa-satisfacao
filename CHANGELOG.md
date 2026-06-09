@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.2.7] — 2026-06-09
+### Removido
+- Campo `tipo_paciente` removido do escopo do projeto (formulário, payload, planilha e dashboard)
+- CSS e função `selectTipo` removidos do `pesquisa.html`
+- Coluna `TipoPaciente` removida do `HEADERS` do Apps Script (novas planilhas não terão a coluna)
+
+---
+
 ## [0.2.6] — 2026-06-09
 ### Adicionado
 - Banner laranja fixo no topo da tela quando o tablet fica sem conexão

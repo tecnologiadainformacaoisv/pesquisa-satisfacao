@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.2.6">
+<meta name="app-version" content="0.2.7">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -154,33 +154,6 @@
     padding: 6px 14px; font-size: 14px; font-weight: 600;
     margin: 0 auto 36px; width: fit-content;
   }
-
-  /* Tipo de paciente */
-  .tipo-title {
-    font-size: 20px; font-weight: 700; color: #2c3e50;
-    text-align: center; margin-bottom: 8px;
-  }
-  .tipo-sub {
-    font-size: 14px; color: #7f8c8d; text-align: center; margin-bottom: 28px;
-  }
-  .tipo-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px;
-  }
-  .tipo-btn {
-    background: white; border: 2px solid #dce6f0; border-radius: 20px;
-    padding: 28px 16px; cursor: pointer; transition: all 0.2s;
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    text-align: center;
-  }
-  .tipo-btn:hover { border-color: #2980b9; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(41,128,185,0.15); }
-  .tipo-btn:active { transform: translateY(0); }
-  .tipo-btn.selected { border-color: transparent; color: white; transform: scale(1.03); }
-  .tipo-btn.tipo-internacao.selected { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
-  .tipo-btn.tipo-ambulatorial.selected { background: linear-gradient(135deg, #16a085, #1abc9c); }
-  .tipo-btn .tipo-icon { font-size: 44px; line-height: 1; }
-  .tipo-btn .tipo-label { font-size: 17px; font-weight: 800; color: inherit; }
-  .tipo-btn .tipo-desc { font-size: 12px; color: #95a5a6; font-weight: 500; }
-  .tipo-btn.selected .tipo-desc { color: rgba(255,255,255,0.8); }
 
   /* Thank you */
   .thanks-icon { font-size: 80px; text-align: center; margin-bottom: 20px; animation: pop 0.5s ease; }
@@ -690,7 +663,6 @@
 
   // ── Respostas ───────────────────────────────────────────────────────────────
   const respostas = {
-    tipo_paciente: null,
     nps: null, recepcao: null, limpeza: null, atendimento: null, espera: null, comentario: ''
   };
 
@@ -709,13 +681,6 @@
         container.appendChild(btn);
       }
     });
-  }
-
-  function selectTipo(tipo) {
-    respostas.tipo_paciente = tipo;
-    document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
-    document.querySelector('.tipo-' + tipo).classList.add('selected');
-    setTimeout(() => nextStep(), 300);
   }
 
   function selectNPS(v) {
@@ -738,7 +703,6 @@
 
   function skipStar(group) { respostas[group] = null; nextStep(); }
 
-  // Step 1 (seleção de tipo) desativado — apenas ambulatorial por ora
   function nextStep() {
     currentStep = currentStep === 0 ? 2 : currentStep + 1;
     showStep(currentStep);
@@ -757,7 +721,6 @@
     const entrada = {
       id:           Date.now(),
       timestamp:    new Date().toISOString(),
-      tipo_paciente: 'ambulatorial',
       municipio:    cfg.municipio || '',
       unidade:      cfg.unidade   || '',
       nps:          respostas.nps,
@@ -805,9 +768,8 @@
   }
 
   function resetar() {
-    Object.assign(respostas, { tipo_paciente: null, nps: null, recepcao: null, limpeza: null, atendimento: null, espera: null, comentario: '' });
+    Object.assign(respostas, { nps: null, recepcao: null, limpeza: null, atendimento: null, espera: null, comentario: '' });
     document.querySelectorAll('.nps-btn').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('btnNPS').disabled = true;
     starGroups.forEach(group => {
       document.querySelectorAll(`#stars-${group} .star-btn`).forEach(s => { s.textContent = '☆'; s.classList.remove('lit'); });
