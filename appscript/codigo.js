@@ -1,8 +1,10 @@
 const SPREADSHEET_ID  = '1b-QuMPD99jZm36JqC3A1tSzhkAaRfjKPvhqalnw_jmw';
 const SHEET_NAME      = 'Respostas';
 const SHEET_CONFIG    = 'Equipamentos';
+const SHEET_CFG       = 'Configuracao';
 const HEADERS         = ['ID', 'Timestamp', 'TipoPaciente', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
 const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
+const HEADERS_CFG     = ['Chave', 'Valor'];
 
 function getOrCreateSheet() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -80,10 +82,45 @@ function doPost(e) {
   }
 }
 
+function getOrCreateConfiguracaoSheet() {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let   sheet = ss.getSheetByName(SHEET_CFG);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_CFG);
+    const header = sheet.getRange(1, 1, 1, HEADERS_CFG.length);
+    header.setValues([HEADERS_CFG]);
+    header.setFontWeight('bold').setBackground('#2c3e50').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidth(1, 180);
+    sheet.setColumnWidth(2, 250);
+    sheet.appendRow(['Senha', 'hospital123']);
+  }
+
+  return sheet;
+}
+
+function getConfiguracao() {
+  const sheet  = getOrCreateConfiguracaoSheet();
+  const config = {};
+
+  if (sheet.getLastRow() > 1) {
+    sheet.getDataRange().getValues().slice(1).forEach(r => {
+      if (r[0]) config[String(r[0]).trim()] = String(r[1]).trim();
+    });
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(config))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || 'dados';
   try {
-    return action === 'config' ? getEquipamentos() : getDados();
+    if (action === 'config')        return getEquipamentos();
+    if (action === 'configuracao')  return getConfiguracao();
+    return getDados();
   } catch (err) {
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))

@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.2.4">
+<meta name="app-version" content="0.2.5">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -388,7 +388,7 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwK--quEUwdbc2tvEBiC3UfazOcX0pu9wWGep-0oM3T-s0yZaJ2PYAs9-jv7UpN6Y9O3Q/exec';
 
   const STORAGE_KEY = 'pesquisa_satisfacao_v1';
-  const SENHA = 'hospital123';
+  let SENHA = 'hospital123'; // fallback — substituído pelo valor da planilha ao carregar
 
   let charts = {};
   let dadosFiltrados = [];
@@ -423,6 +423,13 @@
       'Relatório gerado em ' + now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
+
+    // Busca senha da planilha em background — se falhar mantém o fallback
+    fetch(SCRIPT_URL + '?action=configuracao')
+      .then(r => r.json())
+      .then(cfg => { if (cfg && cfg.Senha) SENHA = cfg.Senha; })
+      .catch(() => {});
+
     todosDados = await carregarDados();
     popularFiltros(todosDados);
     atualizar();
