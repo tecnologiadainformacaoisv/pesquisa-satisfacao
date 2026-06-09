@@ -616,22 +616,26 @@
     local.push(entrada);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
 
-    try {
-      if (!SCRIPT_URL || SCRIPT_URL === 'COLE_SUA_URL_AQUI') {
-        // sem endpoint — só local
-      } else if (!navigator.onLine) {
-        const q = getQueue(); q.push(entrada); saveQueue(q);
-      } else {
-        const ok = await postData(entrada);
-        if (!ok) { const q = getQueue(); q.push(entrada); saveQueue(q); }
-      }
-    } catch(e) {
-      const q = getQueue(); q.push(entrada); saveQueue(q);
-    }
-
+    // Mostra obrigado imediatamente — dados já estão salvos no localStorage
     currentStep = 8;
     showStep(8);
     iniciarContagem();
+
+    // Envio ao Sheets em background, sem bloquear a UI
+    (async () => {
+      try {
+        if (!SCRIPT_URL || SCRIPT_URL === 'COLE_SUA_URL_AQUI') {
+          // sem endpoint — só local
+        } else if (!navigator.onLine) {
+          const q = getQueue(); q.push(entrada); saveQueue(q);
+        } else {
+          const ok = await postData(entrada);
+          if (!ok) { const q = getQueue(); q.push(entrada); saveQueue(q); }
+        }
+      } catch(e) {
+        const q = getQueue(); q.push(entrada); saveQueue(q);
+      }
+    })();
   }
 
   function iniciarContagem() {
