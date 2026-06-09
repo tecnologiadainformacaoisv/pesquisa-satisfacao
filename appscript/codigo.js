@@ -1,27 +1,44 @@
-const SPREADSHEET_ID = '1b-QuMPD99jZm36JqC3A1tSzhkAaRfjKPvhqalnw_jmw';
-const SHEET_NAME     = 'Respostas';
-const HEADERS        = ['ID', 'Timestamp', 'TipoPaciente', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
+const SPREADSHEET_ID  = '1b-QuMPD99jZm36JqC3A1tSzhkAaRfjKPvhqalnw_jmw';
+const SHEET_NAME      = 'Respostas';
+const SHEET_CONFIG    = 'Equipamentos';
+const HEADERS         = ['ID', 'Timestamp', 'TipoPaciente', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
+const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 
 function getOrCreateSheet() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   let   sheet = ss.getSheetByName(SHEET_NAME);
 
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-  }
+  if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
 
-  // Cria/recria cabeçalho sempre que a planilha estiver vazia
   if (sheet.getLastRow() === 0) {
     const header = sheet.getRange(1, 1, 1, HEADERS.length);
     header.setValues([HEADERS]);
     header.setFontWeight('bold').setBackground('#0a3d62').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
-    sheet.setColumnWidth(1,  160); // ID
-    sheet.setColumnWidth(2,  200); // Timestamp
-    sheet.setColumnWidth(3,  130); // TipoPaciente
-    sheet.setColumnWidth(4,  140); // Municipio
-    sheet.setColumnWidth(5,  160); // Unidade
-    sheet.setColumnWidth(11, 320); // Comentario
+    sheet.setColumnWidth(1,  160);
+    sheet.setColumnWidth(2,  200);
+    sheet.setColumnWidth(3,  130);
+    sheet.setColumnWidth(4,  140);
+    sheet.setColumnWidth(5,  160);
+    sheet.setColumnWidth(11, 320);
+  }
+
+  return sheet;
+}
+
+function getOrCreateEquipamentosSheet() {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let   sheet = ss.getSheetByName(SHEET_CONFIG);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_CONFIG);
+    const header = sheet.getRange(1, 1, 1, HEADERS_CONFIG.length);
+    header.setValues([HEADERS_CONFIG]);
+    header.setFontWeight('bold').setBackground('#1a6b4a').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidth(1, 220);
+    sheet.setColumnWidth(2, 300);
+    sheet.setColumnWidth(3, 80);
   }
 
   return sheet;
@@ -63,31 +80,57 @@ function doPost(e) {
   }
 }
 
-function doGet() {
+function doGet(e) {
+  const action = (e && e.parameter && e.parameter.action) || 'dados';
   try {
-    const sheet = getOrCreateSheet();
-
-    if (sheet.getLastRow() <= 1) {
-      return ContentService
-        .createTextOutput(JSON.stringify([]))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    const values  = sheet.getDataRange().getValues();
-    const headers = values[0];
-    const rows    = values.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((h, i) => { obj[h] = row[i]; });
-      return obj;
-    });
-
-    return ContentService
-      .createTextOutput(JSON.stringify(rows))
-      .setMimeType(ContentService.MimeType.JSON);
-
+    return action === 'config' ? getEquipamentos() : getDados();
   } catch (err) {
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function getDados() {
+  const sheet = getOrCreateSheet();
+
+  if (sheet.getLastRow() <= 1) {
+    return ContentService
+      .createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const values  = sheet.getDataRange().getValues();
+  const headers = values[0];
+  const rows    = values.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i]; });
+    return obj;
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify(rows))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getEquipamentos() {
+  const sheet = getOrCreateEquipamentosSheet();
+
+  if (sheet.getLastRow() <= 1) {
+    return ContentService
+      .createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const rows = values.slice(1)
+    .filter(r => {
+      const ativo = String(r[2]).toUpperCase();
+      return r[0] !== '' && ativo !== 'FALSE' && ativo !== 'FALSO' && r[2] !== false;
+    })
+    .map(r => ({ municipio: String(r[0]).trim(), unidade: String(r[1]).trim() }));
+
+  return ContentService
+    .createTextOutput(JSON.stringify(rows))
+    .setMimeType(ContentService.MimeType.JSON);
 }

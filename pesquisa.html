@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.2.3">
+<meta name="app-version" content="0.2.4">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -228,6 +228,14 @@
     background: white; color: #7f8c8d; font-size: 16px; font-weight: 600; cursor: pointer;
   }
   .config-error { color: #e74c3c; font-size: 13px; margin-top: 10px; display: none; }
+  .config-field select {
+    width: 100%; padding: 13px 16px; border: 2px solid #dce6f0; border-radius: 12px;
+    font-size: 16px; font-family: inherit; outline: none; transition: border-color 0.2s; color: #2c3e50;
+    background: white; cursor: pointer;
+  }
+  .config-field select:focus { border-color: #2980b9; }
+  .config-field select:disabled { background: #f8fafc; color: #bdc3c7; cursor: not-allowed; }
+  .btn-config-save:disabled { background: #bdc3c7; cursor: not-allowed; }
 
   /* Fixed links */
   .admin-link {
@@ -267,28 +275,34 @@
     <div id="configAuthArea">
       <div class="config-field">
         <label>Senha</label>
-        <input type="password" id="configSenha" placeholder="Digite a senha"
-          onkeydown="if(event.key==='Enter') autenticarConfig()">
+        <input type="password" id="configSenha" placeholder="Digite a senha">
       </div>
       <div class="config-actions">
-        <button class="btn-config-save" onclick="autenticarConfig()">Entrar</button>
-        <button class="btn-config-cancel" onclick="fecharConfig()">Cancelar</button>
+        <button class="btn-config-save" id="btnEntrarConfig">Entrar</button>
+        <button class="btn-config-cancel" id="btnCancelarAuth">Cancelar</button>
       </div>
       <div class="config-error" id="configSenhaErro">Senha incorreta.</div>
     </div>
 
     <div id="configFormArea" style="display:none">
-      <div class="config-field">
-        <label>Município</label>
-        <input type="text" id="configMunicipio" placeholder="Ex: São Paulo">
-      </div>
-      <div class="config-field">
-        <label>Unidade</label>
-        <input type="text" id="configUnidade" placeholder="Ex: Hospital Central">
+      <div id="configLoadingMsg" style="text-align:center;padding:24px 0;color:#7f8c8d;font-size:14px">⏳ Carregando unidades...</div>
+      <div id="configSelectArea" style="display:none">
+        <div class="config-field">
+          <label>Município</label>
+          <select id="configMunicipio">
+            <option value="">Selecione o município...</option>
+          </select>
+        </div>
+        <div class="config-field">
+          <label>Unidade de Saúde</label>
+          <select id="configUnidade" disabled>
+            <option value="">Selecione a unidade...</option>
+          </select>
+        </div>
       </div>
       <div class="config-actions">
-        <button class="btn-config-save" onclick="salvarConfig()">Salvar</button>
-        <button class="btn-config-cancel" onclick="fecharConfig()">Cancelar</button>
+        <button class="btn-config-save" id="btnSalvarConfig" disabled>Salvar</button>
+        <button class="btn-config-cancel" id="btnCancelarConfig">Cancelar</button>
       </div>
     </div>
   </div>
@@ -406,6 +420,7 @@
   const STORAGE_KEY = 'pesquisa_satisfacao_v1';
   const QUEUE_KEY   = 'pesquisa_form_queue';
   const CONFIG_KEY  = 'pesquisa_config_v1';
+  const EQUIP_KEY   = 'pesquisa_equipamentos_cache';
   const SENHA_CONFIG = 'hospital123';
 
   let currentStep = 0;
@@ -443,24 +458,94 @@
     document.getElementById('configOverlay').style.display = 'none';
   }
 
-  function autenticarConfig() {
+  async function autenticarConfig() {
     const v = document.getElementById('configSenha').value;
-    if (v === SENHA_CONFIG) {
-      const cfg = getConfig();
-      document.getElementById('configMunicipio').value = cfg.municipio || '';
-      document.getElementById('configUnidade').value   = cfg.unidade   || '';
-      document.getElementById('configAuthArea').style.display = 'none';
-      document.getElementById('configFormArea').style.display = 'block';
-      document.getElementById('configMunicipio').focus();
-    } else {
+    if (v !== SENHA_CONFIG) {
       document.getElementById('configSenhaErro').style.display = 'block';
       document.getElementById('configSenha').value = '';
+      return;
     }
+    document.getElementById('configAuthArea').style.display = 'none';
+    document.getElementById('configFormArea').style.display = 'block';
+    await carregarEquipamentos();
+  }
+
+  async function carregarEquipamentos() {
+    document.getElementById('configLoadingMsg').style.display = 'block';
+    document.getElementById('configSelectArea').style.display = 'none';
+    document.getElementById('btnSalvarConfig').disabled = true;
+
+    let equipamentos = [];
+    try {
+      const resp = await fetch(SCRIPT_URL + '?action=config');
+      const data = await resp.json();
+      if (Array.isArray(data) && data.length > 0) {
+        equipamentos = data;
+        localStorage.setItem(EQUIP_KEY, JSON.stringify(equipamentos));
+      }
+    } catch(e) {}
+
+    if (equipamentos.length === 0) {
+      try { equipamentos = JSON.parse(localStorage.getItem(EQUIP_KEY) || '[]'); } catch(e2) {}
+    }
+
+    window._equipamentosCache = equipamentos;
+
+    const municipios = [...new Set(equipamentos.map(e => e.municipio).filter(Boolean))].sort();
+    const selMun = document.getElementById('configMunicipio');
+    selMun.innerHTML = '<option value="">Selecione o município...</option>';
+    municipios.forEach(m => {
+      const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
+    });
+
+    const cfg = getConfig();
+    if (cfg.municipio && municipios.includes(cfg.municipio)) {
+      selMun.value = cfg.municipio;
+      municipioConfigChanged();
+    } else {
+      const selUni = document.getElementById('configUnidade');
+      selUni.innerHTML = '<option value="">Selecione a unidade...</option>';
+      selUni.disabled = true;
+    }
+
+    document.getElementById('configLoadingMsg').style.display = 'none';
+    document.getElementById('configSelectArea').style.display = 'block';
+  }
+
+  function municipioConfigChanged() {
+    const equipamentos = window._equipamentosCache || [];
+    const municipio = document.getElementById('configMunicipio').value;
+    const cfg = getConfig();
+    const selUni = document.getElementById('configUnidade');
+
+    if (!municipio) {
+      selUni.innerHTML = '<option value="">Selecione a unidade...</option>';
+      selUni.disabled = true;
+      document.getElementById('btnSalvarConfig').disabled = true;
+      return;
+    }
+
+    const unidades = equipamentos
+      .filter(eq => eq.municipio === municipio)
+      .map(eq => eq.unidade).filter(Boolean).sort();
+
+    selUni.innerHTML = '<option value="">Selecione a unidade...</option>';
+    unidades.forEach(u => {
+      const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
+    });
+    selUni.disabled = false;
+
+    if (cfg.municipio === municipio && cfg.unidade && unidades.includes(cfg.unidade)) {
+      selUni.value = cfg.unidade;
+    }
+
+    document.getElementById('btnSalvarConfig').disabled = !selUni.value;
   }
 
   function salvarConfig() {
-    const municipio = document.getElementById('configMunicipio').value.trim();
-    const unidade   = document.getElementById('configUnidade').value.trim();
+    const municipio = document.getElementById('configMunicipio').value;
+    const unidade   = document.getElementById('configUnidade').value;
+    if (!municipio || !unidade) return;
     localStorage.setItem(CONFIG_KEY, JSON.stringify({ municipio, unidade }));
     aplicarConfig();
     fecharConfig();
@@ -669,6 +754,16 @@
   document.getElementById('btnConfigInline').addEventListener('click', abrirConfig);
   document.getElementById('adminBtn') && document.getElementById('adminBtn').addEventListener('click', abrirConfig);
   document.getElementById('unitBadge').addEventListener('click', function() { abrirConfig(); });
+
+  document.getElementById('btnEntrarConfig').addEventListener('click', autenticarConfig);
+  document.getElementById('btnCancelarAuth').addEventListener('click', fecharConfig);
+  document.getElementById('btnSalvarConfig').addEventListener('click', salvarConfig);
+  document.getElementById('btnCancelarConfig').addEventListener('click', fecharConfig);
+  document.getElementById('configSenha').addEventListener('keydown', e => { if (e.key === 'Enter') autenticarConfig(); });
+  document.getElementById('configMunicipio').addEventListener('change', municipioConfigChanged);
+  document.getElementById('configUnidade').addEventListener('change', () => {
+    document.getElementById('btnSalvarConfig').disabled = !document.getElementById('configUnidade').value;
+  });
 
   if (navigator.onLine) setTimeout(trySyncQueue, 1500);
 
