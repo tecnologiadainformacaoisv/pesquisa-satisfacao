@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.2.0">
+<meta name="app-version" content="0.2.1">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -276,12 +276,6 @@
     <select id="filtroMes" onchange="atualizar()"></select>
     <label>Ano:</label>
     <select id="filtroAno" onchange="atualizar()"></select>
-    <label>Tipo:</label>
-    <select id="filtroTipo" onchange="atualizar()">
-      <option value="">Todos</option>
-      <option value="internacao">Internação</option>
-      <option value="ambulatorial">Ambulatorial</option>
-    </select>
     <label>Município:</label>
     <select id="filtroMunicipio" onchange="atualizar()">
       <option value="">Todos</option>
@@ -507,16 +501,14 @@
     const mes = parseInt(document.getElementById('filtroMes').value);
     const ano = parseInt(document.getElementById('filtroAno').value);
 
-    const tipo      = document.getElementById('filtroTipo').value;
     const municipio = document.getElementById('filtroMunicipio').value;
     const unidade   = document.getElementById('filtroUnidade').value;
 
     dadosFiltrados = todosDados.filter(d => {
       const dt = new Date(d.timestamp);
       return dt.getMonth() + 1 === mes && dt.getFullYear() === ano
-        && (!tipo      || d.tipo_paciente === tipo)
-        && (!municipio || d.municipio     === municipio)
-        && (!unidade   || d.unidade       === unidade);
+        && (!municipio || d.municipio === municipio)
+        && (!unidade   || d.unidade   === unidade);
     });
 
     document.getElementById('totalBadge').textContent = dadosFiltrados.length + ' resposta' + (dadosFiltrados.length !== 1 ? 's' : '');

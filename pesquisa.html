@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.2.0">
+<meta name="app-version" content="0.2.1">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -316,24 +316,6 @@
     <button class="btn-config-inline" id="btnConfigInline">⚙ Configurar unidade</button>
   </div>
 
-  <!-- STEP 1: Tipo de paciente -->
-  <div class="step" id="step-1">
-    <div class="tipo-title">Como você foi atendido hoje?</div>
-    <div class="tipo-sub">Selecione o tipo de atendimento que recebeu</div>
-    <div class="tipo-grid">
-      <button class="tipo-btn tipo-internacao" onclick="selectTipo('internacao')">
-        <span class="tipo-icon">🏥</span>
-        <span class="tipo-label">Internação</span>
-        <span class="tipo-desc">Paciente internado</span>
-      </button>
-      <button class="tipo-btn tipo-ambulatorial" onclick="selectTipo('ambulatorial')">
-        <span class="tipo-icon">🚶</span>
-        <span class="tipo-label">Ambulatorial</span>
-        <span class="tipo-desc">Atendimento no dia</span>
-      </button>
-    </div>
-  </div>
-
   <!-- STEP 2: NPS -->
   <div class="step" id="step-2">
     <div class="question-label">Pergunta 1 de 5</div>
@@ -600,7 +582,11 @@
 
   function skipStar(group) { respostas[group] = null; nextStep(); }
 
-  function nextStep() { currentStep++; showStep(currentStep); }
+  // Step 1 (seleção de tipo) desativado — apenas ambulatorial por ora
+  function nextStep() {
+    currentStep = currentStep === 0 ? 2 : currentStep + 1;
+    showStep(currentStep);
+  }
 
   function showStep(n) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -615,7 +601,7 @@
     const entrada = {
       id:           Date.now(),
       timestamp:    new Date().toISOString(),
-      tipo_paciente: respostas.tipo_paciente,
+      tipo_paciente: 'ambulatorial',
       municipio:    cfg.municipio || '',
       unidade:      cfg.unidade   || '',
       nps:          respostas.nps,
