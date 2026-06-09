@@ -245,7 +245,7 @@
 <body>
 
 <!-- Login -->
-<div id="loginOverlay" style="display:none">
+<div id="loginOverlay">
   <div class="login-box">
     <div style="font-size:48px;margin-bottom:16px">🔒</div>
     <h2>Área Administrativa</h2>
@@ -400,9 +400,7 @@
     .then(cfg => { if (cfg && cfg.senha) SENHA = cfg.senha; })
     .catch(() => {});
 
-  // --- LOGIN --- (senha desativada temporariamente para testes)
-  document.getElementById('loginOverlay').style.display = 'none';
-  iniciar();
+  // --- LOGIN ---
 
   // --- LISTENERS DOS FILTROS ---
   document.getElementById('filtroMes').addEventListener('change', atualizar);
