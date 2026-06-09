@@ -394,6 +394,12 @@
   let dadosFiltrados = [];
   let todosDados = [];
 
+  // Busca a senha da planilha imediatamente ao carregar a página
+  const configPromise = fetch(SCRIPT_URL + '?action=configuracao')
+    .then(r => r.json())
+    .then(cfg => { if (cfg && cfg.senha) SENHA = cfg.senha; })
+    .catch(() => {});
+
   // --- LOGIN --- (senha desativada temporariamente para testes)
   document.getElementById('loginOverlay').style.display = 'none';
   iniciar();
@@ -405,7 +411,8 @@
   document.getElementById('filtroUnidade').addEventListener('change', atualizar);
   document.getElementById('btnRefresh').addEventListener('click', recarregarDados);
 
-  function fazerLogin() {
+  async function fazerLogin() {
+    await configPromise; // garante que a senha da planilha foi carregada
     const v = document.getElementById('senhaInput').value;
     if (v === SENHA) {
       document.getElementById('loginOverlay').style.display = 'none';
@@ -423,13 +430,6 @@
       'Relatório gerado em ' + now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
-
-    // Busca senha da planilha em background — se falhar mantém o fallback
-    fetch(SCRIPT_URL + '?action=configuracao')
-      .then(r => r.json())
-      .then(cfg => { if (cfg && cfg.senha) SENHA = cfg.senha; })
-      .catch(() => {});
-
     todosDados = await carregarDados();
     popularFiltros(todosDados);
     atualizar();
