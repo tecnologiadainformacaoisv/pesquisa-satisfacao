@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.2.9">
+<meta name="app-version" content="0.3.0">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -21,6 +21,7 @@
     font-family: 'Segoe UI', system-ui, sans-serif;
     background: #f0f4f8;
     color: #2c3e50;
+    overflow-x: hidden;
   }
 
   /* Login overlay */
@@ -61,14 +62,27 @@
   .login-box button:hover { opacity: 0.9; }
   .login-error { color: #e74c3c; font-size: 13px; margin-top: 10px; display: none; }
 
-  /* Filters */
+  /* Filters — 2 linhas para não causar overflow em landscape */
   .filters {
-    padding: 20px 24px;
+    padding: 16px 24px;
     margin-bottom: 24px;
     display: flex;
-    align-items: center;
-    gap: 16px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filters-row {
+    display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .filters-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
   }
 
   .filters label { font-size: 14px; font-weight: 600; color: #7f8c8d; }
@@ -76,12 +90,11 @@
   .filters select {
     padding: 10px 14px; border: 2px solid #dce6f0; border-radius: 10px;
     font-size: 14px; color: #2c3e50; outline: none; cursor: pointer;
-    background: white;
+    background: white; max-width: 200px;
   }
   .filters select:focus { border-color: #2980b9; }
 
   .total-badge {
-    margin-left: auto;
     background: #eaf4fb;
     color: #1e5f8a;
     padding: 8px 16px;
@@ -132,8 +145,8 @@
     margin-bottom: 24px;
   }
 
-  /* Tablet landscape (~1024px) e portrait (~768px): 1 coluna p/ gráficos ficarem maiores */
-  @media (max-width: 1100px) {
+  /* Tablet portrait + landscape: coluna única até 1400px (desktop grande = 2 colunas) */
+  @media (max-width: 1400px) {
     .charts-grid { grid-template-columns: 1fr; }
     .chart-card.full { grid-column: 1; }
   }
@@ -293,27 +306,30 @@
     <button class="btn btn-green" onclick="exportarCSV()">⬇ Exportar CSV</button>
     <button class="btn btn-white" onclick="window.print()">🖨 Imprimir Relatório</button>
     <button class="btn btn-outline" id="btnRefresh">🔄 Atualizar</button>
-    <button class="btn btn-outline" onclick="window.location='index.html'">← Início</button>
   </div>
 </header>
 
 <main class="page-content page-content--wide">
   <!-- Filtros -->
   <div class="card-panel filters">
-    <label>Mês:</label>
-    <select id="filtroMes"></select>
-    <label>Ano:</label>
-    <select id="filtroAno"></select>
-    <label>Município:</label>
-    <select id="filtroMunicipio">
-      <option value="">Todos</option>
-    </select>
-    <label>Unidade:</label>
-    <select id="filtroUnidade">
-      <option value="">Todas</option>
-    </select>
-    <div class="total-badge" id="totalBadge">0 respostas</div>
-    <span id="ultimaAtualizacao" style="font-size:12px;color:#95a5a6;white-space:nowrap"></span>
+    <div class="filters-row">
+      <label>Mês:</label>
+      <select id="filtroMes"></select>
+      <label>Ano:</label>
+      <select id="filtroAno"></select>
+      <label>Município:</label>
+      <select id="filtroMunicipio">
+        <option value="">Todos</option>
+      </select>
+      <label>Unidade:</label>
+      <select id="filtroUnidade">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div class="filters-meta">
+      <div class="total-badge" id="totalBadge">0 respostas</div>
+      <span id="ultimaAtualizacao" style="font-size:12px;color:#95a5a6"></span>
+    </div>
   </div>
 
   <!-- Cards de métricas -->

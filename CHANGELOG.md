@@ -5,6 +5,16 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.0] — 2026-06-10
+### Corrigido
+- Dashboard: filtros reestruturados em 2 linhas (linha 1: seletores, linha 2: contagem + timestamp) — elimina overflow horizontal em landscape que causava zoom-out do browser
+- `overflow-x: hidden` adicionado ao body como proteção contra overflow residual
+- Breakpoint dos gráficos ampliado para 1400px — tablet em landscape sempre usa coluna única
+- Botão "← Início" removido do dashboard — equipe assistencial não deve navegar para fora
+- `white-space:nowrap` removido do timestamp de atualização
+
+---
+
 ## [0.2.9] — 2026-06-10
 ### Corrigido
 - Dashboard responsivo em modo paisagem: gráficos em coluna única até 1100px (cobre tablet portrait e landscape)
