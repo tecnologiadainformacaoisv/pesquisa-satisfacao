@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.1] — 2026-06-10
+### Corrigido
+- Header do dashboard em coluna (empilhado) em portrait ≤900px — elimina overflow que quebrava o layout
+- Remove `.filters label { display: none }` que escondia rótulos dos filtros em portrait
+- Selects menores em ≤700px para caber melhor em telas pequenas
+
+---
+
 ## [0.3.0] — 2026-06-10
 ### Corrigido
 - Dashboard: filtros reestruturados em 2 linhas (linha 1: seletores, linha 2: contagem + timestamp) — elimina overflow horizontal em landscape que causava zoom-out do browser
