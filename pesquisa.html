@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.2.7">
+<meta name="app-version" content="0.2.8">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -219,13 +219,6 @@
     z-index: 50;
   }
   .admin-link:hover { color: rgba(255,255,255,0.7); }
-  .home-link {
-    position: fixed; top: 16px; left: 20px;
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6);
-    text-decoration: none; transition: color 0.2s;
-  }
-  .home-link:hover { color: #fff; }
 
   .btn-config-inline {
     display: block; width: 100%; margin-top: 12px; padding: 12px;
@@ -410,7 +403,6 @@
   </div>
 </div>
 
-<a class="home-link" href="index.html">← Início</a>
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
@@ -436,12 +428,18 @@
   function aplicarConfig() {
     const cfg = getConfig();
     const badge = document.getElementById('unitBadge');
-    if (cfg.municipio && cfg.unidade) {
+    const btnIniciar = document.getElementById('btnIniciar');
+    const configurado = !!(cfg.municipio && cfg.unidade);
+    if (configurado) {
       badge.textContent = '📍 ' + cfg.unidade + ' — ' + cfg.municipio;
       badge.className = 'unit-badge';
+      btnIniciar.disabled = false;
+      btnIniciar.textContent = 'Iniciar Pesquisa';
     } else {
       badge.textContent = '⚠ Unidade não configurada — toque ⚙ para configurar';
       badge.className = 'unit-badge unconfigured';
+      btnIniciar.disabled = true;
+      btnIniciar.textContent = 'Configure a unidade para iniciar';
     }
   }
 

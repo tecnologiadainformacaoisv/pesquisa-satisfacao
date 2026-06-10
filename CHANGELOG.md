@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.2.8] — 2026-06-10
+### Alterado
+- Botão "← Início" removido do `pesquisa.html` — tablet do kiosque não deve navegar para fora do formulário
+- `start_url` do `manifest.json` corrigido para `/pesquisa-satisfacao/pesquisa.html` — PWA instalado abre direto no formulário
+
+---
+
 ## [0.2.7] — 2026-06-09
 ### Removido
 - Campo `tipo_paciente` removido do escopo do projeto (formulário, payload, planilha e dashboard)
