@@ -1,11 +1,11 @@
 {
   "name": "Pesquisa de Satisfação",
   "short_name": "Satisfação",
-  "description": "Pesquisa de satisfação de pacientes do Instituto São Vicente. v0.2.8",
+  "description": "Pesquisa de satisfação de pacientes do Instituto São Vicente. v0.2.9",
   "start_url": "/pesquisa-satisfacao/pesquisa.html",
   "scope": "/pesquisa-satisfacao/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#0a3d62",
   "theme_color": "#0a3d62",
   "icons": [

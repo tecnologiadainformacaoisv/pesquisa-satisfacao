@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.2.9] — 2026-06-10
+### Corrigido
+- Dashboard responsivo em modo paisagem: gráficos em coluna única até 1100px (cobre tablet portrait e landscape)
+- Header do dashboard compacto em telas ≤ 1024px (botões menores, título reduzido)
+- Cards de métricas em 2 colunas em telas ≤ 700px; value e padding reduzidos
+- `manifest.json`: `orientation` alterado de `"portrait"` para `"any"` — permite uso do PWA em paisagem
+
+---
+
 ## [0.2.8] — 2026-06-10
 ### Alterado
 - Botão "← Início" removido do `pesquisa.html` — tablet do kiosque não deve navegar para fora do formulário

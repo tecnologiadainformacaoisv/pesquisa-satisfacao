@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.2.8">
+<meta name="app-version" content="0.2.9">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -132,10 +132,25 @@
     margin-bottom: 24px;
   }
 
-  @media (max-width: 900px) {
+  /* Tablet landscape (~1024px) e portrait (~768px): 1 coluna p/ gráficos ficarem maiores */
+  @media (max-width: 1100px) {
     .charts-grid { grid-template-columns: 1fr; }
+    .chart-card.full { grid-column: 1; }
+  }
+
+  @media (max-width: 900px) {
     main { padding: 20px 16px; }
-    header { padding: 16px 20px; }
+  }
+
+  @media (max-width: 700px) {
+    .cards-grid { grid-template-columns: 1fr 1fr; }
+    .metric-card .value { font-size: 28px; }
+    .metric-card { padding: 16px; }
+    .filters { gap: 10px; padding: 16px; }
+    .filters label { display: none; }
+    .total-badge { margin-left: 0; }
+    .chart-wrap { height: 220px; }
+    .chart-wrap.tall { height: 280px; }
   }
 
   .chart-card {
@@ -232,6 +247,18 @@
   }
 
   .empty-state .big { font-size: 48px; margin-bottom: 12px; }
+
+  /* Header compacto em tablet */
+  @media (max-width: 1024px) {
+    .page-header__title { font-size: 18px; }
+    .btn { padding: 8px 12px; font-size: 13px; }
+  }
+
+  @media (max-width: 700px) {
+    .page-header { padding: 12px 16px; gap: 10px; }
+    .page-header__title { font-size: 16px; }
+    .page-header__subtitle { display: none; }
+  }
 
   /* Print styles */
   @media print {
