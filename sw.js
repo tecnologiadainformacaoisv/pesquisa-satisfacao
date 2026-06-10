@@ -1,4 +1,4 @@
-const APP_VERSION = '0.3.3';
+const APP_VERSION = '0.3.4';
 const CACHE_NAME = `pesquisa-satisfacao-${APP_VERSION}`;
 
 const URLS = [
@@ -7,6 +7,7 @@ const URLS = [
   '/pesquisa-satisfacao/pesquisa.html',
   '/pesquisa-satisfacao/dashboard.html',
   '/pesquisa-satisfacao/manifest.json',
+  '/pesquisa-satisfacao/manifest-dashboard.json',
   '/pesquisa-satisfacao/shared/styles/instituto.css',
   '/pesquisa-satisfacao/shared/assets/logo-192.png',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'

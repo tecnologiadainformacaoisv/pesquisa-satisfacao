@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.4] — 2026-06-10
+### Adicionado
+- `manifest-dashboard.json` — manifest separado para o dashboard, `start_url` aponta para `dashboard.html`
+- `dashboard.html` referencia `manifest-dashboard.json` — instalável como PWA independente ("Dashboard")
+- SW atualizado para cachear `manifest-dashboard.json`
+
+---
+
 ## [0.3.3] — 2026-06-10
 ### Corrigido
 - `html` e `body` com `overflow-x: hidden; max-width: 100vw` — impede zoom-out do browser por overflow horizontal
