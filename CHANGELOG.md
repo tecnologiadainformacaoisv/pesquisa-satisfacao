@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.2] — 2026-06-10
+### Corrigido
+- Dashboard: adiciona listener `controllerchange` — página recarrega automaticamente quando novo Service Worker ativa, eliminando a necessidade de refresh manual para ver CSS atualizado
+
+---
+
 ## [0.3.1] — 2026-06-10
 ### Corrigido
 - Header do dashboard em coluna (empilhado) em portrait ≤900px — elimina overflow que quebrava o layout
