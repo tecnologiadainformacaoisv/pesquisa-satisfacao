@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.3] — 2026-06-10
+### Corrigido
+- `html` e `body` com `overflow-x: hidden; max-width: 100vw` — impede zoom-out do browser por overflow horizontal
+- `canvas { max-width: 100% }` e `.chart-wrap { overflow: hidden }` — contém canvas do Chart.js dentro do viewport
+- `renderizarGraficos()` envolto em `requestAnimationFrame` — garante que o layout está pronto antes dos gráficos renderizarem
+
+---
+
 ## [0.3.2] — 2026-06-10
 ### Corrigido
 - Dashboard: adiciona listener `controllerchange` — página recarrega automaticamente quando novo Service Worker ativa, eliminando a necessidade de refresh manual para ver CSS atualizado
