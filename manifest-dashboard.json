@@ -1,7 +1,7 @@
 {
   "name": "Dashboard Satisfação ISV",
   "short_name": "Dashboard",
-  "description": "Painel administrativo de pesquisa de satisfação. v0.4.0",
+  "description": "Painel administrativo de pesquisa de satisfação. v0.4.1",
   "start_url": "/pesquisa-satisfacao/dashboard.html",
   "scope": "/pesquisa-satisfacao/",
   "display": "standalone",

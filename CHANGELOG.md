@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.4.1] — 2026-06-12
+### Corrigido
+- Página travada em `100dvh` (body `overflow: hidden`) — sem scroll externo em nenhum dispositivo
+- Card com `max-height` e scroll interno invisível (sem barra) como fallback
+- Media query mobile com espaçamentos e fontes mais compactos para caber na tela sem rolar
+
+---
+
 ## [0.4.0] — 2026-06-12
 ### Adicionado
 - Botão "← Voltar" em todas as perguntas (steps 2–7), permitindo corrigir respostas anteriores
