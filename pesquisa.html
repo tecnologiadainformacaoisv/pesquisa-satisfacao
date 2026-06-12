@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.3.12">
+<meta name="app-version" content="0.4.0">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -166,6 +166,13 @@
     font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
   }
   .btn-skip:hover { border-color: #95a5a6; color: #2c3e50; }
+
+  .btn-back {
+    display: block; width: 100%; margin-top: 12px; padding: 14px; border-radius: 14px;
+    border: 2px solid #dce6f0; background: white; color: #7f8c8d;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: #95a5a6; color: #2c3e50; }
 
   /* Welcome */
   .welcome-icon { font-size: 72px; text-align: center; margin-bottom: 20px; }
@@ -386,6 +393,7 @@
     </div>
     <div class="nps-labels"><span>Muito improvável</span><span>Muito provável</span></div>
     <button class="btn-next" id="btnNPS" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
   <!-- STEP 3: Recepção -->
@@ -396,6 +404,7 @@
     <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
     <button class="btn-next" id="btnRecepcao" onclick="nextStep()" disabled>Continuar</button>
     <button class="btn-skip" onclick="skipStar('recepcao')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
   <!-- STEP 4: Limpeza -->
@@ -406,6 +415,7 @@
     <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
     <button class="btn-next" id="btnLimpeza" onclick="nextStep()" disabled>Continuar</button>
     <button class="btn-skip" onclick="skipStar('limpeza')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
   <!-- STEP 5: Atendimento médico -->
@@ -416,6 +426,7 @@
     <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
     <button class="btn-next" id="btnAtendimento" onclick="nextStep()" disabled>Continuar</button>
     <button class="btn-skip" onclick="skipStar('atendimento')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
   <!-- STEP 6: Espera -->
@@ -426,6 +437,7 @@
     <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
     <button class="btn-next" id="btnEspera" onclick="nextStep()" disabled>Continuar</button>
     <button class="btn-skip" onclick="skipStar('espera')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
   <!-- STEP 7: Comentário -->
@@ -435,6 +447,7 @@
     <textarea id="comentario" placeholder="Escreva aqui sua opinião, sugestão ou elogio..."></textarea>
     <button class="btn-next" onclick="salvarResposta()">Enviar Pesquisa</button>
     <button class="btn-skip" onclick="salvarResposta()">Enviar sem comentário</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
   <!-- STEP 8: Obrigado -->
@@ -449,7 +462,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v0.3.12</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v0.4.0</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -759,10 +772,20 @@
     document.getElementById(btnIds[group]).disabled = false;
   }
 
-  function skipStar(group) { respostas[group] = null; nextStep(); }
+  function skipStar(group) {
+    respostas[group] = null;
+    document.querySelectorAll(`#stars-${group} .star-btn`).forEach(s => { s.textContent = '☆'; s.classList.remove('lit'); });
+    document.getElementById(btnIds[group]).disabled = true;
+    nextStep();
+  }
 
   function nextStep() {
     currentStep = currentStep === 0 ? 2 : currentStep + 1;
+    showStep(currentStep);
+  }
+
+  function prevStep() {
+    currentStep = currentStep === 2 ? 0 : currentStep - 1;
     showStep(currentStep);
   }
 

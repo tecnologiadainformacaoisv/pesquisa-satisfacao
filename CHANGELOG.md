@@ -5,6 +5,17 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.4.0] — 2026-06-12
+### Adicionado
+- Botão "← Voltar" em todas as perguntas (steps 2–7), permitindo corrigir respostas anteriores
+- `prevStep()` — navegação regressiva preservando seleções já feitas
+### Corrigido
+- "Prefiro não avaliar" agora zera visualmente as estrelas ao ser clicado (estado consistente com o dado enviado)
+### Ajuste
+- Estilo do botão "← Voltar" padronizado com "Prefiro não avaliar" (borda, altura e fonte iguais)
+
+---
+
 ## [0.3.12] — 2026-06-12
 ### Ajuste
 - Botão flutuante ⚙ (canto inferior direito) removido — redundante com o botão "Configurar unidade"
