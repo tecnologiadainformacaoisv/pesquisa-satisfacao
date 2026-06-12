@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.1] — 2026-06-12
+### Ajuste
+- Emoji 👋 da tela inicial animado com aceno periódico (CSS `@keyframes`, sem JavaScript)
+
+---
+
 ## [1.0.0] — 2026-06-12 🚀 Primeiro deploy em produção
 ### Segurança
 - Login do dashboard reativado — overlay de senha obrigatório para acessar dados

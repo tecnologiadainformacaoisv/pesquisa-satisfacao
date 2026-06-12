@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.0.0">
+<meta name="app-version" content="1.0.1">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -179,8 +179,22 @@
   }
   .btn-back:hover { border-color: #95a5a6; color: #2c3e50; }
 
+  @keyframes wave {
+    0%, 60%, 100% { transform: rotate(0deg);  }
+    10%           { transform: rotate(14deg); }
+    20%           { transform: rotate(-8deg); }
+    30%           { transform: rotate(14deg); }
+    40%           { transform: rotate(-4deg); }
+    50%           { transform: rotate(10deg); }
+  }
+
   /* Welcome */
-  .welcome-icon { font-size: 72px; text-align: center; margin-bottom: 20px; }
+  .welcome-icon {
+    font-size: 72px; text-align: center; margin-bottom: 20px;
+    display: block;
+    animation: wave 3s ease-in-out infinite;
+    transform-origin: 70% 70%;
+  }
   .welcome-title { font-size: 28px; font-weight: 800; color: #1e5f8a; text-align: center; margin-bottom: 12px; }
   .welcome-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.6; margin-bottom: 24px; }
 
@@ -479,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.0.0</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.0.1</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
