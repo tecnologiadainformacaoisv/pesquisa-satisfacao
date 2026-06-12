@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.12] — 2026-06-12
+### Ajuste
+- Botão flutuante ⚙ (canto inferior direito) removido — redundante com o botão "Configurar unidade"
+- Rodapé de versão adicionado à tela de pesquisa (fixo, discreto, igual ao da tela principal)
+
+---
+
 ## [0.3.11] — 2026-06-12
 ### Ajuste
 - Media query `@media (max-width: 480px)` para responsividade mobile: logos menores, padding do card reduzido, fonte do título ajustada
