@@ -19,7 +19,7 @@
 
 const SPREADSHEET_ID = 'COLE_O_ID_DA_PLANILHA_AQUI';
 const SHEET_NAME     = 'Respostas';
-const HEADERS        = ['ID', 'Timestamp', 'TipoPaciente', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
+const HEADERS        = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
 
 function getOrCreateSheet() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -37,10 +37,9 @@ function getOrCreateSheet() {
     sheet.setFrozenRows(1);
     sheet.setColumnWidth(1,  160); // ID
     sheet.setColumnWidth(2,  200); // Timestamp
-    sheet.setColumnWidth(3,  130); // TipoPaciente
-    sheet.setColumnWidth(4,  140); // Municipio
-    sheet.setColumnWidth(5,  160); // Unidade
-    sheet.setColumnWidth(11, 320); // Comentario
+    sheet.setColumnWidth(3,  140); // Municipio
+    sheet.setColumnWidth(4,  160); // Unidade
+    sheet.setColumnWidth(10, 320); // Comentario
   }
 
   return sheet;
@@ -58,7 +57,6 @@ function doPost(e) {
     sheet.appendRow([
       data.id            || Date.now(),
       data.timestamp     || new Date().toISOString(),
-      data.tipo_paciente || '',
       data.municipio     || '',
       data.unidade       || '',
       data.nps         != null ? data.nps         : '',
