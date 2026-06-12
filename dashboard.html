@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="0.3.4">
+<meta name="app-version" content="1.0.0">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -299,7 +299,6 @@
     <input type="password" id="senhaInput" placeholder="Senha" onkeydown="if(event.key==='Enter')fazerLogin()">
     <button onclick="fazerLogin()">Entrar</button>
     <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
-    <div style="margin-top:16px;font-size:12px;color:#bdc3c7">Senha padrão: hospital123</div>
   </div>
 </div>
 
@@ -449,9 +448,8 @@
     .then(cfg => { if (cfg && cfg.senha) SENHA = cfg.senha; })
     .catch(() => {});
 
-  // --- LOGIN --- (desativado — dashboard aberto para supervisores)
-  document.getElementById('loginOverlay').style.display = 'none';
-  iniciar();
+  // --- LOGIN ---
+  document.getElementById('senhaInput').focus();
 
   // --- LISTENERS DOS FILTROS ---
   document.getElementById('filtroMes').addEventListener('change', atualizar);

@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.0] — 2026-06-12 🚀 Primeiro deploy em produção
+### Segurança
+- Login do dashboard reativado — overlay de senha obrigatório para acessar dados
+- Hint `"Senha padrão: hospital123"` removido do HTML público
+- Versão do dashboard.html corrigida e sincronizada com os demais arquivos
+
+---
+
 ## [0.4.1] — 2026-06-12
 ### Corrigido
 - Página travada em `100dvh` (body `overflow: hidden`) — sem scroll externo em nenhum dispositivo
