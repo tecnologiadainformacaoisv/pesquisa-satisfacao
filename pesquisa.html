@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.3.4">
+<meta name="app-version" content="0.3.5">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -44,9 +44,36 @@
     background: linear-gradient(90deg, #0a3d62, #2980b9, #27ae60);
   }
 
-  .logo-area { text-align: center; margin-bottom: 28px; }
-  .logo-icon { font-size: 52px; display: block; margin-bottom: 8px; }
-  .hospital-name { font-size: 18px; color: #1e5f8a; font-weight: 700; letter-spacing: 0.5px; }
+  .logo-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .logo-isv {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .logo-municipio {
+    height: 52px;
+    width: auto;
+    max-width: 130px;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: none;
+  }
+  .hospital-name {
+    font-size: 15px;
+    color: #1e5f8a;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+    flex: 1;
+    line-height: 1.3;
+  }
 
   .progress-bar {
     background: #e8f4f8;
@@ -304,8 +331,9 @@
 <!-- Formulário -->
 <div class="card">
   <div class="logo-area">
-    <span class="logo-icon">🏥</span>
-    <div class="hospital-name">PESQUISA DE SATISFAÇÃO</div>
+    <img class="logo-isv" src="shared/assets/logo-192.png" alt="Instituto São Vicente">
+    <div class="hospital-name">PESQUISA DE<br>SATISFAÇÃO</div>
+    <img class="logo-municipio" id="logoMunicipio" src="" alt="">
   </div>
 
   <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
@@ -413,6 +441,10 @@
   const QUEUE_KEY   = 'pesquisa_form_queue';
   const CONFIG_KEY  = 'pesquisa_config_v1';
   const EQUIP_KEY   = 'pesquisa_equipamentos_cache';
+
+  const MUNICIPIO_LOGOS = {
+    'Caucaia': 'shared/assets/municipios/caucaia.png'
+  };
   let SENHA_CONFIG = 'hospital123'; // fallback — substituído pela planilha ao carregar
 
   let currentStep = 0;
@@ -429,17 +461,27 @@
     const cfg = getConfig();
     const badge = document.getElementById('unitBadge');
     const btnIniciar = document.getElementById('btnIniciar');
+    const logoMun = document.getElementById('logoMunicipio');
     const configurado = !!(cfg.municipio && cfg.unidade);
     if (configurado) {
       badge.textContent = '📍 ' + cfg.unidade + ' — ' + cfg.municipio;
       badge.className = 'unit-badge';
       btnIniciar.disabled = false;
       btnIniciar.textContent = 'Iniciar Pesquisa';
+      const logoSrc = MUNICIPIO_LOGOS[cfg.municipio];
+      if (logoSrc) {
+        logoMun.src = logoSrc;
+        logoMun.alt = cfg.municipio;
+        logoMun.style.display = 'block';
+      } else {
+        logoMun.style.display = 'none';
+      }
     } else {
       badge.textContent = '⚠ Unidade não configurada — toque ⚙ para configurar';
       badge.className = 'unit-badge unconfigured';
       btnIniciar.disabled = true;
       btnIniciar.textContent = 'Configure a unidade para iniciar';
+      logoMun.style.display = 'none';
     }
   }
 

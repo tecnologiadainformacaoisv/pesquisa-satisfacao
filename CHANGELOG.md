@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.5] — 2026-06-12
+### Adicionado
+- Header do formulário com logos bilaterais: ISV (esquerda, fixo) + município (direita, dinâmico)
+- `MUNICIPIO_LOGOS` — mapeamento municipio → arquivo de logo em `shared/assets/municipios/`
+- `aplicarConfig()` atualiza logo do município automaticamente ao configurar o tablet
+- Pasta `shared/assets/municipios/` criada para logos municipais (adicionar `caucaia.png` manualmente)
+
+---
+
 ## [0.3.4] — 2026-06-10
 ### Adicionado
 - `manifest-dashboard.json` — manifest separado para o dashboard, `start_url` aponta para `dashboard.html`
