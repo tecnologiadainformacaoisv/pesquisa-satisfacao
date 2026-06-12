@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.11] — 2026-06-12
+### Ajuste
+- Media query `@media (max-width: 480px)` para responsividade mobile: logos menores, padding do card reduzido, fonte do título ajustada
+
+---
+
 ## [0.3.10] — 2026-06-12
 ### Ajuste
 - Header do formulário migrado de `flex` para `grid` (3 colunas `1fr auto 1fr`) para título sempre centralizado

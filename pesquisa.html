@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="0.3.10">
+<meta name="app-version" content="0.3.11">
 <link rel="stylesheet" href="shared/styles/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -283,6 +283,14 @@
     font-size: 13px; font-weight: 600;
     display: none; z-index: 51;
     max-width: min(300px, 85vw);
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 28px 20px; }
+    .logo-isv { height: 36px; max-width: 120px; }
+    .logo-municipio { height: 30px; max-width: 75px; margin-right: 4px; }
+    .logo-icon { font-size: 20px; }
+    .hospital-name { font-size: 13px; }
   }
 </style>
 </head>
