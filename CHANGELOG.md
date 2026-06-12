@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.10] — 2026-06-12
+### Ajuste
+- Header do formulário migrado de `flex` para `grid` (3 colunas `1fr auto 1fr`) para título sempre centralizado
+- Logo ISV: `height: 60px`, `max-width: 200px` (corrigido `max-width` que impedia altura real de renderizar)
+- Logo município: `margin-right: 12px` para simetria visual com a logo ISV
+
+---
+
 ## [0.3.9] — 2026-06-12
 ### Ajuste
 - Logo ISV levemente maior (`height: 64px`) para destaque visual em relação à logo do município (`52px`)
