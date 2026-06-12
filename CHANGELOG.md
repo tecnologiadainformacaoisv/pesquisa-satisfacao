@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.2] — 2026-06-12
+### Ajuste
+- Ícones PWA corrigidos: 3 tamanhos (72×72, 192×192, 512×512) com proporções corretas
+- Manifests atualizados para referenciar todos os tamanhos (paridade com Formulários de Visita Técnica)
+
+---
+
 ## [1.0.1] — 2026-06-12
 ### Ajuste
 - Emoji 👋 da tela inicial animado com aceno periódico (CSS `@keyframes`, sem JavaScript)

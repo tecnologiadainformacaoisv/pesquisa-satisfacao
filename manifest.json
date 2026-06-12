@@ -1,7 +1,7 @@
 {
   "name": "Pesquisa de Satisfação",
   "short_name": "Satisfação",
-  "description": "Pesquisa de satisfação de pacientes do Instituto São Vicente. v1.0.0",
+  "description": "Pesquisa de satisfação de pacientes do Instituto São Vicente. v1.0.2",
   "start_url": "/pesquisa-satisfacao/pesquisa.html",
   "scope": "/pesquisa-satisfacao/",
   "display": "standalone",
@@ -10,8 +10,20 @@
   "theme_color": "#0a3d62",
   "icons": [
     {
+      "src": "/pesquisa-satisfacao/shared/assets/logo-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/pesquisa-satisfacao/shared/assets/logo-192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pesquisa-satisfacao/shared/assets/logo-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }

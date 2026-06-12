@@ -1,4 +1,4 @@
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const CACHE_NAME = `pesquisa-satisfacao-${APP_VERSION}`;
 
 const URLS = [
@@ -9,7 +9,9 @@ const URLS = [
   '/pesquisa-satisfacao/manifest.json',
   '/pesquisa-satisfacao/manifest-dashboard.json',
   '/pesquisa-satisfacao/shared/styles/instituto.css',
+  '/pesquisa-satisfacao/shared/assets/logo-72.png',
   '/pesquisa-satisfacao/shared/assets/logo-192.png',
+  '/pesquisa-satisfacao/shared/assets/logo-512.png',
   '/pesquisa-satisfacao/shared/assets/Logo-isv.svg',
   '/pesquisa-satisfacao/shared/assets/municipios/caucaia.png',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
