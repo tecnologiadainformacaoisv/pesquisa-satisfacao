@@ -5,6 +5,31 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [0.3.9] — 2026-06-12
+### Ajuste
+- Logo ISV levemente maior (`height: 64px`) para destaque visual em relação à logo do município (`52px`)
+
+---
+
+## [0.3.8] — 2026-06-12
+### Ajuste
+- Logos ISV e município com altura proporcional igual (`52px`) para equilíbrio visual no header
+
+---
+
+## [0.3.7] — 2026-06-12
+### Ajuste
+- Título principal "PESQUISA DE SATISFAÇÃO" restaurado com ícone 🏥 e formatação original
+
+---
+
+## [0.3.6] — 2026-06-12
+### Adicionado
+- Logo ISV vetorial (`Logo-isv.svg`) integrada ao header do formulário (substituindo ícone placeholder)
+- Logo de Caucaia (`shared/assets/municipios/caucaia.png`) adicionada e cacheada no SW
+
+---
+
 ## [0.3.5] — 2026-06-12
 ### Adicionado
 - Header do formulário com logos bilaterais: ISV (esquerda, fixo) + município (direita, dinâmico)
