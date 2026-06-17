@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.3] — 2026-06-17
+### Corrigido
+- Dashboard não carregava: overlay de login estava com `display:none` fixo no HTML, impedindo a tela de senha de aparecer e `iniciar()` de ser chamado
+
+---
+
 ## [1.0.2] — 2026-06-12
 ### Ajuste
 - Ícones PWA corrigidos: 3 tamanhos (72×72, 192×192, 512×512) com proporções corretas
