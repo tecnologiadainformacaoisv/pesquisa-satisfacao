@@ -128,3 +128,36 @@ projeto-pesquisa-satisfacao/
 - **Planilha Google Sheets ID:** `1b-QuMPD99jZm36JqC3A1tSzhkAaRfjKPvhqalnw_jmw`
 - **Deploy do Apps Script:** via `appscript/deploy.ps1` (clasp)
 - **Configuração de unidades:** gerenciada diretamente na aba **Equipamentos** da planilha
+
+---
+
+## Estado atual do desenvolvimento
+
+> Última atualização: 2026-06-26
+
+- **Versão:** v1.0.4 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`.
+- **PWA estável e instalado** em tablets fixos nas unidades de saúde.
+- **O que funciona hoje:**
+  - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.
+  - **Offline-first:** envio POST ao Apps Script; se offline, enfileira em `localStorage` (`QUEUE_KEY`) com auto-sync ao reconectar, banner de aviso e contador de pendências.
+  - Dashboard administrativo (`dashboard.html`) protegido por senha (vinda da planilha, aba **Configuracao**), com filtros por município/unidade, NPS, gráficos Chart.js e comentários; auto-refresh a cada 30s. Instalável como PWA separado.
+  - Tablet configurado por município + unidade via overlay protegido por senha.
+- **Backend Apps Script** com endpoints `?action=dados | config | configuracao` e POST de respostas, gravando na aba **Respostas**.
+
+## Decisões técnicas tomadas
+
+- **`MAJOR = 1` desde o primeiro deploy** (2026-06-12) — projeto já está em produção real.
+- **Frontend vanilla, sem framework/bundler**; Chart.js apenas no dashboard.
+- **Backend em Google Apps Script + Google Sheets** (sem banco dedicado); deploy via clasp (`appscript/deploy.ps1`).
+- **Senha do overlay de configuração vem da planilha** (`?action=configuracao`), nunca hardcoded no HTML.
+- **`tipo_paciente` removido do escopo** (causava desalinhamento de colunas) — não reintroduzir.
+- **Kiosque sem saída:** formulário não tem botão "Início" e dashboard não tem "← Início" — usuários não devem navegar para fora.
+- **Service Worker deve ser bumped** sempre que CSS/JS mudar, para forçar atualização nos tablets.
+- **Versão sincronizada em 3 lugares:** `<meta app-version>`, `manifest.json` e `CHANGELOG.md`.
+
+## Próximos passos
+
+1. **Expandir para novas unidades/municípios** além de Caucaia (configuração via aba **Equipamentos** da planilha; assets de município em `assets/municipios/`).
+2. Acompanhar a operação em produção e coletar feedback da equipe interna sobre o dashboard.
+3. Possíveis evoluções: novos cortes de métricas no dashboard, exportação de relatórios.
+4. Lembrar de **bumpar o Service Worker** a cada release de CSS/JS para propagar nos tablets.
