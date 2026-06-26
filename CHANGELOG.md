@@ -5,6 +5,21 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.4] — 2026-06-26
+### Alterado
+- Padronização da estrutura de pastas (padrão internacional):
+  - pasta local `shared/` renomeada → `assets/` (imagens) + `css/` (estilos)
+  - PDF comparativo movido para `docs/`
+  - versão antiga do Apps Script movida para `docs/codigo-apps-script-LEGADO.gs`
+- Referências de assets/estilos atualizadas em HTMLs, manifests e `sw.js`
+- `appscript/deploy.log` removido do versionamento (agora no `.gitignore`)
+- Adicionados `README.md` e `.gitignore`
+- Entrypoints, `sw.js`, manifests e `.clasp.json` mantidos na raiz
+
+> Sem mudança funcional — apenas reorganização. SW bumped para forçar atualização do cache nos tablets.
+
+---
+
 ## [1.0.3] — 2026-06-17
 ### Corrigido
 - Dashboard não carregava: overlay de login estava com `display:none` fixo no HTML, impedindo a tela de senha de aparecer e `iniciar()` de ser chamado

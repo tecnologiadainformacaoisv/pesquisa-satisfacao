@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0a3d62">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="shared/assets/logo-192.png">
-<link rel="apple-touch-icon" href="shared/assets/logo-192.png">
+<link rel="icon" type="image/png" href="assets/logo-192.png">
+<link rel="apple-touch-icon" href="assets/logo-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.0.3">
-<link rel="stylesheet" href="shared/styles/instituto.css">
+<meta name="app-version" content="1.0.4">
+<link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -385,7 +385,7 @@
 <!-- Formulário -->
 <div class="card">
   <div class="logo-area">
-    <img class="logo-isv" src="shared/assets/Logo-isv.svg" alt="Instituto São Vicente">
+    <img class="logo-isv" src="assets/Logo-isv.svg" alt="Instituto São Vicente">
     <div class="hospital-name"><span class="logo-icon">🏥</span>PESQUISA DE<br>SATISFAÇÃO</div>
     <img class="logo-municipio" id="logoMunicipio" src="" alt="">
   </div>
@@ -493,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.0.3</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.0.4</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -505,7 +505,7 @@
   const EQUIP_KEY   = 'pesquisa_equipamentos_cache';
 
   const MUNICIPIO_LOGOS = {
-    'Caucaia': 'shared/assets/municipios/caucaia.png'
+    'Caucaia': 'assets/municipios/caucaia.png'
   };
   let SENHA_CONFIG = 'hospital123'; // fallback — substituído pela planilha ao carregar
 
