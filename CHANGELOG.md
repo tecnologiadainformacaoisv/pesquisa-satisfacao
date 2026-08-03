@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.5] — 2026-08-03
+### Corrigido
+- Auto-atualização do PWA nos tablets: como o kiosque nunca recarrega a página sozinho, o navegador podia levar até 24h para notar uma nova versão do `sw.js` — e mesmo aí, a página já aberta continuava rodando a versão antiga, exigindo que o TI limpasse o cache manualmente
+- `pesquisa.html` e `dashboard.html` agora chamam `registration.update()` a cada 5 minutos, acelerando a detecção de nova versão
+- `pesquisa.html`: reload automático ao ativar novo Service Worker, mas **só na tela inicial (NPS)** — nunca interrompe um paciente no meio da resposta; se a atualização chega durante o preenchimento, o reload é adiado e aplicado ao voltar para a tela de espera
+- `dashboard.html`: mantido o reload automático já existente (desde v0.3.2), agora com detecção mais rápida
+
+---
+
 ## [1.0.4] — 2026-06-26
 ### Alterado
 - Padronização da estrutura de pastas (padrão internacional):

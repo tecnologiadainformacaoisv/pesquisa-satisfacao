@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.0.4">
+<meta name="app-version" content="1.0.5">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -880,6 +880,8 @@
   }
 
   function resetar() {
+    if (swUpdatePendente) { window.location.reload(); return; }
+
     Object.assign(respostas, { nps: null, recepcao: null, limpeza: null, atendimento: null, espera: null, comentario: '' });
     document.querySelectorAll('.nps-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('btnNPS').disabled = true;
@@ -919,9 +921,20 @@
   refreshQueueInfo();
   updateOnlineStatus();
 
+  let swUpdatePendente = false;
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/pesquisa-satisfacao/sw.js', { scope: '/pesquisa-satisfacao/' })
+      .then(reg => setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000))
       .catch(err => console.warn('[SW] Falha no registro:', err));
+
+    // Recarrega sozinho quando uma nova versão é publicada — mas só na tela
+    // inicial (NPS) e antes de qualquer nota selecionada, para nunca
+    // interromper um paciente no meio da resposta.
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (currentStep === 0 && respostas.nps === null) window.location.reload();
+      else swUpdatePendente = true;
+    });
   }
 </script>
 </body>

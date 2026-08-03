@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.0.4">
+<meta name="app-version" content="1.0.5">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -914,6 +914,7 @@
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/pesquisa-satisfacao/sw.js', { scope: '/pesquisa-satisfacao/' })
+      .then(reg => setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000))
       .catch(err => console.warn('[SW] Falha no registro:', err));
     navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
   }
