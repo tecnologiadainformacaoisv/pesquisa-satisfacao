@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.6] — 2026-08-03
+### Corrigido
+- `pesquisa.html`: rodapé fixo (`position:fixed; bottom:10px`) sobrepunha a borda inferior do card em telas sem espaço sobrando, já que o card podia crescer até quase 100dvh (`max-height: calc(100dvh - 24px)`) — reservado espaço no layout (`padding-bottom` no body + `max-height` do card ajustado) em vez de flutuar por cima
+
+---
+
 ## [1.0.5] — 2026-08-03
 ### Corrigido
 - Auto-atualização do PWA nos tablets: como o kiosque nunca recarrega a página sozinho, o navegador podia levar até 24h para notar uma nova versão do `sw.js` — e mesmo aí, a página já aberta continuava rodando a versão antiga, exigindo que o TI limpasse o cache manualmente
