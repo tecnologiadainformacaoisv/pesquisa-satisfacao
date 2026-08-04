@@ -5,6 +5,16 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.12] — 2026-08-04
+### Adicionado
+- `navigator.storage.persist()` chamado em `pesquisa.html` e `dashboard.html` — pede ao navegador para não descartar cache/localStorage sob pressão de armazenamento, importante em tablets fixos que ficam meses sem reiniciar
+- Retry periódico da fila offline (`pesquisa.html`, a cada 5 min): cobre o caso do Wi-Fi ficar "conectado" mas sem internet de verdade, cenário em que a sincronização antes só era tentada numa transição real de offline→online
+### Corrigido
+- `trySyncQueue()` ganhou um lock (`_syncEmAndamento`) para evitar que o novo retry periódico rode em paralelo com uma sincronização já em andamento (evento `online` real) e envie a mesma resposta duas vezes
+- Timeout do envio via iframe (`postDataComIframe`) aumentado de 10s para 20s — reduz falso-negativo em rede lenta, que fazia uma resposta já gravada no Apps Script ser reenfileirada e reenviada depois, duplicando a linha na planilha (o `doPost` grava com `appendRow` sem checar ID existente; dedup no backend fica como próximo passo)
+
+---
+
 ## [1.0.11] — 2026-08-04
 ### Corrigido
 - Revertido para o emoji `⭐` (formato arredondado/com relevo aprovado pela diretoria) em vez do glifo de texto `★` da v1.0.10
