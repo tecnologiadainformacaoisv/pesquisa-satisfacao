@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.11] — 2026-08-04
+### Corrigido
+- Revertido para o emoji `⭐` (formato arredondado/com relevo aprovado pela diretoria) em vez do glifo de texto `★` da v1.0.10
+- Estrela não selecionada agora usa **o mesmo emoji `⭐`**, só com `filter: grayscale(1) opacity(0.4)` (cinza/apagada) — ao selecionar, o filtro vira brilho dourado (`drop-shadow`). Isso garante a mesma forma exata nos dois estados, resolvendo em definitivo a inconsistência visual entre "antes" e "depois" de tocar a estrela
+
+---
+
 ## [1.0.10] — 2026-08-04
 ### Corrigido
 - Estrela preenchida trocada do emoji `⭐` (ícone colorido/glossy do sistema) para o glifo de texto `★`, colorido via CSS — antes ficava visualmente muito diferente da estrela vazia (`☆`, glifo de texto simples), já que emoji e texto usam fontes/estilos completamente distintos
