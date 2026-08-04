@@ -52,9 +52,19 @@ function doPost(e) {
   try {
     const sheet = getOrCreateSheet();
     const data  = JSON.parse(e.parameter.payload);
+    const id    = data.id || Date.now();
+
+    if (sheet.getLastRow() > 1) {
+      const idsExistentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().flat();
+      if (idsExistentes.includes(id)) {
+        return ContentService
+          .createTextOutput(JSON.stringify({ status: 'ok', duplicado: true }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
 
     sheet.appendRow([
-      data.id            || Date.now(),
+      id,
       data.timestamp     || new Date().toISOString(),
       data.municipio     || '',
       data.unidade       || '',
