@@ -47,9 +47,10 @@ function getOrCreateEquipamentosSheet() {
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
-  lock.tryLock(10000);
 
   try {
+    lock.waitLock(30000);
+
     const sheet = getOrCreateSheet();
     const data  = JSON.parse(e.parameter.payload);
     const id    = data.id || Date.now();
