@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.7] — 2026-08-04
+### Alterado
+- `assets/municipios/caucaia.png` substituído pela logo oficial da Prefeitura de Caucaia, enviada pelo setor de marketing (a versão anterior era placeholder)
+
+---
+
 ## [1.0.6] — 2026-08-03
 ### Corrigido
 - `pesquisa.html`: rodapé fixo (`position:fixed; bottom:10px`) sobrepunha a borda inferior do card em telas sem espaço sobrando, já que o card podia crescer até quase 100dvh (`max-height: calc(100dvh - 24px)`) — reservado espaço no layout (`padding-bottom` no body + `max-height` do card ajustado) em vez de flutuar por cima
