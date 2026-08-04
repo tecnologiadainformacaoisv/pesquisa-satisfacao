@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.9] — 2026-08-04
+### Removido
+- Botão "Enviar sem comentário" removido do step de comentário — era redundante com "Enviar Pesquisa" (ambos chamavam `salvarResposta()` sem nenhuma distinção; os dois já enviavam com o campo vazio se não preenchido)
+
+---
+
 ## [1.0.8] — 2026-08-04
 ### Ajuste
 - Logo do município (`pesquisa.html`) aumentada: 52px → 72px de altura no desktop, 30px → 42px no mobile (≤480px) — estava pequena demais no header
