@@ -11,7 +11,17 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 - Retry periódico da fila offline (`pesquisa.html`, a cada 5 min): cobre o caso do Wi-Fi ficar "conectado" mas sem internet de verdade, cenário em que a sincronização antes só era tentada numa transição real de offline→online
 ### Corrigido
 - `trySyncQueue()` ganhou um lock (`_syncEmAndamento`) para evitar que o novo retry periódico rode em paralelo com uma sincronização já em andamento (evento `online` real) e envie a mesma resposta duas vezes
-- Timeout do envio via iframe (`postDataComIframe`) aumentado de 10s para 20s — reduz falso-negativo em rede lenta, que fazia uma resposta já gravada no Apps Script ser reenfileirada e reenviada depois, duplicando a linha na planilha (o `doPost` grava com `appendRow` sem checar ID existente; dedup no backend fica como próximo passo)
+- Timeout do envio via iframe (`postDataComIframe`) aumentado de 10s para 20s — reduz falso-negativo em rede lenta, que fazia uma resposta já gravada no Apps Script ser reenfileirada e reenviada depois, duplicando a linha na planilha
+
+---
+
+## [Backend — Apps Script] — 2026-08-04 (deployments @8 e @9, sem bump de versão do PWA)
+### Corrigido
+- `doPost` agora verifica se `data.id` já existe na aba Respostas antes de gravar (`appendRow`) — se já existir, retorna sucesso sem duplicar a linha. Testado ao vivo (reenvio do mesmo ID não duplica).
+- `lock.tryLock(10000)` (retorno ignorado) trocado por `lock.waitLock(30000)` — o código antigo prosseguia e gravava mesmo quando falhava em obter o lock, sem proteção nenhuma contra escrita concorrente. Teste de stress real (20 envios simultâneos) confirmou o bug: 1 resposta se perdeu silenciosamente. Após o fix, reteste com 30 simultâneos confirmou 0 perdas.
+### Conhecido (não bloqueador hoje)
+- O envio do cliente usa um iframe oculto (contorna CORS do Apps Script) e nunca lê o corpo da resposta — só confia no evento de carregamento. Se `waitLock` estourar 30s (baixíssima chance no volume atual de tablets) ou o `JSON.parse` falhar no backend, a resposta de erro (`{status:'error'}`, HTTP 200) é interpretada como sucesso pelo cliente e não é reenfileirada. Corrigir exigiria trocar o transporte (ex.: `fetch()` com leitura real da resposta), avaliado para depois da implantação inicial.
+- Dedup por ID faz varredura completa da coluna A a cada envio (`O(n)`) — sem impacto hoje, mas vale revisitar se a planilha crescer muito ao longo dos meses.
 
 ---
 
