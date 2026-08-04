@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.8] — 2026-08-04
+### Ajuste
+- Logo do município (`pesquisa.html`) aumentada: 52px → 72px de altura no desktop, 30px → 42px no mobile (≤480px) — estava pequena demais no header
+
+---
+
 ## [1.0.7] — 2026-08-04
 ### Alterado
 - `assets/municipios/caucaia.png` substituído pela logo oficial da Prefeitura de Caucaia, enviada pelo setor de marketing (a versão anterior era placeholder)

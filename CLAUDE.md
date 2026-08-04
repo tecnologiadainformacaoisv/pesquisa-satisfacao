@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.0.7** — em produção desde 2026-06-12.
+**v1.0.8** — em produção desde 2026-06-12.
 
 ---
 
@@ -135,7 +135,7 @@ projeto-pesquisa-satisfacao/
 
 > Última atualização: 2026-08-04
 
-- **Versão:** v1.0.7 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantação em 4 unidades prevista para hoje (2026-08-04).
+- **Versão:** v1.0.8 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantação em 4 unidades prevista para hoje (2026-08-04).
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.
