@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.10] — 2026-08-04
+### Corrigido
+- Estrela preenchida trocada do emoji `⭐` (ícone colorido/glossy do sistema) para o glifo de texto `★`, colorido via CSS — antes ficava visualmente muito diferente da estrela vazia (`☆`, glifo de texto simples), já que emoji e texto usam fontes/estilos completamente distintos
+
+---
+
 ## [1.0.9] — 2026-08-04
 ### Removido
 - Botão "Enviar sem comentário" removido do step de comentário — era redundante com "Enviar Pesquisa" (ambos chamavam `salvarResposta()` sem nenhuma distinção; os dois já enviavam com o campo vazio se não preenchido)
