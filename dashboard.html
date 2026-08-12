@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.0.12">
+<meta name="app-version" content="1.0.13">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -320,6 +320,8 @@
     <div class="filters-row">
       <label>Mês:</label>
       <select id="filtroMes"></select>
+      <label>Dia:</label>
+      <select id="filtroDia"><option value="">Todos</option></select>
       <label>Ano:</label>
       <select id="filtroAno"></select>
       <label>Município:</label>
@@ -452,8 +454,9 @@
   document.getElementById('senhaInput').focus();
 
   // --- LISTENERS DOS FILTROS ---
-  document.getElementById('filtroMes').addEventListener('change', atualizar);
-  document.getElementById('filtroAno').addEventListener('change', atualizar);
+  document.getElementById('filtroMes').addEventListener('change', mesAnoChanged);
+  document.getElementById('filtroAno').addEventListener('change', mesAnoChanged);
+  document.getElementById('filtroDia').addEventListener('change', atualizar);
   document.getElementById('filtroMunicipio').addEventListener('change', municipioChanged);
   document.getElementById('filtroUnidade').addEventListener('change', atualizar);
   document.getElementById('btnRefresh').addEventListener('click', recarregarDados);
@@ -516,6 +519,7 @@
     });
     if ([...selUni.options].some(o => o.value === savedUni)) selUni.value = savedUni;
 
+    atualizarDiasDisponiveis();
     atualizar();
 
     document.getElementById('ultimaAtualizacao').textContent =
@@ -578,6 +582,8 @@
     });
     selMes.value = now.getMonth() + 1;
 
+    atualizarDiasDisponiveis();
+
     // Município
     const municipios = [...new Set(dados.map(d => d.municipio).filter(Boolean))].sort();
     const selMun = document.getElementById('filtroMunicipio');
@@ -593,6 +599,33 @@
     unidades.forEach(u => {
       const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
     });
+  }
+
+  function atualizarDiasDisponiveis() {
+    const mes = parseInt(document.getElementById('filtroMes').value);
+    const ano = parseInt(document.getElementById('filtroAno').value);
+    const selDia = document.getElementById('filtroDia');
+    const diaAtual = selDia.value;
+
+    const dias = [...new Set(
+      todosDados
+        .filter(d => {
+          const dt = new Date(d.timestamp);
+          return dt.getMonth() + 1 === mes && dt.getFullYear() === ano;
+        })
+        .map(d => new Date(d.timestamp).getDate())
+    )].sort((a, b) => a - b);
+
+    selDia.innerHTML = '<option value="">Todos</option>';
+    dias.forEach(d => {
+      const o = document.createElement('option'); o.value = d; o.textContent = d; selDia.appendChild(o);
+    });
+    selDia.value = dias.includes(parseInt(diaAtual)) ? diaAtual : '';
+  }
+
+  function mesAnoChanged() {
+    atualizarDiasDisponiveis();
+    atualizar();
   }
 
   function municipioChanged() {
@@ -621,12 +654,14 @@
     const mes = parseInt(document.getElementById('filtroMes').value);
     const ano = parseInt(document.getElementById('filtroAno').value);
 
+    const dia       = document.getElementById('filtroDia').value;
     const municipio = document.getElementById('filtroMunicipio').value;
     const unidade   = document.getElementById('filtroUnidade').value;
 
     dadosFiltrados = todosDados.filter(d => {
       const dt = new Date(d.timestamp);
       return dt.getMonth() + 1 === mes && dt.getFullYear() === ano
+        && (!dia || dt.getDate() === parseInt(dia))
         && (!municipio || d.municipio === municipio)
         && (!unidade   || d.unidade   === unidade);
     });

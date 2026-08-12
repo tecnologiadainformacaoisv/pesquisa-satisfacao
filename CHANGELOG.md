@@ -15,6 +15,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.13] — 2026-08-05
+### Adicionado
+- Filtro de **Dia** no dashboard, ao lado de Mês/Ano — lista dinamicamente só os dias com respostas no mês/ano selecionado (`atualizarDiasDisponiveis()`), atualiza sozinho ao trocar mês/ano ou dar refresh, preservando a seleção quando ainda válida
+
+---
+
 ## [Backend — Apps Script] — 2026-08-04 (deployments @8 e @9, sem bump de versão do PWA)
 ### Corrigido
 - `doPost` agora verifica se `data.id` já existe na aba Respostas antes de gravar (`appendRow`) — se já existir, retorna sucesso sem duplicar a linha. Testado ao vivo (reenvio do mesmo ID não duplica).
