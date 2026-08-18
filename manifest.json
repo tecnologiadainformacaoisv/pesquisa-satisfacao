@@ -1,7 +1,7 @@
 {
   "name": "Pesquisa de Satisfação",
   "short_name": "Satisfação",
-  "description": "Pesquisa de satisfação de pacientes do Instituto São Vicente. v1.1.2",
+  "description": "Pesquisa de satisfação de pacientes do Instituto São Vicente. v1.1.3",
   "start_url": "/pesquisa-satisfacao/pesquisa.html",
   "scope": "/pesquisa-satisfacao/",
   "display": "standalone",

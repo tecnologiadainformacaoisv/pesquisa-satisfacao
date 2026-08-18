@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.2** — em produção desde 2026-06-12.
+**v1.1.3** — em produção desde 2026-06-12.
 
 ---
 
@@ -144,7 +144,7 @@ Um eventual modo "Mesclado" só deve ser feito se a gestão pedir e com os vazio
 
 > Última atualização: 2026-08-04
 
-- **Versão:** v1.1.2 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantação em 4 unidades prevista para hoje (2026-08-04).
+- **Versão:** v1.1.3 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantação em 4 unidades prevista para hoje (2026-08-04).
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.

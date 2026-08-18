@@ -15,6 +15,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.3] — 2026-08-18
+### Corrigido
+- Login do dashboard não pede senha mais a cada refresh — sessão salva em `localStorage` por 30 dias após o primeiro login bem-sucedido. Antes, um refresh normal da página voltava sempre pro overlay de senha, mesmo dentro da mesma visita.
+
+---
+
 ## [1.1.2] — 2026-08-18
 ### Adicionado
 - Opção **"Total (todos os anos)"** no filtro de Ano e **"Todos os meses"** no filtro de Mês — compõem livremente (ex.: "agosto de todos os anos", ou simplesmente tudo). Resolve não dar pra ver o período inteiro da base antiga (quase 2 anos de histórico) sem navegar mês a mês.
