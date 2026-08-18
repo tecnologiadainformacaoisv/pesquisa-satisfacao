@@ -1,8 +1,12 @@
 const SPREADSHEET_ID  = '1b-QuMPD99jZm36JqC3A1tSzhkAaRfjKPvhqalnw_jmw';
 const SHEET_NAME      = 'Respostas';
+const SHEET_ANTIGAS   = 'Respostas_Antigas';
 const SHEET_CONFIG    = 'Equipamentos';
 const SHEET_CFG       = 'Configuracao';
 const HEADERS         = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Limpeza', 'Atendimento', 'Espera', 'Comentario'];
+// Formulario antigo (Google Forms) — preserva Enfermagem e ServicoSocial, que nao
+// existem no formulario novo; nao tem Espera, que so existe no novo.
+const HEADERS_ANTIGAS = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Enfermagem', 'Atendimento', 'ServicoSocial', 'Limpeza', 'Comentario'];
 const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 const HEADERS_CFG     = ['Chave', 'Valor'];
 
@@ -129,6 +133,7 @@ function doGet(e) {
   try {
     if (action === 'config')        return getEquipamentos();
     if (action === 'configuracao')  return getConfiguracao();
+    if (action === 'dadosAntigos')  return getDadosAntigos();
     return getDados();
   } catch (err) {
     return ContentService
@@ -141,6 +146,29 @@ function getDados() {
   const sheet = getOrCreateSheet();
 
   if (sheet.getLastRow() <= 1) {
+    return ContentService
+      .createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const values  = sheet.getDataRange().getValues();
+  const headers = values[0];
+  const rows    = values.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i]; });
+    return obj;
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify(rows))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getDadosAntigos() {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_ANTIGAS);
+
+  if (!sheet || sheet.getLastRow() <= 1) {
     return ContentService
       .createTextOutput(JSON.stringify([]))
       .setMimeType(ContentService.MimeType.JSON);

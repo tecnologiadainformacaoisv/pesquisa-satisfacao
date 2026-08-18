@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.0.14">
+<meta name="app-version" content="1.1.0">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -66,6 +66,36 @@
   .login-error { color: #e74c3c; font-size: 13px; margin-top: 10px; display: none; }
 
   /* Filters — 2 linhas para não causar overflow em landscape */
+  /* Seletor de base (Pesquisa Nova / Antiga) */
+  .base-switch {
+    padding: 16px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+  .base-switch__label { font-size: 14px; font-weight: 700; color: #7f8c8d; }
+  .base-switch__buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+  .base-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 10px 18px; border: 2px solid #dce6f0; border-radius: 12px;
+    background: white; color: #7f8c8d; cursor: pointer;
+    font-size: 15px; font-weight: 700; text-align: left;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .base-btn:hover { border-color: #b7c9dc; color: #2c3e50; }
+  .base-btn.active { border-color: #1e5f8a; background: #eef5fb; color: #1e5f8a; }
+  .base-btn__sub { font-size: 11px; font-weight: 500; color: #95a5a6; }
+  .base-btn.active .base-btn__sub { color: #4a7fa5; }
+  .base-switch__note { font-size: 12px; color: #95a5a6; flex: 1; min-width: 200px; }
+
+  /* Cards de perguntas que só existem no formulário antigo */
+  .somente-antiga { display: none; }
+  body.base-antiga .somente-antiga { display: block; }
+  /* Tempo de Espera não existe no formulário antigo */
+  body.base-antiga #cardEsperaWrap { display: none; }
+
   .filters {
     padding: 16px 24px;
     margin-bottom: 24px;
@@ -282,8 +312,9 @@
   /* Print styles */
   @media print {
     #loginOverlay, header .btn-outline, .filters select, .btn-green { display: none !important; }
+    .base-switch__buttons { display: none !important; }
     body { background: white; }
-    .chart-card, .metric-card, .comments-section, .filters { box-shadow: none; border: 1px solid #dce6f0; }
+    .chart-card, .metric-card, .comments-section, .filters, .base-switch { box-shadow: none; border: 1px solid #dce6f0; }
     .charts-grid { grid-template-columns: 1fr 1fr; }
   }
 </style>
@@ -315,6 +346,22 @@
 </header>
 
 <main class="page-content page-content--wide">
+  <!-- Seletor de base de dados -->
+  <div class="card-panel base-switch">
+    <div class="base-switch__label">Base de dados:</div>
+    <div class="base-switch__buttons">
+      <button class="base-btn active" id="btnBaseNova" onclick="trocarBase('nova')">
+        📱 Pesquisa Nova
+        <span class="base-btn__sub">Tablets · formulário atual</span>
+      </button>
+      <button class="base-btn" id="btnBaseAntiga" onclick="trocarBase('antiga')">
+        📋 Pesquisa Antiga
+        <span class="base-btn__sub">Google Forms · até ago/2026</span>
+      </button>
+    </div>
+    <div class="base-switch__note" id="baseNote"></div>
+  </div>
+
   <!-- Filtros -->
   <div class="card-panel filters">
     <div class="filters-row">
@@ -365,11 +412,24 @@
       <div class="value" id="cardAtendimento">—</div>
       <div class="sub">média de ⭐ (máx 5)</div>
     </div>
-    <div class="card-panel metric-card" style="--accent:#c0392b">
+    <div class="card-panel metric-card" id="cardEsperaWrap" style="--accent:#c0392b">
       <div class="icon">⏱</div>
       <div class="label">Tempo de Espera</div>
       <div class="value" id="cardEspera">—</div>
       <div class="sub">média de ⭐ (máx 5)</div>
+    </div>
+    <!-- Perguntas exclusivas do formulário antigo -->
+    <div class="card-panel metric-card somente-antiga" id="cardEnfermagemWrap" style="--accent:#2980b9">
+      <div class="icon">👩‍⚕️</div>
+      <div class="label">Enfermagem</div>
+      <div class="value" id="cardEnfermagem">—</div>
+      <div class="sub">média (máx 5) · só no antigo</div>
+    </div>
+    <div class="card-panel metric-card somente-antiga" id="cardServicoSocialWrap" style="--accent:#27ae60">
+      <div class="icon">🤝</div>
+      <div class="label">Serviço Social</div>
+      <div class="value" id="cardServicoSocial">—</div>
+      <div class="sub">média (máx 5) · só no antigo</div>
     </div>
   </div>
 
@@ -445,6 +505,14 @@
   let todosDados = [];
   let equipamentos = []; // aba Equipamentos — fonte de verdade de município/unidade ativos
 
+  // Base de dados ativa: 'nova' (tablets, formulário atual) ou 'antiga' (Google Forms).
+  // As bases NÃO se misturam: o formulário antigo tinha Enfermagem e Serviço Social
+  // (removidas no novo) e não tinha Tempo de Espera (criada no novo). Somar as duas
+  // distorceria as médias, por isso a visualização é uma de cada vez.
+  let baseAtiva = 'nova';
+  let dadosNovos = null;    // cache da base nova
+  let dadosAntigos = null;  // cache da base antiga
+
   // Busca a senha da planilha imediatamente ao carregar a página
   const configPromise = fetch(SCRIPT_URL + '?action=configuracao')
     .then(r => r.json())
@@ -481,13 +549,17 @@
       'Relatório gerado em ' + now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
-    [todosDados, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
+    [dadosNovos, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
+    todosDados = dadosNovos;
+    atualizarNotaBase();
     popularFiltros(todosDados);
     atualizar();
 
     document.getElementById('ultimaAtualizacao').textContent =
       'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
-    setInterval(recarregarDados, 30000);
+    // Auto-refresh só faz sentido na base nova (a antiga é histórico estático,
+    // e são ~20k linhas — recarregar a cada 30s seria desperdício)
+    setInterval(() => { if (baseAtiva === 'nova') recarregarDados(); }, 30000);
   }
 
   // --- AUTO-REFRESH ---
@@ -498,7 +570,14 @@
     const savedMun = document.getElementById('filtroMunicipio').value;
     const savedUni = document.getElementById('filtroUnidade').value;
 
-    [todosDados, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
+    if (baseAtiva === 'antiga') {
+      // Base histórica é estática (Forms desativado) — só recarrega equipamentos
+      [dadosAntigos, equipamentos] = await Promise.all([carregarDadosAntigos(), carregarEquipamentos()]);
+      todosDados = dadosAntigos;
+    } else {
+      [dadosNovos, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
+      todosDados = dadosNovos;
+    }
 
     const selMun = document.getElementById('filtroMunicipio');
     selMun.innerHTML = '<option value="">Todos</option>';
@@ -529,7 +608,9 @@
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 12000);
 
-        const resp = await fetch(SCRIPT_URL, { signal: controller.signal });
+        // cache-buster: o Apps Script serve GET por trás de um cache do Google e
+        // pode devolver resposta antiga sem isso
+        const resp = await fetch(SCRIPT_URL + '?_=' + Date.now(), { signal: controller.signal });
         clearTimeout(timeout);
 
         const linhas = await resp.json();
@@ -556,12 +637,75 @@
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   }
 
+  // Base antiga (Google Forms migrado) — aba Respostas_Antigas.
+  // Tem Enfermagem e ServicoSocial; não tem Espera.
+  async function carregarDadosAntigos() {
+    if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000); // base grande (~20k linhas)
+      const resp = await fetch(SCRIPT_URL + '?action=dadosAntigos&_=' + Date.now(), { signal: controller.signal });
+      clearTimeout(timeout);
+      const linhas = await resp.json();
+      if (!Array.isArray(linhas)) throw new Error('Resposta inesperada do servidor');
+
+      return linhas.map(r => ({
+        id:            r.ID,
+        timestamp:     r.Timestamp,
+        municipio:     r.Municipio     || '',
+        unidade:       r.Unidade       || '',
+        nps:           r.NPS           !== '' ? Number(r.NPS)           : null,
+        recepcao:      r.Recepcao      !== '' ? Number(r.Recepcao)      : null,
+        enfermagem:    r.Enfermagem    !== '' ? Number(r.Enfermagem)    : null,
+        atendimento:   r.Atendimento   !== '' ? Number(r.Atendimento)   : null,
+        servicoSocial: r.ServicoSocial !== '' ? Number(r.ServicoSocial) : null,
+        limpeza:       r.Limpeza       !== '' ? Number(r.Limpeza)       : null,
+        espera:        null, // não existia no formulário antigo
+        comentario:    r.Comentario    || ''
+      }));
+    } catch (err) {
+      console.warn('[Dashboard] Falha ao buscar base antiga:', err.message);
+      return [];
+    }
+  }
+
+  async function trocarBase(base) {
+    if (base === baseAtiva) return;
+    baseAtiva = base;
+
+    document.getElementById('btnBaseNova').classList.toggle('active', base === 'nova');
+    document.getElementById('btnBaseAntiga').classList.toggle('active', base === 'antiga');
+    document.body.classList.toggle('base-antiga', base === 'antiga');
+
+    document.getElementById('totalBadge').textContent = 'Carregando...';
+
+    if (base === 'antiga') {
+      if (!dadosAntigos) dadosAntigos = await carregarDadosAntigos();
+      todosDados = dadosAntigos;
+    } else {
+      if (!dadosNovos) dadosNovos = await carregarDados();
+      todosDados = dadosNovos;
+    }
+
+    atualizarNotaBase();
+    popularFiltros(todosDados);
+    atualizar();
+  }
+
+  function atualizarNotaBase() {
+    const nota = document.getElementById('baseNote');
+    if (!nota) return;
+    nota.textContent = baseAtiva === 'antiga'
+      ? 'Formulário antigo (Google Forms): inclui Enfermagem e Serviço Social; não tinha Tempo de Espera.'
+      : 'Formulário atual (tablets): inclui Tempo de Espera; não tem Enfermagem nem Serviço Social.';
+  }
+
   async function carregarEquipamentos() {
     if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
-      const resp = await fetch(SCRIPT_URL + '?action=config', { signal: controller.signal });
+      const resp = await fetch(SCRIPT_URL + '?action=config&_=' + Date.now(), { signal: controller.signal });
       clearTimeout(timeout);
       const lista = await resp.json();
       return Array.isArray(lista) ? lista : [];
@@ -574,17 +718,23 @@
   // Município/Unidade combinam a aba Equipamentos (fonte de verdade de quem
   // está ativo) com as respostas já recebidas — assim uma unidade recém
   // cadastrada aparece no filtro mesmo antes da primeira resposta chegar.
+  // Na base antiga isso não se aplica: ela é histórico fechado, então as opções
+  // vêm só dos próprios dados (unidade nova nunca teve resposta no Forms).
   function municipiosDisponiveis() {
+    const dosEquipamentos = baseAtiva === 'nova' ? equipamentos.map(e => e.municipio) : [];
     return [...new Set([
       ...todosDados.map(d => d.municipio),
-      ...equipamentos.map(e => e.municipio)
+      ...dosEquipamentos
     ].filter(Boolean))].sort();
   }
 
   function unidadesDisponiveis(municipio) {
+    const dosEquipamentos = baseAtiva === 'nova'
+      ? equipamentos.filter(e => !municipio || e.municipio === municipio).map(e => e.unidade)
+      : [];
     return [...new Set([
       ...todosDados.filter(d => !municipio || d.municipio === municipio).map(d => d.unidade),
-      ...equipamentos.filter(e => !municipio || e.municipio === municipio).map(e => e.unidade)
+      ...dosEquipamentos
     ].filter(Boolean))].sort();
   }
 
@@ -733,7 +883,31 @@
     document.getElementById('cardRecepcao').textContent = fmt(media('recepcao'));
     document.getElementById('cardLimpeza').textContent = fmt(media('limpeza'));
     document.getElementById('cardAtendimento').textContent = fmt(media('atendimento'));
-    document.getElementById('cardEspera').textContent = fmt(media('espera'));
+
+    if (baseAtiva === 'antiga') {
+      document.getElementById('cardEnfermagem').textContent = fmt(media('enfermagem'));
+      document.getElementById('cardServicoSocial').textContent = fmt(media('servicoSocial'));
+    } else {
+      document.getElementById('cardEspera').textContent = fmt(media('espera'));
+    }
+  }
+
+  // Categorias de estrelas de cada base (o formulário mudou entre elas)
+  function categoriasDaBase() {
+    return baseAtiva === 'antiga'
+      ? [
+          { campo: 'recepcao',      label: 'Recepção',       cor: '#8e44ad' },
+          { campo: 'enfermagem',    label: 'Enfermagem',     cor: '#2980b9' },
+          { campo: 'atendimento',   label: 'Atend. Médico',  cor: '#d35400' },
+          { campo: 'servicoSocial', label: 'Serviço Social', cor: '#27ae60' },
+          { campo: 'limpeza',       label: 'Limpeza',        cor: '#16a085' }
+        ]
+      : [
+          { campo: 'recepcao',    label: 'Recepção',      cor: '#8e44ad' },
+          { campo: 'limpeza',     label: 'Limpeza',       cor: '#16a085' },
+          { campo: 'atendimento', label: 'Atend. Médico', cor: '#d35400' },
+          { campo: 'espera',      label: 'Tempo Espera',  cor: '#c0392b' }
+        ];
   }
 
   function renderizarGraficos(todos) {
@@ -781,9 +955,10 @@
 
   function renderCategorias() {
     destroyChart('cat');
-    const labels = ['Recepção', 'Limpeza', 'Atend. Médico', 'Tempo Espera'];
-    const vals = ['recepcao', 'limpeza', 'atendimento', 'espera'].map(c => media(c));
-    const colors = ['#8e44ad', '#16a085', '#d35400', '#c0392b'];
+    const cats = categoriasDaBase();
+    const labels = cats.map(c => c.label);
+    const vals = cats.map(c => media(c.campo));
+    const colors = cats.map(c => c.cor);
 
     if (vals.every(v => v === null)) { renderEmpty('chartCategorias'); return; }
 
@@ -941,17 +1116,20 @@
 
     if (!dados.length) { alert('Nenhum dado para exportar no período selecionado.'); return; }
 
-    const header = 'Data,Hora,NPS,Recepcao,Limpeza,Atendimento,Espera,Comentario';
+    const antiga = baseAtiva === 'antiga';
+    const header = antiga
+      ? 'Data,Hora,Unidade,NPS,Recepcao,Enfermagem,Atendimento,ServicoSocial,Limpeza,Comentario'
+      : 'Data,Hora,Unidade,NPS,Recepcao,Limpeza,Atendimento,Espera,Comentario';
+
     const rows = dados.map(d => {
       const dt = new Date(d.timestamp);
+      const base = [dt.toLocaleDateString('pt-BR'), dt.toLocaleTimeString('pt-BR'), '"' + (d.unidade || '') + '"'];
+      const campos = antiga
+        ? [d.nps, d.recepcao, d.enfermagem, d.atendimento, d.servicoSocial, d.limpeza]
+        : [d.nps, d.recepcao, d.limpeza, d.atendimento, d.espera];
       return [
-        dt.toLocaleDateString('pt-BR'),
-        dt.toLocaleTimeString('pt-BR'),
-        d.nps ?? '',
-        d.recepcao ?? '',
-        d.limpeza ?? '',
-        d.atendimento ?? '',
-        d.espera ?? '',
+        ...base,
+        ...campos.map(v => v ?? ''),
         '"' + (d.comentario || '').replace(/"/g, '""') + '"'
       ].join(',');
     });
@@ -962,7 +1140,7 @@
     const a = document.createElement('a');
     a.href = url;
     const meses = ['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    a.download = `satisfacao_${meses[mes]}_${ano}.csv`;
+    a.download = `satisfacao_${antiga ? 'ANTIGA_' : ''}${meses[mes]}_${ano}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }

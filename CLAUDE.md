@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.0.14** — em produção desde 2026-06-12.
+**v1.1.0** — em produção desde 2026-06-12.
 
 ---
 
@@ -90,11 +90,20 @@ projeto-pesquisa-satisfacao/
 | Endpoint | Ação |
 |---|---|
 | `?action=dados` (padrão) | Retorna todas as respostas da aba **Respostas** |
+| `?action=dadosAntigos` | Retorna o histórico migrado do Google Forms (aba **Respostas_Antigas**) |
 | `?action=config` | Retorna equipamentos ativos da aba **Equipamentos** |
 | `?action=configuracao` | Retorna config chave/valor da aba **Configuracao** (senha, etc.) |
 | POST com `payload` | Salva nova resposta |
 
 **Colunas da planilha Respostas:** `ID, Timestamp, Municipio, Unidade, NPS, Recepcao, Limpeza, Atendimento, Espera, Comentario`
+
+**Colunas da planilha Respostas_Antigas:** `ID, Timestamp, Municipio, Unidade, NPS, Recepcao, Enfermagem, Atendimento, ServicoSocial, Limpeza, Comentario`
+(formulário antigo — tinha Enfermagem e Serviço Social, não tinha Tempo de Espera)
+
+### Bases separadas no dashboard
+O dashboard tem um seletor **Pesquisa Nova × Pesquisa Antiga**. As bases **não devem ser somadas**:
+o formulário mudou entre elas (perguntas removidas e criada), então misturar distorce as médias.
+Um eventual modo "Mesclado" só deve ser feito se a gestão pedir e com os vazios explícitos.
 
 ---
 
@@ -135,7 +144,7 @@ projeto-pesquisa-satisfacao/
 
 > Última atualização: 2026-08-04
 
-- **Versão:** v1.0.14 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantação em 4 unidades prevista para hoje (2026-08-04).
+- **Versão:** v1.1.0 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantação em 4 unidades prevista para hoje (2026-08-04).
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.

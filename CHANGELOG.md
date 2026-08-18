@@ -15,6 +15,20 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.0] — 2026-08-18
+### Adicionado
+- **Seletor de base no dashboard: "Pesquisa Nova" × "Pesquisa Antiga"**. As duas bases não se misturam de propósito — o formulário antigo tinha Enfermagem e Serviço Social (removidas no novo) e não tinha Tempo de Espera (criada no novo); somar tudo distorceria as médias.
+  - **Pesquisa Nova:** comportamento anterior (aba `Respostas`, tablets), com Tempo de Espera.
+  - **Pesquisa Antiga:** aba `Respostas_Antigas` (Google Forms migrado), com cards e gráfico de Enfermagem e Serviço Social; sem Tempo de Espera.
+- Migração do histórico do Google Forms: **19.847 respostas** (17/08/2025 a 18/08/2026) para a aba `Respostas_Antigas`, preservando o esquema completo do formulário antigo. "UPA Centro" mapeada para "UPA Luiz Nerys" (mesma unidade renomeada); 14 respostas de um cluster suspeito de duplicata com o PWA (06/08/2026, Abelardo Gadelha) ficaram de fora.
+- Endpoint `?action=dadosAntigos` no Apps Script, lendo a aba `Respostas_Antigas`.
+- Exportação CSV e gráfico de categorias adaptam colunas/séries conforme a base ativa; CSV agora inclui a Unidade.
+### Corrigido
+- Cache-buster nos GETs do dashboard — o Apps Script serve GET atrás de um cache do Google e podia devolver resposta antiga (confirmado na prática ao testar o endpoint novo).
+- Auto-refresh de 30s não recarrega a base antiga (histórico estático de ~20 mil linhas); o botão manual continua recarregando a base ativa.
+
+---
+
 ## [1.0.14] — 2026-08-18
 ### Corrigido
 - Filtros de Município/Unidade do dashboard agora combinam a aba **Equipamentos** (fonte de verdade de quem está ativo) com as respostas já recebidas — antes eram montados só a partir das respostas, então uma unidade recém-cadastrada só aparecia no filtro depois da primeira resposta chegar. Causou confusão numa apresentação ao vivo (unidade nova "sumida" do filtro).
