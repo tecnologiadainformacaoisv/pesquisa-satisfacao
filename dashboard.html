@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.0">
+<meta name="app-version" content="1.1.1">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.1 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -297,6 +297,21 @@
 
   .empty-state .big { font-size: 48px; margin-bottom: 12px; }
 
+  /* Versão visível no cabeçalho — serve para confirmar em campo qual build
+     está carregada (o Service Worker pode segurar uma versão antiga em cache) */
+  .version-badge {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 8px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.2);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
   /* Header compacto em tablet */
   @media (max-width: 1024px) {
     .page-header__title { font-size: 18px; }
@@ -335,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação</h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.1</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -518,6 +533,12 @@
     .then(r => r.json())
     .then(cfg => { if (cfg && cfg.senha) SENHA = cfg.senha; })
     .catch(() => {});
+
+  // Versão exibida no cabeçalho e no título da aba — lida do <meta app-version>,
+  // que é a fonte única de verdade (evita badge dessincronizado da versão real)
+  const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || '?';
+  document.getElementById('versionBadge').textContent = 'v' + APP_VERSION;
+  document.title = `Dashboard v${APP_VERSION} — Pesquisa de Satisfação`;
 
   // --- LOGIN ---
   document.getElementById('senhaInput').focus();

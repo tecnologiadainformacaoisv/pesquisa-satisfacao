@@ -15,6 +15,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.1] — 2026-08-18
+### Adicionado
+- Versão visível no dashboard: badge ao lado do título ("🏥 Dashboard de Satisfação `v1.1.1`") e no título da aba do navegador — permite confirmar de relance qual build está carregada, sem abrir o DevTools (o Service Worker pode segurar uma versão antiga em cache)
+- O badge lê do `<meta name="app-version">`, fonte única de verdade, para nunca ficar dessincronizado da versão real
+
+---
+
 ## [1.1.0] — 2026-08-18
 ### Adicionado
 - **Seletor de base no dashboard: "Pesquisa Nova" × "Pesquisa Antiga"**. As duas bases não se misturam de propósito — o formulário antigo tinha Enfermagem e Serviço Social (removidas no novo) e não tinha Tempo de Espera (criada no novo); somar tudo distorceria as médias.
