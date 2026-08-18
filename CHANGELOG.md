@@ -15,6 +15,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.0.14] — 2026-08-18
+### Corrigido
+- Filtros de Município/Unidade do dashboard agora combinam a aba **Equipamentos** (fonte de verdade de quem está ativo) com as respostas já recebidas — antes eram montados só a partir das respostas, então uma unidade recém-cadastrada só aparecia no filtro depois da primeira resposta chegar. Causou confusão numa apresentação ao vivo (unidade nova "sumida" do filtro).
+
+---
+
 ## [1.0.13] — 2026-08-05
 ### Adicionado
 - Filtro de **Dia** no dashboard, ao lado de Mês/Ano — lista dinamicamente só os dias com respostas no mês/ano selecionado (`atualizarDiasDisponiveis()`), atualiza sozinho ao trocar mês/ano ou dar refresh, preservando a seleção quando ainda válida

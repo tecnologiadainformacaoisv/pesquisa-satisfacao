@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.0.13">
+<meta name="app-version" content="1.0.14">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Dashboard — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -443,6 +443,7 @@
   let charts = {};
   let dadosFiltrados = [];
   let todosDados = [];
+  let equipamentos = []; // aba Equipamentos — fonte de verdade de município/unidade ativos
 
   // Busca a senha da planilha imediatamente ao carregar a página
   const configPromise = fetch(SCRIPT_URL + '?action=configuracao')
@@ -480,7 +481,7 @@
       'Relatório gerado em ' + now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
-    todosDados = await carregarDados();
+    [todosDados, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
     popularFiltros(todosDados);
     atualizar();
 
@@ -497,24 +498,19 @@
     const savedMun = document.getElementById('filtroMunicipio').value;
     const savedUni = document.getElementById('filtroUnidade').value;
 
-    todosDados = await carregarDados();
+    [todosDados, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
 
-    const municipios = [...new Set(todosDados.map(d => d.municipio).filter(Boolean))].sort();
     const selMun = document.getElementById('filtroMunicipio');
     selMun.innerHTML = '<option value="">Todos</option>';
-    municipios.forEach(m => {
+    municipiosDisponiveis().forEach(m => {
       const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
     });
     if ([...selMun.options].some(o => o.value === savedMun)) selMun.value = savedMun;
 
     const municipioAtual = selMun.value;
-    const unidades = [...new Set(
-      todosDados.filter(d => !municipioAtual || d.municipio === municipioAtual)
-        .map(d => d.unidade).filter(Boolean)
-    )].sort();
     const selUni = document.getElementById('filtroUnidade');
     selUni.innerHTML = '<option value="">Todas</option>';
-    unidades.forEach(u => {
+    unidadesDisponiveis(municipioAtual).forEach(u => {
       const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
     });
     if ([...selUni.options].some(o => o.value === savedUni)) selUni.value = savedUni;
@@ -560,6 +556,38 @@
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   }
 
+  async function carregarEquipamentos() {
+    if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const resp = await fetch(SCRIPT_URL + '?action=config', { signal: controller.signal });
+      clearTimeout(timeout);
+      const lista = await resp.json();
+      return Array.isArray(lista) ? lista : [];
+    } catch (err) {
+      console.warn('[Dashboard] Falha ao buscar equipamentos:', err.message);
+      return [];
+    }
+  }
+
+  // Município/Unidade combinam a aba Equipamentos (fonte de verdade de quem
+  // está ativo) com as respostas já recebidas — assim uma unidade recém
+  // cadastrada aparece no filtro mesmo antes da primeira resposta chegar.
+  function municipiosDisponiveis() {
+    return [...new Set([
+      ...todosDados.map(d => d.municipio),
+      ...equipamentos.map(e => e.municipio)
+    ].filter(Boolean))].sort();
+  }
+
+  function unidadesDisponiveis(municipio) {
+    return [...new Set([
+      ...todosDados.filter(d => !municipio || d.municipio === municipio).map(d => d.unidade),
+      ...equipamentos.filter(e => !municipio || e.municipio === municipio).map(e => e.unidade)
+    ].filter(Boolean))].sort();
+  }
+
   function popularFiltros(dados) {
     const now = new Date();
 
@@ -585,18 +613,16 @@
     atualizarDiasDisponiveis();
 
     // Município
-    const municipios = [...new Set(dados.map(d => d.municipio).filter(Boolean))].sort();
     const selMun = document.getElementById('filtroMunicipio');
     selMun.innerHTML = '<option value="">Todos</option>';
-    municipios.forEach(m => {
+    municipiosDisponiveis().forEach(m => {
       const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
     });
 
     // Unidade
-    const unidades = [...new Set(dados.map(d => d.unidade).filter(Boolean))].sort();
     const selUni = document.getElementById('filtroUnidade');
     selUni.innerHTML = '<option value="">Todas</option>';
-    unidades.forEach(u => {
+    unidadesDisponiveis('').forEach(u => {
       const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
     });
   }
@@ -631,15 +657,9 @@
   function municipioChanged() {
     const municipio = document.getElementById('filtroMunicipio').value;
     const selUni = document.getElementById('filtroUnidade');
-    const unidades = [...new Set(
-      todosDados
-        .filter(d => !municipio || d.municipio === municipio)
-        .map(d => d.unidade)
-        .filter(Boolean)
-    )].sort();
 
     selUni.innerHTML = '<option value="">Todas</option>';
-    unidades.forEach(u => {
+    unidadesDisponiveis(municipio).forEach(u => {
       const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
     });
     atualizar();
