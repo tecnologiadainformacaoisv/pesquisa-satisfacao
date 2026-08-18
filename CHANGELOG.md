@@ -15,6 +15,18 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.2] — 2026-08-18
+### Adicionado
+- Opção **"Total (todos os anos)"** no filtro de Ano e **"Todos os meses"** no filtro de Mês — compõem livremente (ex.: "agosto de todos os anos", ou simplesmente tudo). Resolve não dar pra ver o período inteiro da base antiga (quase 2 anos de histórico) sem navegar mês a mês.
+- Ao trocar para a base **Pesquisa Antiga**, os filtros já abrem em "Total" (fazia pouco sentido defaultar pro mês/ano atual num histórico fechado); trocar para "Pesquisa Nova" continua defaultando no mês atual.
+- Filtro de Dia se adapta ao escopo de Mês/Ano ativo (inclusive quando algum dos dois está em "Total").
+### Corrigido
+- `exportarCSV()` agora usa os dados já filtrados na tela (`dadosFiltrados`) em vez de recalcular só por mês/ano — antes não respeitava filtro de Dia, Município ou Unidade na exportação.
+### Alterado
+- Botões do seletor de base invertidos: **Pesquisa Antiga à esquerda, Pesquisa Nova à direita** (ajuste estético).
+
+---
+
 ## [1.1.1] — 2026-08-18
 ### Adicionado
 - Versão visível no dashboard: badge ao lado do título ("🏥 Dashboard de Satisfação `v1.1.1`") e no título da aba do navegador — permite confirmar de relance qual build está carregada, sem abrir o DevTools (o Service Worker pode segurar uma versão antiga em cache)

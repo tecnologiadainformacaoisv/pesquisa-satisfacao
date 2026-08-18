@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.1">
+<meta name="app-version" content="1.1.2">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.1 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.2 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -350,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.1</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.2</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -365,13 +365,13 @@
   <div class="card-panel base-switch">
     <div class="base-switch__label">Base de dados:</div>
     <div class="base-switch__buttons">
-      <button class="base-btn active" id="btnBaseNova" onclick="trocarBase('nova')">
-        📱 Pesquisa Nova
-        <span class="base-btn__sub">Tablets · formulário atual</span>
-      </button>
       <button class="base-btn" id="btnBaseAntiga" onclick="trocarBase('antiga')">
         📋 Pesquisa Antiga
         <span class="base-btn__sub">Google Forms · até ago/2026</span>
+      </button>
+      <button class="base-btn active" id="btnBaseNova" onclick="trocarBase('nova')">
+        📱 Pesquisa Nova
+        <span class="base-btn__sub">Tablets · formulário atual</span>
       </button>
     </div>
     <div class="base-switch__note" id="baseNote"></div>
@@ -709,7 +709,9 @@
     }
 
     atualizarNotaBase();
-    popularFiltros(todosDados);
+    // Base antiga é histórico fechado — abre direto em "Total" em vez de
+    // defaultar pro mês/ano atual (que teria pouquíssima ou nenhuma resposta)
+    popularFiltros(todosDados, base === 'antiga');
     atualizar();
   }
 
@@ -759,27 +761,29 @@
     ].filter(Boolean))].sort();
   }
 
-  function popularFiltros(dados) {
+  function popularFiltros(dados, defaultTotal) {
     const now = new Date();
 
-    // Ano
+    // Ano — "Total" mostra todos os anos de uma vez (útil pra base antiga,
+    // que tem quase 2 anos de histórico)
     const anos = [...new Set(dados.map(d => new Date(d.timestamp).getFullYear()))].sort();
     const selAno = document.getElementById('filtroAno');
-    selAno.innerHTML = '';
+    selAno.innerHTML = '<option value="">Total (todos os anos)</option>';
     (anos.length ? anos : [now.getFullYear()]).forEach(a => {
       const o = document.createElement('option'); o.value = a; o.textContent = a; selAno.appendChild(o);
     });
-    selAno.value = now.getFullYear();
+    selAno.value = defaultTotal ? '' : now.getFullYear();
 
-    // Mês
+    // Mês — "Todos" combina com um ano específico (ex: só 2025, todos os meses)
+    // ou com "Total" de ano (ex: todo mês de agosto, de qualquer ano)
     const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                    'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const selMes = document.getElementById('filtroMes');
-    selMes.innerHTML = '';
+    selMes.innerHTML = '<option value="">Todos os meses</option>';
     meses.forEach((m, i) => {
       const o = document.createElement('option'); o.value = i + 1; o.textContent = m; selMes.appendChild(o);
     });
-    selMes.value = now.getMonth() + 1;
+    selMes.value = defaultTotal ? '' : (now.getMonth() + 1);
 
     atualizarDiasDisponiveis();
 
@@ -799,8 +803,10 @@
   }
 
   function atualizarDiasDisponiveis() {
-    const mes = parseInt(document.getElementById('filtroMes').value);
-    const ano = parseInt(document.getElementById('filtroAno').value);
+    const mesVal = document.getElementById('filtroMes').value;
+    const anoVal = document.getElementById('filtroAno').value;
+    const mes = mesVal ? parseInt(mesVal) : null; // null = todos os meses
+    const ano = anoVal ? parseInt(anoVal) : null; // null = todos os anos
     const selDia = document.getElementById('filtroDia');
     const diaAtual = selDia.value;
 
@@ -808,7 +814,8 @@
       todosDados
         .filter(d => {
           const dt = new Date(d.timestamp);
-          return dt.getMonth() + 1 === mes && dt.getFullYear() === ano;
+          return (mes === null || dt.getMonth() + 1 === mes)
+            && (ano === null || dt.getFullYear() === ano);
         })
         .map(d => new Date(d.timestamp).getDate())
     )].sort((a, b) => a - b);
@@ -842,8 +849,10 @@
       todosDados = await carregarDados();
     }
 
-    const mes = parseInt(document.getElementById('filtroMes').value);
-    const ano = parseInt(document.getElementById('filtroAno').value);
+    const mesVal = document.getElementById('filtroMes').value;
+    const anoVal = document.getElementById('filtroAno').value;
+    const mes = mesVal ? parseInt(mesVal) : null; // null = todos os meses
+    const ano = anoVal ? parseInt(anoVal) : null; // null = todos os anos ("Total")
 
     const dia       = document.getElementById('filtroDia').value;
     const municipio = document.getElementById('filtroMunicipio').value;
@@ -851,7 +860,8 @@
 
     dadosFiltrados = todosDados.filter(d => {
       const dt = new Date(d.timestamp);
-      return dt.getMonth() + 1 === mes && dt.getFullYear() === ano
+      return (mes === null || dt.getMonth() + 1 === mes)
+        && (ano === null || dt.getFullYear() === ano)
         && (!dia || dt.getDate() === parseInt(dia))
         && (!municipio || d.municipio === municipio)
         && (!unidade   || d.unidade   === unidade);
@@ -1127,13 +1137,9 @@
   }
 
   function exportarCSV() {
-    const mes = parseInt(document.getElementById('filtroMes').value);
-    const ano = parseInt(document.getElementById('filtroAno').value);
-
-    const dados = todosDados.filter(d => {
-      const dt = new Date(d.timestamp);
-      return dt.getMonth() + 1 === mes && dt.getFullYear() === ano;
-    });
+    // Usa dadosFiltrados: já reflete mês/ano (inclusive "Total"), dia,
+    // município e unidade — exatamente o que está na tela
+    const dados = dadosFiltrados;
 
     if (!dados.length) { alert('Nenhum dado para exportar no período selecionado.'); return; }
 
@@ -1160,8 +1166,12 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    const meses = ['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    a.download = `satisfacao_${antiga ? 'ANTIGA_' : ''}${meses[mes]}_${ano}.csv`;
+    const nomesMeses = ['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const mesVal = document.getElementById('filtroMes').value;
+    const anoVal = document.getElementById('filtroAno').value;
+    const parteMes = mesVal ? nomesMeses[parseInt(mesVal)] : 'todos-meses';
+    const parteAno = anoVal || 'todos-anos';
+    a.download = `satisfacao_${antiga ? 'ANTIGA_' : ''}${parteMes}_${parteAno}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
