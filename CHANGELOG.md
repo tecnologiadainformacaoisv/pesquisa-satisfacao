@@ -15,6 +15,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.4] — 2026-08-18
+### Adicionado
+- Filtros de Mês, Ano, Município e Unidade agora **persistem ao trocar de base** (Pesquisa Nova ↔ Antiga) sempre que o valor selecionado existir na base de destino — permite comparar, por exemplo, agosto da base antiga com agosto da base nova sem reconfigurar o filtro a cada troca. O que não existir na outra base (ex.: ano 2025, que só existe na base antiga) cai no padrão de sempre (Total para a antiga, mês atual para a nova).
+- Mês sempre persiste entre as bases (são os mesmos 12 meses fixos, independem dos dados existirem ou não); Dia já se adaptava sozinho e continua funcionando igual.
+
+---
+
 ## [1.1.3] — 2026-08-18
 ### Corrigido
 - Login do dashboard não pede senha mais a cada refresh — sessão salva em `localStorage` por 30 dias após o primeiro login bem-sucedido. Antes, um refresh normal da página voltava sempre pro overlay de senha, mesmo dentro da mesma visita.

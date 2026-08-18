@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.3">
+<meta name="app-version" content="1.1.4">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.3 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.4 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -350,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.3</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.4</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -712,6 +712,17 @@
 
   async function trocarBase(base) {
     if (base === baseAtiva) return;
+
+    // Guarda a seleção atual pra tentar restaurar na base de destino (ex:
+    // comparar agosto da antiga com agosto da nova sem reconfigurar toda
+    // vez) — o que não existir na outra base cai no default de sempre.
+    const preferir = {
+      mes:       document.getElementById('filtroMes').value,
+      ano:       document.getElementById('filtroAno').value,
+      municipio: document.getElementById('filtroMunicipio').value,
+      unidade:   document.getElementById('filtroUnidade').value
+    };
+
     baseAtiva = base;
 
     document.getElementById('btnBaseNova').classList.toggle('active', base === 'nova');
@@ -729,9 +740,11 @@
     }
 
     atualizarNotaBase();
-    // Base antiga é histórico fechado — abre direto em "Total" em vez de
-    // defaultar pro mês/ano atual (que teria pouquíssima ou nenhuma resposta)
-    popularFiltros(todosDados, base === 'antiga');
+    // Tenta restaurar mês/ano/município/unidade que já estavam selecionados
+    // (ex: comparar agosto nas duas bases). Se algo não existir na base de
+    // destino (ex: ano 2025 não existe na base nova), cai no padrão: base
+    // antiga (histórico fechado) abre em "Total"; base nova, no mês atual.
+    popularFiltros(todosDados, { defaultTotal: base === 'antiga', preferir });
     atualizar();
   }
 
@@ -781,7 +794,23 @@
     ].filter(Boolean))].sort();
   }
 
-  function popularFiltros(dados, defaultTotal) {
+  // `preferir` traz a seleção que se quer tentar manter ao trocar de base
+  // (ex: comparar agosto da antiga com agosto da nova). Só é aplicada quando
+  // o valor existe entre as opções da base de destino — o que não existir
+  // (ex: ano 2025 não existe na base nova) cai no default de sempre.
+  function restaurarOuPadrao(select, valorPreferido, valorPadrao) {
+    if (valorPreferido !== undefined && [...select.options].some(o => o.value === valorPreferido)) {
+      select.value = valorPreferido;
+    } else if (valorPadrao !== undefined) {
+      select.value = valorPadrao;
+    }
+    // se nem o preferido nem o padrão existirem, o <select> já fica na
+    // primeira option (sempre "Todos"/"Total") por comportamento padrão do DOM
+  }
+
+  function popularFiltros(dados, options) {
+    const opts = options || {};
+    const pref = opts.preferir || {};
     const now = new Date();
 
     // Ano — "Total" mostra todos os anos de uma vez (útil pra base antiga,
@@ -792,10 +821,10 @@
     (anos.length ? anos : [now.getFullYear()]).forEach(a => {
       const o = document.createElement('option'); o.value = a; o.textContent = a; selAno.appendChild(o);
     });
-    selAno.value = defaultTotal ? '' : now.getFullYear();
+    restaurarOuPadrao(selAno, pref.ano, opts.defaultTotal ? '' : String(now.getFullYear()));
 
-    // Mês — "Todos" combina com um ano específico (ex: só 2025, todos os meses)
-    // ou com "Total" de ano (ex: todo mês de agosto, de qualquer ano)
+    // Mês — sempre os mesmos 12 meses independente da base, então a seleção
+    // sempre persiste ao trocar (não depende dos dados existirem ou não)
     const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                    'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const selMes = document.getElementById('filtroMes');
@@ -803,9 +832,9 @@
     meses.forEach((m, i) => {
       const o = document.createElement('option'); o.value = i + 1; o.textContent = m; selMes.appendChild(o);
     });
-    selMes.value = defaultTotal ? '' : (now.getMonth() + 1);
+    restaurarOuPadrao(selMes, pref.mes, opts.defaultTotal ? '' : String(now.getMonth() + 1));
 
-    atualizarDiasDisponiveis();
+    atualizarDiasDisponiveis(); // Dia já tenta preservar sozinho (lê o valor atual do <select> antes de reconstruir)
 
     // Município
     const selMun = document.getElementById('filtroMunicipio');
@@ -813,13 +842,15 @@
     municipiosDisponiveis().forEach(m => {
       const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
     });
+    restaurarOuPadrao(selMun, pref.municipio);
 
-    // Unidade
+    // Unidade — calculada a partir do município já restaurado acima
     const selUni = document.getElementById('filtroUnidade');
     selUni.innerHTML = '<option value="">Todas</option>';
-    unidadesDisponiveis('').forEach(u => {
+    unidadesDisponiveis(selMun.value).forEach(u => {
       const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
     });
+    restaurarOuPadrao(selUni, pref.unidade);
   }
 
   function atualizarDiasDisponiveis() {
