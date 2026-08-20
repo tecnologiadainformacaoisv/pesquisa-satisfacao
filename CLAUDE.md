@@ -131,17 +131,21 @@ valor em `appscript/codigo.js` (`DADOS_TOKEN`) E em `dashboard.html`
 (`DADOS_TOKEN`) — precisam ser idênticos — e reimplantar os dois
 (`deploy.ps1` + commit/push do frontend).
 
-**Opção mais robusta, avaliada e adiada por risco técnico não testado:**
-restringir o Web App por domínio Google Workspace do ISV (`"access":
-"DOMAIN"`). Tecnicamente mais forte (autenticação real, não só um segredo
-compartilhado), mas exige: (1) cada pessoa que for ver o dashboard estar
-logada numa conta Google do domínio do ISV no navegador — muda o fluxo de
-acesso hoje (senha simples); (2) testar se `fetch()` de origem cruzada
-(GitHub Pages → script.google.com) carrega os cookies de sessão do Google
-corretamente — navegadores modernos costumam bloquear cookies de terceiros
-nesse cenário (SameSite), o que pode simplesmente não funcionar sem ajuste
-adicional. Não implementar sem testar antes numa sessão real logada no
-Workspace.
+**Opção "restringir por domínio Google Workspace" — descartada (2026-08-20),
+não é só adiada.** Motivo definitivo, não técnico: o ISV só tem **uma** conta
+de fato no domínio (`admin@institutosaovicente.com.br`, que é alias da conta
+raiz `institutosaovicente@gmail.com`) — todos os demais colaboradores (quem
+efetivamente usa o dashboard no dia a dia) têm e-mail **pessoal**, fora do
+domínio. Restringir por domínio deixaria só essa conta única com acesso,
+inviabilizando o uso real por qualquer outra pessoa da equipe. Não
+reconsiderar essa opção a menos que o ISV passe a distribuir contas
+Workspace de verdade pra toda a equipe que usa o dashboard (decisão
+organizacional, não técnica) — nesse caso ela também resolveria melhor a
+identidade de quem acessa em vez de só "sabe a senha/token".
+
+O token compartilhado (acima) continua sendo a mitigação vigente. A opção
+mais robusta que sobra, se um dia quiserem ir além do token, é um backend
+intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 ---
 
