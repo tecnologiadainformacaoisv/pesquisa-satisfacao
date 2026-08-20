@@ -15,6 +15,16 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.5] — 2026-08-20
+### Corrigido
+- **Corrida entre trocas de base rápidas:** clicar em "Antiga" e "Nova" em sequência antes do primeiro fetch terminar podia deixar a UI marcando uma base enquanto exibia dados da outra (a base antiga demora mais pra carregar — até 30s — então uma resposta atrasada podia sobrescrever a troca mais recente). Adicionado token de geração (`trocaBaseSeq`) em `trocarBase()` que descarta resultados obsoletos.
+- **Fallback de `atualizar()` ignorava a base ativa:** se `todosDados` estivesse vazio (ex.: falha transitória ao carregar a base antiga), o código sempre recarregava a base *nova*, substituindo silenciosamente os dados exibidos mesmo com "Pesquisa Antiga" selecionada na tela.
+- **Cache "envenenado" por falha de rede:** `carregarDadosAntigos()` agora retorna `null` em caso de erro (em vez de `[]`), distinguindo "falhou, tenta de novo na próxima troca" de "carregou e realmente está vazia".
+### Adicionado
+- `docs/migracao-respostas-antigas.md` — documenta os critérios usados na migração do Google Forms (mapeamento de campos/unidades, exclusões, geração de ID), já que o script rodou uma única vez via função temporária e não ficou no código-fonte.
+
+---
+
 ## [1.1.4] — 2026-08-18
 ### Adicionado
 - Filtros de Mês, Ano, Município e Unidade agora **persistem ao trocar de base** (Pesquisa Nova ↔ Antiga) sempre que o valor selecionado existir na base de destino — permite comparar, por exemplo, agosto da base antiga com agosto da base nova sem reconfigurar o filtro a cada troca. O que não existir na outra base (ex.: ano 2025, que só existe na base antiga) cai no padrão de sempre (Total para a antiga, mês atual para a nova).

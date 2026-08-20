@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.4** — em produção desde 2026-06-12.
+**v1.1.5** — em produção desde 2026-06-12.
 
 ---
 
@@ -142,16 +142,17 @@ Um eventual modo "Mesclado" só deve ser feito se a gestão pedir e com os vazio
 
 ## Estado atual do desenvolvimento
 
-> Última atualização: 2026-08-04
+> Última atualização: 2026-08-20
 
-- **Versão:** v1.1.4 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantação em 4 unidades prevista para hoje (2026-08-04).
+- **Versão:** v1.1.5 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.
-  - **Offline-first:** envio POST ao Apps Script; se offline, enfileira em `localStorage` (`QUEUE_KEY`) com auto-sync ao reconectar, banner de aviso e contador de pendências.
-  - Dashboard administrativo (`dashboard.html`) protegido por senha (vinda da planilha, aba **Configuracao**), com filtros por município/unidade, NPS, gráficos Chart.js e comentários; auto-refresh a cada 30s. Instalável como PWA separado.
+  - **Offline-first:** envio POST ao Apps Script; se offline, enfileira em `localStorage` (`QUEUE_KEY`) com auto-sync ao reconectar, banner de aviso e contador de pendências. Fila com retry periódico e lock anti-duplicação; `doPost` faz dedup por ID e usa `waitLock` real.
+  - Dashboard administrativo (`dashboard.html`) protegido por senha (vinda da planilha, aba **Configuracao**), sessão persistida por 30 dias em `localStorage` — não pede login a cada refresh.
+  - Dashboard tem seletor **Pesquisa Nova × Pesquisa Antiga** (ver seção "Bases separadas" acima), com filtros de Mês/Dia/Ano (inclusive "Total")/Município/Unidade que tentam persistir ao trocar de base.
   - Tablet configurado por município + unidade via overlay protegido por senha.
-- **Backend Apps Script** com endpoints `?action=dados | config | configuracao` e POST de respostas, gravando na aba **Respostas**.
+- **Backend Apps Script** com endpoints `?action=dados | dadosAntigos | config | configuracao` e POST de respostas, gravando na aba **Respostas**.
 
 ## Decisões técnicas tomadas
 

@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.4">
+<meta name="app-version" content="1.1.5">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.4 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.5 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -350,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.4</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.5</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -706,12 +706,19 @@
       }));
     } catch (err) {
       console.warn('[Dashboard] Falha ao buscar base antiga:', err.message);
-      return [];
+      return null; // null = falha (tenta de novo na próxima troca); [] seria "carregou e está vazia"
     }
   }
 
+  // Token de geração: se o usuário clicar nos dois botões em sequência rápida,
+  // a resposta da troca mais antiga (que pode terminar de carregar DEPOIS da
+  // mais nova, já que a base antiga demora mais) é descartada em vez de
+  // sobrescrever a UI que já está mostrando a base mais recente selecionada.
+  let trocaBaseSeq = 0;
+
   async function trocarBase(base) {
     if (base === baseAtiva) return;
+    const minhaSeq = ++trocaBaseSeq;
 
     // Guarda a seleção atual pra tentar restaurar na base de destino (ex:
     // comparar agosto da antiga com agosto da nova sem reconfigurar toda
@@ -731,14 +738,20 @@
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
 
+    let dados;
     if (base === 'antiga') {
       if (!dadosAntigos) dadosAntigos = await carregarDadosAntigos();
-      todosDados = dadosAntigos;
+      dados = dadosAntigos;
     } else {
       if (!dadosNovos) dadosNovos = await carregarDados();
-      todosDados = dadosNovos;
+      dados = dadosNovos;
     }
 
+    // Uma troca mais recente já assumiu enquanto esse fetch estava em voo —
+    // descarta esse resultado obsoleto em vez de sobrescrever a UI atual.
+    if (minhaSeq !== trocaBaseSeq) return;
+
+    todosDados = dados || [];
     atualizarNotaBase();
     // Tenta restaurar mês/ano/município/unidade que já estavam selecionados
     // (ex: comparar agosto nas duas bases). Se algo não existir na base de
@@ -896,8 +909,16 @@
 
   async function atualizar() {
     // Se ainda não carregou (mudança de filtro após o init), recarrega do Sheets
+    // — respeitando a base ativa, senão uma falha na base antiga acaba
+    // silenciosamente trocando os dados exibidos pelos da base nova.
     if (todosDados.length === 0 && SCRIPT_URL !== 'COLE_SUA_URL_AQUI') {
-      todosDados = await carregarDados();
+      if (baseAtiva === 'antiga') {
+        dadosAntigos = await carregarDadosAntigos();
+        todosDados = dadosAntigos || [];
+      } else {
+        dadosNovos = await carregarDados();
+        todosDados = dadosNovos;
+      }
     }
 
     const mesVal = document.getElementById('filtroMes').value;
