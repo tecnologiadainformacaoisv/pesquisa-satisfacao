@@ -10,6 +10,14 @@ const HEADERS_ANTIGAS = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Rece
 const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 const HEADERS_CFG     = ['Chave', 'Valor'];
 
+// Evita que um comentário começando com =, +, -, @ seja interpretado como
+// fórmula quando um humano abrir a planilha (spreadsheet formula injection).
+// Prefixar com apóstrofo força o Sheets/Excel a tratar como texto puro.
+function sanitizarTexto(v) {
+  const s = String(v || '');
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
+
 function getOrCreateSheet() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   let   sheet = ss.getSheetByName(SHEET_NAME);
@@ -78,7 +86,7 @@ function doPost(e) {
       data.limpeza     != null ? data.limpeza     : '',
       data.atendimento != null ? data.atendimento : '',
       data.espera      != null ? data.espera      : '',
-      data.comentario  || ''
+      sanitizarTexto(data.comentario)
     ]);
 
     return ContentService

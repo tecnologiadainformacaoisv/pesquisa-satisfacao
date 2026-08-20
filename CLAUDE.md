@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.5** — em produção desde 2026-06-12.
+**v1.1.6** — em produção desde 2026-06-12.
 
 ---
 
@@ -107,6 +107,30 @@ Um eventual modo "Mesclado" só deve ser feito se a gestão pedir e com os vazio
 
 ---
 
+## ⚠️ Decisão de segurança pendente (não é bug, é decisão de negócio)
+
+Revisão de segurança (2026-08-20) confirmou: os endpoints `?action=dados` e
+`?action=dadosAntigos` do Apps Script são **públicos e anônimos**
+(`appsscript.json` → `"access": "ANYONE_ANONYMOUS"`). Isso significa que
+**qualquer pessoa com a URL do Apps Script** (visível em texto puro no
+código-fonte de `pesquisa.html`/`dashboard.html`, publicados no GitHub Pages)
+consegue baixar **todos os comentários e notas de pacientes**, sem nunca
+passar pela tela de senha do dashboard.
+
+A senha do overlay do dashboard protege só a **interface visual** — não o
+dado em si. Não há correção de baixo esforço dentro da arquitetura atual
+(frontend 100% estático, sem backend próprio pra guardar segredo);
+resolver de verdade exigiria restringir o Web App a um domínio Google
+Workspace do ISV (se existir) ou introduzir um backend intermediário.
+
+**Isso precisa ser uma decisão consciente do responsável (Henrique/ISV),
+não uma correção silenciosa** — dado que comentário de paciente de saúde
+pode conter informação sensível (nome, queixa específica, crítica a
+funcionário nomeado). Não alterar a arquitetura de acesso sem alinhar isso
+antes.
+
+---
+
 ## Regras que não devem ser alteradas sem perguntar
 
 - O formulário **não deve** ter botão "Início" — tablet do kiosque não pode sair do formulário
@@ -144,7 +168,7 @@ Um eventual modo "Mesclado" só deve ser feito se a gestão pedir e com os vazio
 
 > Última atualização: 2026-08-20
 
-- **Versão:** v1.1.5 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
+- **Versão:** v1.1.6 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.

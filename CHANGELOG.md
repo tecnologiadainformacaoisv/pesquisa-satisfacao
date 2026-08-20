@@ -15,6 +15,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.6] — 2026-08-20
+### Corrigido
+- **Injeção de fórmula no Google Sheets/Excel** (spreadsheet formula injection): comentário do paciente começando com `=`, `+`, `-` ou `@` podia ser interpretado como fórmula ao abrir a planilha (ex.: `=HYPERLINK(...)`). Corrigido nos dois pontos onde o texto chega numa planilha: `doPost` (backend, antes do `appendRow`) e `exportarCSV()` (dashboard) — prefixo de apóstrofo força texto puro.
+### Documentado
+- Revisão de segurança encontrou exposição pública dos dados (endpoints `?action=dados`/`?action=dadosAntigos` são anônimos — a senha do dashboard protege só a interface, não o dado). Sem correção de baixo esforço na arquitetura atual; registrado no CLAUDE.md como decisão de negócio pendente, não uma correção silenciosa.
+
+---
+
 ## [1.1.5] — 2026-08-20
 ### Corrigido
 - **Corrida entre trocas de base rápidas:** clicar em "Antiga" e "Nova" em sequência antes do primeiro fetch terminar podia deixar a UI marcando uma base enquanto exibia dados da outra (a base antiga demora mais pra carregar — até 30s — então uma resposta atrasada podia sobrescrever a troca mais recente). Adicionado token de geração (`trocaBaseSeq`) em `trocarBase()` que descarta resultados obsoletos.
