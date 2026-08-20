@@ -2,7 +2,9 @@
 
 PWA de **pesquisa de satisfação de pacientes** do **Instituto São Vicente (ISV)**, instalada em tablets fixos nas unidades de saúde. Os pacientes respondem ao formulário (NPS + avaliações por estrelas + comentário); os dados vão para uma planilha Google Sheets via Apps Script. Uma equipe interna acessa o **dashboard** para visualizar as métricas.
 
-Funciona **offline** (fila local) e sincroniza ao reconectar.
+Funciona **offline** (fila local com retry automático) e sincroniza ao reconectar.
+
+O dashboard tem duas bases de dados independentes — **Pesquisa Nova** (tablets, formulário atual) e **Pesquisa Antiga** (histórico migrado do Google Forms usado antes do PWA) — que não se misturam, já que o formulário mudou de pergunta entre uma e outra. Ver `docs/migracao-respostas-antigas.md` para os critérios da migração.
 
 **Stack:** HTML/CSS/JS vanilla · Service Worker · Google Apps Script + Google Sheets · Chart.js (dashboard) · deploy via GitHub Pages em `/pesquisa-satisfacao/`.
 
@@ -20,7 +22,7 @@ projeto-pesquisa-satisfacao/
 ├── assets/                 ← logos e imagens de município
 ├── css/instituto.css       ← estilos base do ISV
 ├── appscript/              ← backend Google Apps Script (deploy via deploy.ps1)
-└── docs/                   ← PDF comparativo + versão legada do GAS
+└── docs/                   ← PDF comparativo, versão legada do GAS, critérios da migração de dados
 ```
 
 > Entrypoints, `sw.js`, manifests e `.clasp.json` ficam na **raiz** por exigência do escopo do Service Worker, do GitHub Pages e do `rootDir` do clasp.
@@ -33,10 +35,13 @@ Servir a partir de um path que reproduza `/pesquisa-satisfacao/` (o SW usa escop
 
 | Requisição | Ação |
 |---|---|
-| `?action=dados` (padrão) | respostas da aba **Respostas** |
-| `?action=config` | equipamentos ativos (aba **Equipamentos**) |
-| `?action=configuracao` | config chave/valor (aba **Configuracao**) |
-| `POST payload` | salva nova resposta |
+| `?action=dados` (padrão) | respostas da aba **Respostas** — exige `?token=` (ver abaixo) |
+| `?action=dadosAntigos` | histórico migrado do Forms, aba **Respostas_Antigas** — exige `?token=` |
+| `?action=config` | equipamentos ativos (aba **Equipamentos**) — público |
+| `?action=configuracao` | config chave/valor (aba **Configuracao**) — público |
+| `POST payload` | salva nova resposta — público, com dedup por ID e rate limit |
+
+`?action=dados`/`?action=dadosAntigos` exigem o parâmetro `token` (`DADOS_TOKEN`, definido em `appscript/codigo.js` e replicado em `dashboard.html` — os dois valores precisam ser idênticos). `?action=config`/`?action=configuracao` continuam públicos de propósito: os tablets se autoconfiguram sem login. **Isso é uma mitigação parcial, não controle de acesso robusto** — ver seção "Proteção de acesso aos dados" no `CLAUDE.md` para o porquê e as alternativas já avaliadas.
 
 ## Versionamento
 
