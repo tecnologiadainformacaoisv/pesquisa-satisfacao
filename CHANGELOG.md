@@ -15,6 +15,18 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.8] — 2026-08-20
+### Adicionado (backend)
+- Rate limit simples no `doPost` (`CacheService`, limite global — Apps Script não expõe IP do chamador em web apps) contra flood óbvio no endpoint público de envio.
+- Validação de cabeçalho em `getDados()`/`getDadosAntigos()`: se uma célula de cabeçalho da planilha for editada sem querer, retorna erro claro em vez de virar `NaN`/`undefined` silencioso.
+### Corrigido
+- Sessão de login do dashboard agora renova a validade a cada acesso (antes expirava exatos 30 dias após o login original, sem aviso, mesmo em quem usa todo dia).
+- Dashboard mostra um aviso visível (⚠ ao lado do contador de respostas) quando falha ao carregar dados do servidor — antes caía silenciosamente no backup local, parecendo "sem respostas hoje" em vez de sinalizar falha de API.
+### Achado do revisor, mitigado
+- O rate limit inicial (100 req/60s) poderia disparar sob uso legítimo (várias unidades resincronizando ao mesmo tempo após queda de rede) e, como `pesquisa.html` não distingue erro de sucesso no envio (transporte via iframe só olha se "carregou"), a resposta do paciente sumiria da fila sem aviso. Subido para 1000/60s — margem generosa que ainda barra flood malicioso real sem chegar perto do pico legítimo esperado. O problema de fundo (cliente não lê a resposta do servidor) continua sendo débito técnico conhecido, documentado, não corrigido nesta versão — precisa de teste real em tablet antes de trocar o transporte.
+
+---
+
 ## [1.1.7] — 2026-08-20
 ### Corrigido (segurança)
 - **Endpoints de dados de paciente agora exigem token**: `?action=dados` e `?action=dadosAntigos` eram públicos e anônimos — qualquer pessoa com a URL do Apps Script baixava todos os comentários/notas de pacientes, sem nunca passar pela senha do dashboard. Agora exigem `?token=` (`DADOS_TOKEN`, definido em `appscript/codigo.js` e `dashboard.html`, precisam ser idênticos). `?action=config` e `?action=configuracao` continuam públicos de propósito (tablets se autoconfiguram sem login). Confirmado ao vivo: sem token → bloqueado; token errado → bloqueado; token certo → funciona; POST de resposta do paciente segue 100% aberto, sem mudança.

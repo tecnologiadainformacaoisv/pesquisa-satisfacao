@@ -10,6 +10,16 @@ const HEADERS_ANTIGAS = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Rece
 const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 const HEADERS_CFG     = ['Chave', 'Valor'];
 const DEDUP_JANELA    = 2000; // linhas mais recentes verificadas no dedup do doPost
+// POSTs aceitos por janela. Generoso de propósito: o cliente (pesquisa.html)
+// não consegue distinguir uma resposta de erro do doPost de uma de sucesso
+// (envio via iframe só olha se "carregou", nunca lê o corpo) — um rate limit
+// apertado demais faria respostas de paciente sumirem da fila sem aviso sob
+// uso legítimo (várias unidades resincronizando ao mesmo tempo após queda de
+// rede: retry a cada 800ms por tablet, dezenas de tablets numa expansão futura
+// pode somar bem mais que 100/60s). 1000/60s ainda barra flood malicioso de
+// verdade sem chegar perto do pico legítimo esperado. Ver CLAUDE.md.
+const RATE_LIMIT_MAX  = 1000;
+const RATE_LIMIT_JANELA_SEG = 60;
 
 // Token exigido pra ler dados de pacientes (?action=dados / dadosAntigos).
 // PROPOSITALMENTE não fica na aba Configuracao: aquela aba é lida pelo
@@ -69,7 +79,28 @@ function getOrCreateEquipamentosSheet() {
   return sheet;
 }
 
+// Limite de taxa simples via CacheService — o endpoint de POST é público e
+// anônimo (obrigatório, paciente não loga em nada), então fica exposto a
+// flood. Não dá pra limitar por IP (Apps Script não expõe o IP do chamador
+// em web apps), então é um limite GLOBAL por janela de tempo — não é preciso
+// (contagem pode perder incrementos sob concorrência real), só precisa ser
+// generoso o bastante pra nunca incomodar o uso real e barrar um flood óbvio.
+function dentroDoLimiteDeTaxa() {
+  const cache = CacheService.getScriptCache();
+  const chave = 'ratelimit_post';
+  const atual = Number(cache.get(chave) || 0);
+  if (atual >= RATE_LIMIT_MAX) return false;
+  cache.put(chave, String(atual + 1), RATE_LIMIT_JANELA_SEG);
+  return true;
+}
+
 function doPost(e) {
+  if (!dentroDoLimiteDeTaxa()) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: 'muitas requisições, tente novamente em instantes' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   const lock = LockService.getScriptLock();
 
   try {
@@ -183,6 +214,19 @@ function doGet(e) {
   }
 }
 
+// Confere se a linha de cabeçalho da aba bate com o schema esperado — se
+// alguém editar uma célula de header sem querer, é melhor um erro claro do
+// que campos virando undefined/NaN silenciosamente no dashboard.
+function cabecalhoValido(headers, esperado) {
+  return esperado.every((h, i) => String(headers[i] || '').trim() === h);
+}
+
+function erroCabecalho(nomeAba) {
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'error', message: `Cabeçalho da aba ${nomeAba} não confere com o esperado — confira se alguma célula foi editada.` }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function getDados() {
   const sheet = getOrCreateSheet();
 
@@ -194,6 +238,8 @@ function getDados() {
 
   const values  = sheet.getDataRange().getValues();
   const headers = values[0];
+  if (!cabecalhoValido(headers, HEADERS)) return erroCabecalho(SHEET_NAME);
+
   const rows    = values.slice(1).map(row => {
     const obj = {};
     headers.forEach((h, i) => { obj[h] = row[i]; });
@@ -217,6 +263,8 @@ function getDadosAntigos() {
 
   const values  = sheet.getDataRange().getValues();
   const headers = values[0];
+  if (!cabecalhoValido(headers, HEADERS_ANTIGAS)) return erroCabecalho(SHEET_ANTIGAS);
+
   const rows    = values.slice(1).map(row => {
     const obj = {};
     headers.forEach((h, i) => { obj[h] = row[i]; });

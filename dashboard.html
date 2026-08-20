@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.7">
+<meta name="app-version" content="1.1.8">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.7 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.8 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -350,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.7</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.8</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -398,6 +398,7 @@
     <div class="filters-meta">
       <div class="total-badge" id="totalBadge">0 respostas</div>
       <span id="ultimaAtualizacao" style="font-size:12px;color:#95a5a6"></span>
+      <span id="erroCarregamento" style="display:none;font-size:13px;font-weight:700;color:#e74c3c">⚠ Falha ao carregar dados do servidor — mostrando último dado salvo neste dispositivo, pode estar desatualizado</span>
     </div>
   </div>
 
@@ -555,7 +556,11 @@
   function sessaoValida() {
     try {
       const s = JSON.parse(localStorage.getItem(SESSAO_KEY) || 'null');
-      return !!(s && s.ts && (Date.now() - s.ts) < SESSAO_DIAS * 24 * 60 * 60 * 1000);
+      const valido = !!(s && s.ts && (Date.now() - s.ts) < SESSAO_DIAS * 24 * 60 * 60 * 1000);
+      // Renova a validade a cada acesso — quem usa o dashboard todo dia nunca
+      // é deslogado de repente; os 30 dias contam a partir da última visita.
+      if (valido) salvarSessao();
+      return valido;
     } catch (e) { return false; }
   }
   function salvarSessao() {
@@ -650,6 +655,15 @@
     if (btn) { btn.disabled = false; btn.textContent = '🔄 Atualizar'; }
   }
 
+  // Mostra/esconde o aviso visível de falha de carregamento — sem isso, uma
+  // falha real de API (ex: header da planilha divergente, erro de rede) cai
+  // silenciosamente no fallback e parece só "sem respostas hoje" pra quem
+  // olha o dashboard, sem console aberto.
+  function marcarErroCarregamento(mostrar) {
+    const el = document.getElementById('erroCarregamento');
+    if (el) el.style.display = mostrar ? 'inline' : 'none';
+  }
+
   async function carregarDados() {
     if (SCRIPT_URL !== 'COLE_SUA_URL_AQUI') {
       try {
@@ -663,8 +677,9 @@
 
         const linhas = await resp.json();
 
-        if (!Array.isArray(linhas)) throw new Error('Resposta inesperada do servidor');
+        if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
 
+        marcarErroCarregamento(false);
         return linhas.map(r => ({
           id:           r.ID,
           timestamp:    r.Timestamp,
@@ -680,6 +695,7 @@
       } catch (err) {
         const motivo = err.name === 'AbortError' ? 'timeout' : err.message;
         console.warn(`[Dashboard] Falha ao buscar do Sheets (${motivo}), usando backup local.`);
+        marcarErroCarregamento(true);
       }
     }
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -695,8 +711,9 @@
       const resp = await fetch(SCRIPT_URL + '?action=dadosAntigos&token=' + DADOS_TOKEN + '&_=' + Date.now(), { signal: controller.signal });
       clearTimeout(timeout);
       const linhas = await resp.json();
-      if (!Array.isArray(linhas)) throw new Error('Resposta inesperada do servidor');
+      if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
 
+      marcarErroCarregamento(false);
       return linhas.map(r => ({
         id:            r.ID,
         timestamp:     r.Timestamp,
@@ -713,6 +730,7 @@
       }));
     } catch (err) {
       console.warn('[Dashboard] Falha ao buscar base antiga:', err.message);
+      marcarErroCarregamento(true);
       return null; // null = falha (tenta de novo na próxima troca); [] seria "carregou e está vazia"
     }
   }
