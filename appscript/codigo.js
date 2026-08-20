@@ -9,6 +9,7 @@ const HEADERS         = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Rece
 const HEADERS_ANTIGAS = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Enfermagem', 'Atendimento', 'ServicoSocial', 'Limpeza', 'Comentario'];
 const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 const HEADERS_CFG     = ['Chave', 'Valor'];
+const DEDUP_JANELA    = 2000; // linhas mais recentes verificadas no dedup do doPost
 
 // Evita que um comentário começando com =, +, -, @ seja interpretado como
 // fórmula quando um humano abrir a planilha (spreadsheet formula injection).
@@ -68,7 +69,16 @@ function doPost(e) {
     const id    = data.id || Date.now();
 
     if (sheet.getLastRow() > 1) {
-      const idsExistentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().flat();
+      // Só checa as últimas DEDUP_JANELA linhas: uma duplicata legítima só pode
+      // vir de um reenvio recente (retry de minutos), nunca de meses atrás.
+      // Sem esse limite, o scan cresce com o tamanho da planilha e cada POST
+      // fica mais lento à medida que o histórico acumula — testado ao vivo:
+      // com ~700 linhas, 25 envios concorrentes já bastam pra um deles estourar
+      // os 30s do lock esperando os anteriores terminarem o scan.
+      const totalLinhas = sheet.getLastRow() - 1;
+      const linhasParaChecar = Math.min(totalLinhas, DEDUP_JANELA);
+      const startRow = sheet.getLastRow() - linhasParaChecar + 1;
+      const idsExistentes = sheet.getRange(startRow, 1, linhasParaChecar, 1).getValues().flat();
       if (idsExistentes.includes(id)) {
         return ContentService
           .createTextOutput(JSON.stringify({ status: 'ok', duplicado: true }))
