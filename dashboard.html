@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.6">
+<meta name="app-version" content="1.1.7">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.6 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.7 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -350,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.6</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.7</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -517,6 +517,13 @@
   const SESSAO_DIAS = 30; // login fica lembrado por esse tempo — não pede senha de novo a cada refresh
   let SENHA = 'hospital123'; // fallback — substituído pelo valor da planilha ao carregar
 
+  // Exigido pelo backend em ?action=dados/dadosAntigos (dados de paciente).
+  // Precisa bater exatamente com DADOS_TOKEN em appscript/codigo.js — pra
+  // trocar, editar os dois e reimplantar (frontend + deploy.ps1). Não é uma
+  // trava de segurança real (fica visível pra quem ler este arquivo), é uma
+  // barreira de esforço deliberado — ver CLAUDE.md.
+  const DADOS_TOKEN = '14e74bc81d4d799b2c42881f204ca5979840234b32b119f9';
+
   let charts = {};
   let dadosFiltrados = [];
   let todosDados = [];
@@ -651,7 +658,7 @@
 
         // cache-buster: o Apps Script serve GET por trás de um cache do Google e
         // pode devolver resposta antiga sem isso
-        const resp = await fetch(SCRIPT_URL + '?_=' + Date.now(), { signal: controller.signal });
+        const resp = await fetch(SCRIPT_URL + '?token=' + DADOS_TOKEN + '&_=' + Date.now(), { signal: controller.signal });
         clearTimeout(timeout);
 
         const linhas = await resp.json();
@@ -685,7 +692,7 @@
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000); // base grande (~20k linhas)
-      const resp = await fetch(SCRIPT_URL + '?action=dadosAntigos&_=' + Date.now(), { signal: controller.signal });
+      const resp = await fetch(SCRIPT_URL + '?action=dadosAntigos&token=' + DADOS_TOKEN + '&_=' + Date.now(), { signal: controller.signal });
       clearTimeout(timeout);
       const linhas = await resp.json();
       if (!Array.isArray(linhas)) throw new Error('Resposta inesperada do servidor');

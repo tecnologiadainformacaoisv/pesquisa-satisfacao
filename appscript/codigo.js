@@ -11,6 +11,17 @@ const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 const HEADERS_CFG     = ['Chave', 'Valor'];
 const DEDUP_JANELA    = 2000; // linhas mais recentes verificadas no dedup do doPost
 
+// Token exigido pra ler dados de pacientes (?action=dados / dadosAntigos).
+// PROPOSITALMENTE não fica na aba Configuracao: aquela aba é lida pelo
+// próprio endpoint público ?action=configuracao (os tablets precisam dela
+// sem senha nenhuma), então guardar o token lá o exporia pelo mesmo buraco
+// que ele deveria tampar. Fica hardcoded aqui E em dashboard.html — pra
+// trocar, editar os dois e reimplantar (frontend + `deploy.ps1`).
+// Isso NÃO é controle de acesso robusto (o token fica visível pra quem ler
+// o código-fonte de dashboard.html) — é uma barreira de esforço deliberado,
+// não uma trava real. Ver CLAUDE.md, seção "Decisão de segurança pendente".
+const DADOS_TOKEN = '14e74bc81d4d799b2c42881f204ca5979840234b32b119f9';
+
 // Evita que um comentário começando com =, +, -, @ seja interpretado como
 // fórmula quando um humano abrir a planilha (spreadsheet formula injection).
 // Prefixar com apóstrofo força o Sheets/Excel a tratar como texto puro.
@@ -146,11 +157,23 @@ function getConfiguracao() {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function respostaNaoAutorizada() {
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'error', message: 'não autorizado' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || 'dados';
+  const token  = (e && e.parameter && e.parameter.token) || '';
   try {
+    // config/configuracao continuam públicos: os tablets precisam deles sem
+    // login nenhum (autoconfiguração do kiosque). dados/dadosAntigos contêm
+    // comentário e nota de paciente — exige o token do dashboard.
     if (action === 'config')        return getEquipamentos();
     if (action === 'configuracao')  return getConfiguracao();
+
+    if (token !== DADOS_TOKEN) return respostaNaoAutorizada();
     if (action === 'dadosAntigos')  return getDadosAntigos();
     return getDados();
   } catch (err) {

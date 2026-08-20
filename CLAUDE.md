@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.6** — em produção desde 2026-06-12.
+**v1.1.7** — em produção desde 2026-06-12.
 
 ---
 
@@ -107,27 +107,41 @@ Um eventual modo "Mesclado" só deve ser feito se a gestão pedir e com os vazio
 
 ---
 
-## ⚠️ Decisão de segurança pendente (não é bug, é decisão de negócio)
+## 🔐 Proteção de acesso aos dados (mitigação parcial — 2026-08-20)
 
 Revisão de segurança (2026-08-20) confirmou: os endpoints `?action=dados` e
 `?action=dadosAntigos` do Apps Script são **públicos e anônimos**
-(`appsscript.json` → `"access": "ANYONE_ANONYMOUS"`). Isso significa que
-**qualquer pessoa com a URL do Apps Script** (visível em texto puro no
-código-fonte de `pesquisa.html`/`dashboard.html`, publicados no GitHub Pages)
-consegue baixar **todos os comentários e notas de pacientes**, sem nunca
-passar pela tela de senha do dashboard.
+(`appsscript.json` → `"access": "ANYONE_ANONYMOUS"`, obrigatório porque os
+tablets fazem POST sem login). Isso significava que qualquer pessoa com a
+URL do Apps Script conseguia baixar todos os comentários e notas de
+pacientes, sem nunca passar pela tela de senha do dashboard.
 
-A senha do overlay do dashboard protege só a **interface visual** — não o
-dado em si. Não há correção de baixo esforço dentro da arquitetura atual
-(frontend 100% estático, sem backend próprio pra guardar segredo);
-resolver de verdade exigiria restringir o Web App a um domínio Google
-Workspace do ISV (se existir) ou introduzir um backend intermediário.
+**Mitigação aplicada (v1.1.7, deploy @15):** `?action=dados` e
+`?action=dadosAntigos` agora exigem um parâmetro `token` (`DADOS_TOKEN` em
+`appscript/codigo.js`, igual em `dashboard.html`). `?action=config` e
+`?action=configuracao` continuam públicos de propósito — os tablets
+precisam deles sem senha nenhuma pra se autoconfigurar.
 
-**Isso precisa ser uma decisão consciente do responsável (Henrique/ISV),
-não uma correção silenciosa** — dado que comentário de paciente de saúde
-pode conter informação sensível (nome, queixa específica, crítica a
-funcionário nomeado). Não alterar a arquitetura de acesso sem alinhar isso
-antes.
+**Isso NÃO é controle de acesso robusto.** O token fica visível em texto
+puro pra quem ler o código-fonte de `dashboard.html` (publicado no GitHub
+Pages) — só sobe a régua de "qualquer um com a URL do Apps Script" pra
+"quem especificamente ler o código do dashboard". Alguém com esse nível de
+acesso ainda consegue extrair os dados. **Para trocar o token:** editar o
+valor em `appscript/codigo.js` (`DADOS_TOKEN`) E em `dashboard.html`
+(`DADOS_TOKEN`) — precisam ser idênticos — e reimplantar os dois
+(`deploy.ps1` + commit/push do frontend).
+
+**Opção mais robusta, avaliada e adiada por risco técnico não testado:**
+restringir o Web App por domínio Google Workspace do ISV (`"access":
+"DOMAIN"`). Tecnicamente mais forte (autenticação real, não só um segredo
+compartilhado), mas exige: (1) cada pessoa que for ver o dashboard estar
+logada numa conta Google do domínio do ISV no navegador — muda o fluxo de
+acesso hoje (senha simples); (2) testar se `fetch()` de origem cruzada
+(GitHub Pages → script.google.com) carrega os cookies de sessão do Google
+corretamente — navegadores modernos costumam bloquear cookies de terceiros
+nesse cenário (SameSite), o que pode simplesmente não funcionar sem ajuste
+adicional. Não implementar sem testar antes numa sessão real logada no
+Workspace.
 
 ---
 
@@ -168,7 +182,7 @@ antes.
 
 > Última atualização: 2026-08-20
 
-- **Versão:** v1.1.6 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
+- **Versão:** v1.1.7 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.

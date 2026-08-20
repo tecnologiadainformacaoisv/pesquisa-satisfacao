@@ -15,6 +15,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.7] — 2026-08-20
+### Corrigido (segurança)
+- **Endpoints de dados de paciente agora exigem token**: `?action=dados` e `?action=dadosAntigos` eram públicos e anônimos — qualquer pessoa com a URL do Apps Script baixava todos os comentários/notas de pacientes, sem nunca passar pela senha do dashboard. Agora exigem `?token=` (`DADOS_TOKEN`, definido em `appscript/codigo.js` e `dashboard.html`, precisam ser idênticos). `?action=config` e `?action=configuracao` continuam públicos de propósito (tablets se autoconfiguram sem login). Confirmado ao vivo: sem token → bloqueado; token errado → bloqueado; token certo → funciona; POST de resposta do paciente segue 100% aberto, sem mudança.
+- **Nota:** é mitigação parcial (segredo compartilhado, não autenticação real) — ver seção "Proteção de acesso aos dados" no CLAUDE.md para detalhes e a opção mais robusta (restrição por domínio Workspace) avaliada e adiada por risco técnico não testado.
+
+---
+
 ## [1.1.6] — 2026-08-20
 ### Corrigido
 - **Injeção de fórmula no Google Sheets/Excel** (spreadsheet formula injection): comentário do paciente começando com `=`, `+`, `-` ou `@` podia ser interpretado como fórmula ao abrir a planilha (ex.: `=HYPERLINK(...)`). Corrigido nos dois pontos onde o texto chega numa planilha: `doPost` (backend, antes do `appendRow`) e `exportarCSV()` (dashboard) — prefixo de apóstrofo força texto puro.
