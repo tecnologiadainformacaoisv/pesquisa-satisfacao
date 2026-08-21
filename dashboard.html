@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.8">
+<meta name="app-version" content="1.1.9">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.8 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.9 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -350,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.8</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.9</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -1228,7 +1228,7 @@
         const npsTag = d.nps !== null ? ` · NPS: ${d.nps}` : '';
         return `<div class="comment-item">
           <div class="meta">${data}${npsTag}</div>
-          <div class="text">${d.comentario.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          <div class="text">${d.comentario.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
         </div>`;
       }).join('');
   }

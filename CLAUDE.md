@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.8** — em produção desde 2026-06-12.
+**v1.1.9** — em produção desde 2026-06-12.
 
 ---
 
@@ -116,7 +116,7 @@ tablets fazem POST sem login). Isso significava que qualquer pessoa com a
 URL do Apps Script conseguia baixar todos os comentários e notas de
 pacientes, sem nunca passar pela tela de senha do dashboard.
 
-**Mitigação aplicada (v1.1.8, deploy @15):** `?action=dados` e
+**Mitigação aplicada (v1.1.7, deploy @15):** `?action=dados` e
 `?action=dadosAntigos` agora exigem um parâmetro `token` (`DADOS_TOKEN` em
 `appscript/codigo.js`, igual em `dashboard.html`). `?action=config` e
 `?action=configuracao` continuam públicos de propósito — os tablets
@@ -186,7 +186,7 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 > Última atualização: 2026-08-20
 
-- **Versão:** v1.1.8 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
+- **Versão:** v1.1.9 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.

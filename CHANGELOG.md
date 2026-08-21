@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.9] — 2026-08-21
+### Corrigido
+- `renderizarComentarios()` no dashboard escapava `<`/`>` nos comentários (proteção contra XSS, já suficiente) mas não `&` — um comentário de paciente contendo `&` literal podia renderizar errado em casos raros. Corrigido a ordem/cobertura do escape (`&` primeiro, depois `<`/`>`).
+- CLAUDE.md: uma referência histórica fixa ("Mitigação aplicada em vX.Y.Z") estava sendo reescrita a cada bump de versão pelo script de versionamento (substituição global de `v1.1.N` no arquivo inteiro) — voltou a apontar sempre pra versão *atual* em vez da versão em que a mitigação realmente foi implantada (v1.1.7). Corrigido de volta pro valor correto; atenção redobrada em bumps futuros pra não reincidir.
+
+---
+
 ## [1.1.8] — 2026-08-20
 ### Adicionado (backend)
 - Rate limit simples no `doPost` (`CacheService`, limite global — Apps Script não expõe IP do chamador em web apps) contra flood óbvio no endpoint público de envio.
