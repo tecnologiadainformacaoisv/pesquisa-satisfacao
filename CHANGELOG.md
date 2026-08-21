@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.10] — 2026-08-21
+### Adicionado
+- Filtro de Dia no dashboard agora tenta cair no **dia atual** por padrão, na base Nova — as unidades atendem todo dia, então normalmente já vai ter resposta pra mostrar sem precisar filtrar manualmente. Se não houver dado ainda no dia (raro), cai automaticamente pra "Todos" (comportamento já existente reaproveitado). Base Antiga (histórico fechado) continua abrindo em "Total"/"Todos" como antes.
+### Corrigido
+- Achado do revisor antes de publicar: a troca de base não estava preservando a seleção de Dia (só mês/ano/município/unidade) — toda troca pra base Nova resetava o Dia pro atual mesmo se o usuário tivesse um dia específico selecionado pra comparar entre bases. Corrigido incluindo `dia` no objeto de persistência de `trocarBase()`.
+
+---
+
 ## [1.1.9] — 2026-08-21
 ### Corrigido
 - `renderizarComentarios()` no dashboard escapava `<`/`>` nos comentários (proteção contra XSS, já suficiente) mas não `&` — um comentário de paciente contendo `&` literal podia renderizar errado em casos raros. Corrigido a ordem/cobertura do escape (`&` primeiro, depois `<`/`>`).
