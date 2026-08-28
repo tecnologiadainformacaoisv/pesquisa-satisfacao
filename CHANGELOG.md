@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.12] — 2026-08-28
+### Corrigido
+- Achado do revisor numa revisão geral pós-implantação (sem mudança de código associada, revisão pedida "a frio"): `trySyncQueue()` sobrescrevia a fila offline inteira (`localStorage`) usando o snapshot tirado no início da sincronização. Se um paciente terminasse o formulário e sua resposta caísse na fila (offline ou falha de envio) *durante* a janela em que uma sincronização anterior já estava rodando (a fila é processada um item por vez, com 800ms de espera entre eles — pode levar vários segundos), essa resposta nova era perdida silenciosamente: gravada no `localStorage` nesse meio-tempo, depois apagada quando a sincronização terminava, sem nunca chegar na planilha nem continuar na fila. Corrigido: agora `trySyncQueue()` relê a fila do zero ao final e remove só os itens confirmados como enviados (por ID), preservando qualquer entrada nova que tenha entrado durante a sincronização.
+
+---
+
 ## [1.1.11] — 2026-08-28
 ### Alterado
 - Envio das respostas do paciente (`pesquisa.html`) passa a usar `fetch()` (body form-urlencoded, sem preflight CORS) como transporte principal, em vez do formulário via `<iframe>` oculto. Testado no 4º tablet físico assim que chegou — motivo da troca: o iframe nunca deixava o cliente ler o status real da resposta do Apps Script (sucesso/erro/duplicado ficavam invisíveis, só dava pra assumir sucesso pelo evento `load`). `postDataComIframe` foi mantido como fallback automático caso o `fetch` falhe em algum device (rede/CORS atípicos), então não há regressão de comportamento nos tablets já em campo.

@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.11">
+<meta name="app-version" content="1.1.12">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -493,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.11</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.12</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -783,16 +783,23 @@
     if (q.length === 0) return;
     _syncEmAndamento = true;
     try {
-      const remaining = [];
+      const idsEnviados = new Set();
       for (let i = 0; i < q.length; i++) {
         showSyncToast('🔄 Sincronizando ' + (i + 1) + ' de ' + q.length + '...');
         const ok = await postDataFetch(q[i], 'pesquisa_sync_' + Date.now() + '_' + i);
-        if (!ok) remaining.push(q[i]);
+        if (ok) idsEnviados.add(q[i].id);
         if (i < q.length - 1) await new Promise(r => setTimeout(r, 800));
       }
+      // Relê a fila do zero (em vez de reusar o snapshot `q` do início) e remove
+      // só os itens confirmados como enviados. Isso evita descartar respostas
+      // novas que um paciente concluiu e enfileirou enquanto esta sincronização
+      // ainda estava em andamento — sobrescrever com o snapshot antigo perderia
+      // silenciosamente essas entradas.
+      const atual = getQueue();
+      const remaining = atual.filter(item => !idsEnviados.has(item.id));
       saveQueue(remaining);
-      if (remaining.length === 0) {
-        showSyncToast('✅ ' + q.length + ' resposta' + (q.length > 1 ? 's' : '') + ' enviada' + (q.length > 1 ? 's' : '') + ' com sucesso!');
+      if (idsEnviados.size > 0 && remaining.length === 0) {
+        showSyncToast('✅ ' + idsEnviados.size + ' resposta' + (idsEnviados.size > 1 ? 's' : '') + ' enviada' + (idsEnviados.size > 1 ? 's' : '') + ' com sucesso!');
       } else if (remaining.length > 0) {
         showSyncToast('⚠ ' + remaining.length + ' resposta' + (remaining.length > 1 ? 's' : '') + ' ainda pendente' + (remaining.length > 1 ? 's' : '') + '.');
       }
