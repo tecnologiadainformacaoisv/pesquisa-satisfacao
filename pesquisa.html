@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.10">
+<meta name="app-version" content="1.1.11">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -493,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.10</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.11</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -740,7 +740,41 @@
     });
   }
 
-  function postData(data) { return postDataComIframe(data, 'form_target'); }
+  // Transporte principal: fetch() com body form-urlencoded (não dispara preflight
+  // CORS, doPost já espera e.parameter.payload igual ao form submit). Diferente do
+  // iframe, aqui conseguimos ler o status real da resposta do Apps Script.
+  // Se o fetch falhar (ex.: rede/CORS bloqueando nesse device específico), caímos
+  // de volta pro iframe — mantém o comportamento antigo como rede de segurança.
+  async function postDataFetch(data, iframeIdFallback) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    try {
+      const resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: new URLSearchParams({ payload: JSON.stringify(data) }),
+        signal: controller.signal
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const json = await resp.json();
+      if (json && json.status === 'error') {
+        console.warn('[POST fetch] servidor retornou erro:', json.message);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      // Cai aqui tanto por falha de rede/timeout/CORS quanto se o servidor
+      // gravou com sucesso mas a resposta chegou vazia/não-JSON no cliente.
+      // Reenviar com o mesmo `data.id` é seguro: doPost faz dedup por ID
+      // nas últimas linhas da planilha antes de gravar (ver DEDUP_JANELA
+      // em appscript/codigo.js), então esse reenvio nunca duplica a resposta.
+      console.warn('[POST fetch] falhou, tentando iframe como fallback:', e.message);
+      return postDataComIframe(data, iframeIdFallback || 'form_target');
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  function postData(data) { return postDataFetch(data, 'form_target'); }
 
   let _syncEmAndamento = false;
   async function trySyncQueue() {
@@ -752,7 +786,7 @@
       const remaining = [];
       for (let i = 0; i < q.length; i++) {
         showSyncToast('🔄 Sincronizando ' + (i + 1) + ' de ' + q.length + '...');
-        const ok = await postDataComIframe(q[i], 'pesquisa_sync_' + Date.now() + '_' + i);
+        const ok = await postDataFetch(q[i], 'pesquisa_sync_' + Date.now() + '_' + i);
         if (!ok) remaining.push(q[i]);
         if (i < q.length - 1) await new Promise(r => setTimeout(r, 800));
       }

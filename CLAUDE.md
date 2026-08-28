@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.10** — em produção desde 2026-06-12.
+**v1.1.11** — em produção desde 2026-06-12.
 
 ---
 
@@ -184,13 +184,13 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 ## Estado atual do desenvolvimento
 
-> Última atualização: 2026-08-20
+> Última atualização: 2026-08-28
 
-- **Versão:** v1.1.10 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
+- **Versão:** v1.1.11 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.
-  - **Offline-first:** envio POST ao Apps Script; se offline, enfileira em `localStorage` (`QUEUE_KEY`) com auto-sync ao reconectar, banner de aviso e contador de pendências. Fila com retry periódico e lock anti-duplicação; `doPost` faz dedup por ID e usa `waitLock` real.
+  - **Offline-first:** envio POST ao Apps Script via `fetch()` (form-urlencoded, sem preflight CORS — permite ler o status real da resposta do servidor), com fallback automático para o antigo `postDataComIframe` caso o `fetch` falhe em algum device; se offline, enfileira em `localStorage` (`QUEUE_KEY`) com auto-sync ao reconectar, banner de aviso e contador de pendências. Fila com retry periódico e lock anti-duplicação; `doPost` faz dedup por ID e usa `waitLock` real.
   - Dashboard administrativo (`dashboard.html`) protegido por senha (vinda da planilha, aba **Configuracao**), sessão persistida por 30 dias em `localStorage` — não pede login a cada refresh.
   - Dashboard tem seletor **Pesquisa Nova × Pesquisa Antiga** (ver seção "Bases separadas" acima), com filtros de Mês/Dia/Ano (inclusive "Total")/Município/Unidade que tentam persistir ao trocar de base.
   - Tablet configurado por município + unidade via overlay protegido por senha.

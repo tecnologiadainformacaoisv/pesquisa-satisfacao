@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.11] — 2026-08-28
+### Alterado
+- Envio das respostas do paciente (`pesquisa.html`) passa a usar `fetch()` (body form-urlencoded, sem preflight CORS) como transporte principal, em vez do formulário via `<iframe>` oculto. Testado no 4º tablet físico assim que chegou — motivo da troca: o iframe nunca deixava o cliente ler o status real da resposta do Apps Script (sucesso/erro/duplicado ficavam invisíveis, só dava pra assumir sucesso pelo evento `load`). `postDataComIframe` foi mantido como fallback automático caso o `fetch` falhe em algum device (rede/CORS atípicos), então não há regressão de comportamento nos tablets já em campo.
+
+---
+
 ## [1.1.10] — 2026-08-21
 ### Adicionado
 - Filtro de Dia no dashboard agora tenta cair no **dia atual** por padrão, na base Nova — as unidades atendem todo dia, então normalmente já vai ter resposta pra mostrar sem precisar filtrar manualmente. Se não houver dado ainda no dia (raro), cai automaticamente pra "Todos" (comportamento já existente reaproveitado). Base Antiga (histórico fechado) continua abrindo em "Total"/"Todos" como antes.
