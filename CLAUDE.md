@@ -10,6 +10,38 @@
 
 ---
 
+## ⚠️ Modo de operação (a partir de setembro/2026): produção plena, só manutenção
+
+A implantação **acabou** — a partir de setembro/2026 os 4 tablets estão rodando
+**100% em uso real** nas unidades de Caucaia, coletando dados de pacientes de
+verdade o tempo todo. Não é mais fase de piloto/teste: **os totens já estão lá
+e não há como buscá-los de volta com facilidade** se algo quebrar.
+
+Isso muda a postura esperada em qualquer tarefa daqui pra frente:
+
+- **Toda mudança em `pesquisa.html`, `sw.js` ou `appscript/codigo.js` é
+  potencialmente arriscada** — quebrar o formulário do paciente ou o envio de
+  dados agora significa uma unidade de saúde sem conseguir coletar pesquisa,
+  não um ambiente de teste.
+- **Preferir o menor diff possível** que resolve o problema relatado, em vez
+  de aproveitar pra reestruturar/otimizar código adjacente "já que estou aqui".
+- **Rodar o revisor em toda mudança, sem exceção** (já é prática desta sessão,
+  mas agora é regra dura — não só para o formulário/backend, para qualquer
+  arquivo).
+- **Testar contra o endpoint real antes de considerar concluído** quando a
+  mudança tocar em envio/leitura de dados (como já vem sendo feito).
+- **Sempre bumpar o Service Worker** em toda mudança de CSS/JS, mesmo pequena
+  — sem isso o tablet não recebe o fix.
+- Evoluções maiores de arquitetura (paginação, mudança de datastore, Fase 2 de
+  escala) continuam válidas para planejar, mas não devem ser misturadas com
+  correções de manutenção — tratar como projetos separados, com mais tempo de
+  validação antes de ir para os tablets em produção.
+
+Resumindo: a partir de agora, o objetivo de qualquer tarefa aqui é **não
+quebrar o que já está rodando**, não "melhorar mais rápido".
+
+---
+
 ## Visão geral
 
 PWA de pesquisa de satisfação de pacientes do **Instituto São Vicente (ISV)**, instalada em tablets fixos nas unidades de saúde. Pacientes respondem ao formulário; os dados vão para uma planilha Google Sheets via Apps Script. Uma equipe interna acessa o dashboard para visualizar métricas.
@@ -209,7 +241,11 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 ## Próximos passos
 
-1. **Expandir para novas unidades/municípios** além de Caucaia (configuração via aba **Equipamentos** da planilha; assets de município em `assets/municipios/`).
+> A partir de setembro/2026 o projeto está em **modo manutenção** (ver seção
+> "Modo de operação" acima) — os itens abaixo são evoluções futuras, não
+> trabalho ativo. Só avançar quando o usuário pedir explicitamente.
+
+1. **Expandir para novas unidades/municípios** além de Caucaia (configuração via aba **Equipamentos** da planilha; assets de município em `assets/municipios/`) — aguardando o número de equipamentos da Fase 2.
 2. Acompanhar a operação em produção e coletar feedback da equipe interna sobre o dashboard.
 3. Possíveis evoluções: novos cortes de métricas no dashboard, exportação de relatórios.
-4. Lembrar de **bumpar o Service Worker** a cada release de CSS/JS para propagar nos tablets.
+4. Lembrar de **bumpar o Service Worker** a cada release de CSS/JS para propagar nos tablets — vale mesmo em modo manutenção.
