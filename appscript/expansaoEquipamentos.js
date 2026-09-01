@@ -58,6 +58,39 @@ function normalizarParaComparacao_(s) {
   return String(s || '').trim().toLowerCase().normalize('NFC');
 }
 
+// 3 unidades de Caucaia que o popularEquipamentosFase2() cadastrou como
+// "novas" por engano — eram na verdade duplicatas das unidades reais já
+// cadastradas antes da Fase 2, só com nome ligeiramente diferente (vindo da
+// planilha índice mestre, que usa outra convenção de nome pra mesma unidade
+// física). A checagem de duplicata compara string exata, então não pegou.
+// Desativa em vez de apagar — reversível, não mexe no histórico de respostas.
+const DUPLICATAS_CAUCAIA = [
+  'Hospital Municipal Abelardo Gadelha da Rocha', // = "Hospital Municipal Abelardo Gadelha"
+  'Hospital e Maternidade Santa Terezinha',        // = "Maternidade Santa Terezinha"
+  'UPA Centro'                                     // = "UPA Luiz Nerys"
+];
+
+function desativarDuplicatasCaucaia() {
+  const sheet = getOrCreateEquipamentosSheet();
+  const values = sheet.getDataRange().getValues();
+  const alvo = DUPLICATAS_CAUCAIA.map(normalizarParaComparacao_);
+  let desativadas = 0;
+
+  for (let i = 1; i < values.length; i++) {
+    const municipio = String(values[i][0]).trim();
+    const unidade = String(values[i][1]).trim();
+    if (normalizarParaComparacao_(municipio) === 'caucaia' && alvo.includes(normalizarParaComparacao_(unidade))) {
+      sheet.getRange(i + 1, 3).setValue(false); // coluna Ativo
+      desativadas++;
+      Logger.log(`Desativada: ${municipio} / ${unidade}`);
+    }
+  }
+
+  // Esperado: 3. Se vier menor, algum nome não bateu (nem normalizado) —
+  // conferir manualmente na planilha antes de assumir que terminou.
+  Logger.log(`Total desativadas: ${desativadas} (esperado: ${DUPLICATAS_CAUCAIA.length})`);
+}
+
 function popularEquipamentosFase2() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(5000)) {

@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.17] — 2026-09-02
+### Corrigido
+- Achado numa auditoria geral pós-Fase 2: o gráfico "Evolução Mensal — NPS" ignorava o filtro de Município/Unidade (só os outros 3 gráficos/cards respeitavam) — filtrar por uma unidade específica continuava mostrando a tendência agregada de todas as unidades da base, sem nenhum aviso visual disso. Corrigido: o gráfico de tendência agora respeita Município/Unidade (mas continua ignorando Mês/Dia/Ano de propósito, já que é sempre "últimos 12 meses").
+- `expansaoEquipamentos.js`: commit da função `desativarDuplicatasCaucaia()` (já executada contra produção em 2026-09-01, corrigindo 3 unidades de Caucaia cadastradas em duplicidade na Etapa 1).
+
+---
+
 ## [1.1.16] — 2026-09-01
 ### Revertido
 - Filtro de Dia no dashboard volta a abrir sempre em "Todos" (revertendo o padrão "dia atual" introduzido na v1.1.10). Na prática, ao apresentar o dashboard, ficou confuso parecer que só havia 1 resposta no dia — "Todos" é mais representativo como visão padrão.
