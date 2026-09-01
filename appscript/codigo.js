@@ -106,9 +106,14 @@ function doPost(e) {
   try {
     lock.waitLock(30000);
 
-    const sheet = getOrCreateSheet();
     const data  = JSON.parse(e.parameter.payload);
     const id    = data.id || Date.now();
+
+    // tipo 'interno' é o único caso especial — ausência do campo (todo tablet
+    // de Caucaia hoje) cai no comportamento de sempre, sem nenhuma mudança.
+    if (data.tipo === 'interno') return doPostInterno(data, id);
+
+    const sheet = getOrCreateSheet();
 
     if (sheet.getLastRow() > 1) {
       // Só checa as últimas DEDUP_JANELA linhas: uma duplicata legítima só pode
@@ -153,6 +158,49 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Grava resposta de Paciente Interno (pesquisa-interno.html) em Respostas_Internas.
+// Chamada de dentro do lock já adquirido por doPost — não adquire lock próprio.
+// Reaproveita SHEET_INTERNOS/HEADERS_INTERNOS/getOrCreateSheetGenerico_, que
+// vivem em sincronizacaoLegado.js (mesmo projeto Apps Script, mesmo escopo
+// global) — se esse arquivo for removido do projeto, isso quebra também.
+function doPostInterno(data, id) {
+  const sheet = getOrCreateSheetGenerico_(SHEET_INTERNOS, HEADERS_INTERNOS, '#0a3d62');
+
+  if (sheet.getLastRow() > 1) {
+    const totalLinhas = sheet.getLastRow() - 1;
+    const linhasParaChecar = Math.min(totalLinhas, DEDUP_JANELA);
+    const startRow = sheet.getLastRow() - linhasParaChecar + 1;
+    const idsExistentes = sheet.getRange(startRow, 1, linhasParaChecar, 1).getValues().flat();
+    if (idsExistentes.includes(id)) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', duplicado: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // Ordem = HEADERS_INTERNOS: ID, Timestamp, Municipio, Unidade, TipoUnidade,
+  // Recepcao, Enfermagem, Medico, ServicoSocial, Limpeza, NPS, Comentario.
+  // TipoUnidade fica vazio — a aba Equipamentos não guarda esse dado hoje.
+  sheet.appendRow([
+    id,
+    data.timestamp      || new Date().toISOString(),
+    data.municipio       || '',
+    data.unidade         || '',
+    '',
+    data.recepcao      != null ? data.recepcao      : '',
+    data.enfermagem    != null ? data.enfermagem    : '',
+    data.medico        != null ? data.medico        : '',
+    data.servicoSocial != null ? data.servicoSocial : '',
+    data.higiene       != null ? data.higiene       : '',
+    data.nps           != null ? data.nps           : '',
+    sanitizarTexto(data.comentario)
+  ]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'ok' }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function getOrCreateConfiguracaoSheet() {

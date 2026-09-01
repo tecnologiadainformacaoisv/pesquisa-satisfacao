@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="assets/logo-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
+<meta name="apple-mobile-web-app-title" content="Pesquisa - Paciente Interno">
 <meta name="app-version" content="1.1.13">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Pesquisa de Satisfação</title>
+<title>Pesquisa de Satisfação — Paciente Interno</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -203,10 +203,17 @@
     display: flex; align-items: center; justify-content: center; gap: 6px;
     background: #eaf4fb; color: #1e5f8a; border-radius: 99px;
     padding: 7px 16px; font-size: 14px; font-weight: 600;
-    margin: 0 auto 20px; width: fit-content;
+    margin: 0 auto 12px; width: fit-content;
   }
   .unit-badge.unconfigured {
     background: #fef9e7; color: #d68910; cursor: pointer;
+  }
+
+  .tipo-badge {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: #eafaf1; color: #1a6b4a; border-radius: 99px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    margin: 0 auto 20px; width: fit-content;
   }
 
   .time-badge {
@@ -249,6 +256,10 @@
     font-size: 16px; font-family: inherit; outline: none; transition: border-color 0.2s; color: #2c3e50;
   }
   .config-field input:focus { border-color: #2980b9; }
+  .config-field .tipo-fixo {
+    padding: 13px 16px; border: 2px solid #dce6f0; border-radius: 12px;
+    font-size: 15px; color: #1a6b4a; background: #eafaf1; font-weight: 600;
+  }
 
   .config-actions { display: flex; gap: 10px; margin-top: 24px; }
   .btn-config-save {
@@ -344,8 +355,8 @@
 <div class="config-overlay" id="configOverlay">
   <div class="config-box">
     <div style="font-size:40px;margin-bottom:12px;text-align:center">⚙️</div>
-    <h2>Configuração do Tablet</h2>
-    <p>Defina o município e a unidade deste dispositivo. Esta configuração é salva localmente.</p>
+    <h2>Configuração do Dispositivo</h2>
+    <p>Defina o município e a unidade. Esta pesquisa é sempre de <strong>Paciente Interno</strong> (internado).</p>
 
     <div id="configAuthArea">
       <div class="config-field">
@@ -362,6 +373,10 @@
     <div id="configFormArea" style="display:none">
       <div id="configLoadingMsg" style="text-align:center;padding:24px 0;color:#7f8c8d;font-size:14px">⏳ Carregando unidades...</div>
       <div id="configSelectArea" style="display:none">
+        <div class="config-field">
+          <label>Tipo de Pesquisa</label>
+          <div class="tipo-fixo">🛏 Paciente Interno (internado)</div>
+        </div>
         <div class="config-field">
           <label>Município</label>
           <select id="configMunicipio">
@@ -387,7 +402,7 @@
 <div class="card">
   <div class="logo-area">
     <img class="logo-isv" src="assets/Logo-isv.svg" alt="Instituto São Vicente">
-    <div class="hospital-name"><span class="logo-icon">🏥</span>PESQUISA DE<br>SATISFAÇÃO</div>
+    <div class="hospital-name"><span class="logo-icon">🛏</span>PESQUISA<br>PACIENTE INTERNO</div>
     <img class="logo-municipio" id="logoMunicipio" src="" alt="">
   </div>
 
@@ -398,18 +413,74 @@
     <div class="welcome-icon">👋</div>
     <div class="welcome-title">Sua opinião importa!</div>
     <div class="welcome-sub">
-      Ajude-nos a melhorar o atendimento respondendo algumas perguntas rápidas sobre sua experiência de hoje.
+      Ajude-nos a melhorar o atendimento durante sua internação respondendo algumas perguntas rápidas.
     </div>
     <div class="unit-badge" id="unitBadge">📍 Carregando...</div>
+    <div class="tipo-badge">🛏 Paciente Interno</div>
     <div class="time-badge">⏱ Menos de 1 minuto</div>
     <button class="btn-next" id="btnIniciar" onclick="nextStep()">Iniciar Pesquisa</button>
     <button class="btn-config-inline" id="btnConfigInline">⚙ Configurar unidade</button>
   </div>
 
-  <!-- STEP 2: NPS -->
+  <!-- STEP 2: Recepção -->
   <div class="step" id="step-2">
-    <div class="question-label">Pergunta 1 de 5</div>
-    <div class="question-text">De 0 a 10, o quanto você recomendaria nosso hospital a um amigo ou familiar?</div>
+    <div class="question-label">Pergunta 1 de 6</div>
+    <div class="question-text">Como você avalia o acolhimento da RECEPÇÃO?</div>
+    <div class="stars" id="stars-recepcao"></div>
+    <div class="star-labels"><span>Ruim</span><span>Ótimo</span></div>
+    <button class="btn-next" id="btnRecepcao" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('recepcao')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+  </div>
+
+  <!-- STEP 3: Enfermagem -->
+  <div class="step" id="step-3">
+    <div class="question-label">Pergunta 2 de 6</div>
+    <div class="question-text">Como você avalia o acolhimento da ENFERMAGEM?</div>
+    <div class="stars" id="stars-enfermagem"></div>
+    <div class="star-labels"><span>Ruim</span><span>Ótimo</span></div>
+    <button class="btn-next" id="btnEnfermagem" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('enfermagem')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+  </div>
+
+  <!-- STEP 4: Médico -->
+  <div class="step" id="step-4">
+    <div class="question-label">Pergunta 3 de 6</div>
+    <div class="question-text">Como você avalia o acolhimento do MÉDICO?</div>
+    <div class="stars" id="stars-medico"></div>
+    <div class="star-labels"><span>Ruim</span><span>Ótimo</span></div>
+    <button class="btn-next" id="btnMedico" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('medico')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+  </div>
+
+  <!-- STEP 5: Serviço Social -->
+  <div class="step" id="step-5">
+    <div class="question-label">Pergunta 4 de 6</div>
+    <div class="question-text">Como você avalia o acolhimento do SERVIÇO SOCIAL? (se aplicável ao seu caso)</div>
+    <div class="stars" id="stars-servicoSocial"></div>
+    <div class="star-labels"><span>Ruim</span><span>Ótimo</span></div>
+    <button class="btn-next" id="btnServicoSocial" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('servicoSocial')">Não se aplica / prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+  </div>
+
+  <!-- STEP 6: Higiene -->
+  <div class="step" id="step-6">
+    <div class="question-label">Pergunta 5 de 6</div>
+    <div class="question-text">Como você avalia a HIGIENE, LIMPEZA E ORGANIZAÇÃO da unidade?</div>
+    <div class="stars" id="stars-higiene"></div>
+    <div class="star-labels"><span>Ruim</span><span>Ótimo</span></div>
+    <button class="btn-next" id="btnHigiene" onclick="nextStep()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipStar('higiene')">Prefiro não avaliar</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+  </div>
+
+  <!-- STEP 7: NPS -->
+  <div class="step" id="step-7">
+    <div class="question-label">Pergunta 6 de 6</div>
+    <div class="question-text">De 0 a 10, como você considera sua satisfação geral sobre o atendimento?</div>
     <div class="nps-grid">
       <button class="nps-btn" data-v="0"  onclick="selectNPS(0)">0</button>
       <button class="nps-btn" data-v="1"  onclick="selectNPS(1)">1</button>
@@ -423,85 +494,41 @@
       <button class="nps-btn" data-v="9"  onclick="selectNPS(9)">9</button>
       <button class="nps-btn" data-v="10" onclick="selectNPS(10)">10</button>
     </div>
-    <div class="nps-labels"><span>Muito improvável</span><span>Muito provável</span></div>
+    <div class="nps-labels"><span>Muito ruim</span><span>Excelente</span></div>
     <button class="btn-next" id="btnNPS" onclick="nextStep()" disabled>Continuar</button>
     <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
-  <!-- STEP 3: Recepção -->
-  <div class="step" id="step-3">
-    <div class="question-label">Pergunta 2 de 5</div>
-    <div class="question-text">Como você avalia o atendimento da nossa recepção?</div>
-    <div class="stars" id="stars-recepcao"></div>
-    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
-    <button class="btn-next" id="btnRecepcao" onclick="nextStep()" disabled>Continuar</button>
-    <button class="btn-skip" onclick="skipStar('recepcao')">Prefiro não avaliar</button>
-    <button class="btn-back" onclick="prevStep()">← Voltar</button>
-  </div>
-
-  <!-- STEP 4: Limpeza -->
-  <div class="step" id="step-4">
-    <div class="question-label">Pergunta 3 de 5</div>
-    <div class="question-text">Como você avalia a limpeza e o conforto das instalações?</div>
-    <div class="stars" id="stars-limpeza"></div>
-    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
-    <button class="btn-next" id="btnLimpeza" onclick="nextStep()" disabled>Continuar</button>
-    <button class="btn-skip" onclick="skipStar('limpeza')">Prefiro não avaliar</button>
-    <button class="btn-back" onclick="prevStep()">← Voltar</button>
-  </div>
-
-  <!-- STEP 5: Atendimento médico -->
-  <div class="step" id="step-5">
-    <div class="question-label">Pergunta 4 de 5</div>
-    <div class="question-text">Como você avalia o atendimento médico/clínico recebido?</div>
-    <div class="stars" id="stars-atendimento"></div>
-    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
-    <button class="btn-next" id="btnAtendimento" onclick="nextStep()" disabled>Continuar</button>
-    <button class="btn-skip" onclick="skipStar('atendimento')">Prefiro não avaliar</button>
-    <button class="btn-back" onclick="prevStep()">← Voltar</button>
-  </div>
-
-  <!-- STEP 6: Espera -->
-  <div class="step" id="step-6">
-    <div class="question-label">Pergunta 5 de 5</div>
-    <div class="question-text">Como você avalia o tempo de espera para ser atendido?</div>
-    <div class="stars" id="stars-espera"></div>
-    <div class="star-labels"><span>Péssimo</span><span>Excelente</span></div>
-    <button class="btn-next" id="btnEspera" onclick="nextStep()" disabled>Continuar</button>
-    <button class="btn-skip" onclick="skipStar('espera')">Prefiro não avaliar</button>
-    <button class="btn-back" onclick="prevStep()">← Voltar</button>
-  </div>
-
-  <!-- STEP 7: Comentário -->
-  <div class="step" id="step-7">
+  <!-- STEP 8: Comentário -->
+  <div class="step" id="step-8">
     <div class="question-label">Comentário (opcional)</div>
-    <div class="question-text">Quer deixar alguma sugestão ou observação?</div>
+    <div class="question-text">Quer deixar alguma sugestão, crítica ou reclamação?</div>
     <textarea id="comentario" placeholder="Escreva aqui sua opinião, sugestão ou elogio..."></textarea>
     <button class="btn-next" onclick="salvarResposta()">Enviar Pesquisa</button>
     <button class="btn-back" onclick="prevStep()">← Voltar</button>
   </div>
 
-  <!-- STEP 8: Obrigado -->
-  <div class="step" id="step-8">
+  <!-- STEP 9: Obrigado -->
+  <div class="step" id="step-9">
     <div class="thanks-icon">✅</div>
     <div class="thanks-title">Muito obrigado!</div>
-    <div class="thanks-sub">Sua avaliação foi registrada com sucesso.<br>Seu feedback nos ajuda a melhorar cada dia mais.</div>
+    <div class="thanks-sub">Sua avaliação foi registrada com sucesso.<br>Melhoras!</div>
     <div class="countdown" id="countdown">5</div>
     <div style="text-align:center;color:#95a5a6;font-size:14px;">segundos para nova pesquisa</div>
   </div>
 </div>
 
-<button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
+<button class="admin-link" id="adminBtn" title="Configurar">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.13</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa Paciente Interno · v1.1.13</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
 <script>
   const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwK--quEUwdbc2tvEBiC3UfazOcX0pu9wWGep-0oM3T-s0yZaJ2PYAs9-jv7UpN6Y9O3Q/exec';
-  const STORAGE_KEY = 'pesquisa_satisfacao_v1';
-  const QUEUE_KEY   = 'pesquisa_form_queue';
-  const CONFIG_KEY  = 'pesquisa_config_v1';
+  const STORAGE_KEY = 'pesquisa_interno_satisfacao_v1';
+  const QUEUE_KEY   = 'pesquisa_interno_form_queue';
+  const CONFIG_KEY  = 'pesquisa_interno_config_v1';
   const EQUIP_KEY   = 'pesquisa_equipamentos_cache';
 
   const MUNICIPIO_LOGOS = {
@@ -511,10 +538,9 @@
 
   let currentStep = 0;
 
-  // Progresso por step (step 1 = tipo, não conta como pergunta)
-  const PROGRESS = { 0: 0, 1: 0, 2: 20, 3: 40, 4: 60, 5: 80, 6: 100, 7: 100, 8: 100 };
+  const PROGRESS = { 0: 0, 1: 0, 2: 16, 3: 33, 4: 50, 5: 66, 6: 83, 7: 95, 8: 100, 9: 100 };
 
-  // ── Configuração do tablet ──────────────────────────────────────────────────
+  // ── Configuração do dispositivo ─────────────────────────────────────────────
   function getConfig() {
     try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}'); } catch(e) { return {}; }
   }
@@ -649,7 +675,7 @@
     const municipio = document.getElementById('configMunicipio').value;
     const unidade   = document.getElementById('configUnidade').value;
     if (!municipio || !unidade) return;
-    localStorage.setItem(CONFIG_KEY, JSON.stringify({ municipio, unidade }));
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({ municipio, unidade, tipo: 'interno' }));
     aplicarConfig();
     fecharConfig();
   }
@@ -740,11 +766,6 @@
     });
   }
 
-  // Transporte principal: fetch() com body form-urlencoded (não dispara preflight
-  // CORS, doPost já espera e.parameter.payload igual ao form submit). Diferente do
-  // iframe, aqui conseguimos ler o status real da resposta do Apps Script.
-  // Se o fetch falhar (ex.: rede/CORS bloqueando nesse device específico), caímos
-  // de volta pro iframe — mantém o comportamento antigo como rede de segurança.
   async function postDataFetch(data, iframeIdFallback) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
@@ -762,11 +783,6 @@
       }
       return true;
     } catch (e) {
-      // Cai aqui tanto por falha de rede/timeout/CORS quanto se o servidor
-      // gravou com sucesso mas a resposta chegou vazia/não-JSON no cliente.
-      // Reenviar com o mesmo `data.id` é seguro: doPost faz dedup por ID
-      // nas últimas linhas da planilha antes de gravar (ver DEDUP_JANELA
-      // em appscript/codigo.js), então esse reenvio nunca duplica a resposta.
       console.warn('[POST fetch] falhou, tentando iframe como fallback:', e.message);
       return postDataComIframe(data, iframeIdFallback || 'form_target');
     } finally {
@@ -786,15 +802,10 @@
       const idsEnviados = new Set();
       for (let i = 0; i < q.length; i++) {
         showSyncToast('🔄 Sincronizando ' + (i + 1) + ' de ' + q.length + '...');
-        const ok = await postDataFetch(q[i], 'pesquisa_sync_' + Date.now() + '_' + i);
+        const ok = await postDataFetch(q[i], 'pesquisa_interno_sync_' + Date.now() + '_' + i);
         if (ok) idsEnviados.add(q[i].id);
         if (i < q.length - 1) await new Promise(r => setTimeout(r, 800));
       }
-      // Relê a fila do zero (em vez de reusar o snapshot `q` do início) e remove
-      // só os itens confirmados como enviados. Isso evita descartar respostas
-      // novas que um paciente concluiu e enfileirou enquanto esta sincronização
-      // ainda estava em andamento — sobrescrever com o snapshot antigo perderia
-      // silenciosamente essas entradas.
       const atual = getQueue();
       const remaining = atual.filter(item => !idsEnviados.has(item.id));
       saveQueue(remaining);
@@ -813,11 +824,15 @@
 
   // ── Respostas ───────────────────────────────────────────────────────────────
   const respostas = {
-    nps: null, recepcao: null, limpeza: null, atendimento: null, espera: null, comentario: ''
+    recepcao: null, enfermagem: null, medico: null, servicoSocial: null,
+    higiene: null, nps: null, comentario: ''
   };
 
-  const starGroups = ['recepcao', 'limpeza', 'atendimento', 'espera'];
-  const btnIds = { recepcao: 'btnRecepcao', limpeza: 'btnLimpeza', atendimento: 'btnAtendimento', espera: 'btnEspera' };
+  const starGroups = ['recepcao', 'enfermagem', 'medico', 'servicoSocial', 'higiene'];
+  const btnIds = {
+    recepcao: 'btnRecepcao', enfermagem: 'btnEnfermagem', medico: 'btnMedico',
+    servicoSocial: 'btnServicoSocial', higiene: 'btnHigiene'
+  };
 
   function buildStars() {
     starGroups.forEach(group => {
@@ -878,28 +893,28 @@
     const cfg = getConfig();
 
     const entrada = {
-      id:           Date.now(),
-      timestamp:    new Date().toISOString(),
-      municipio:    cfg.municipio || '',
-      unidade:      cfg.unidade   || '',
-      nps:          respostas.nps,
-      recepcao:     respostas.recepcao,
-      limpeza:      respostas.limpeza,
-      atendimento:  respostas.atendimento,
-      espera:       respostas.espera,
-      comentario:   respostas.comentario
+      id:             Date.now(),
+      timestamp:      new Date().toISOString(),
+      tipo:           'interno',
+      municipio:      cfg.municipio || '',
+      unidade:        cfg.unidade   || '',
+      recepcao:       respostas.recepcao,
+      enfermagem:     respostas.enfermagem,
+      medico:         respostas.medico,
+      servicoSocial:  respostas.servicoSocial,
+      higiene:        respostas.higiene,
+      nps:            respostas.nps,
+      comentario:     respostas.comentario
     };
 
     const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     local.push(entrada);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
 
-    // Mostra obrigado imediatamente — dados já estão salvos no localStorage
-    currentStep = 8;
-    showStep(8);
+    currentStep = 9;
+    showStep(9);
     iniciarContagem();
 
-    // Envio ao Sheets em background, sem bloquear a UI
     (async () => {
       try {
         if (!SCRIPT_URL || SCRIPT_URL === 'COLE_SUA_URL_AQUI') {
@@ -929,7 +944,7 @@
   function resetar() {
     if (swUpdatePendente) { window.location.reload(); return; }
 
-    Object.assign(respostas, { nps: null, recepcao: null, limpeza: null, atendimento: null, espera: null, comentario: '' });
+    Object.assign(respostas, { recepcao: null, enfermagem: null, medico: null, servicoSocial: null, higiene: null, nps: null, comentario: '' });
     document.querySelectorAll('.nps-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('btnNPS').disabled = true;
     starGroups.forEach(group => {
@@ -945,7 +960,6 @@
   buildStars();
   aplicarConfig();
 
-  // Busca senha da planilha imediatamente (antes de qualquer interação)
   const configSenhaPromise = fetch(SCRIPT_URL + '?action=configuracao')
     .then(r => r.json())
     .then(cfg => { if (cfg && cfg.senha) SENHA_CONFIG = cfg.senha; })
@@ -968,15 +982,10 @@
   refreshQueueInfo();
   updateOnlineStatus();
 
-  // Pede ao navegador para não descartar o cache/localStorage sob pressão de
-  // armazenamento — importante num tablet fixo que fica meses sem reiniciar.
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist().catch(() => {});
   }
 
-  // Retry periódico da fila: cobre o caso do Wi-Fi ficar "conectado" mas sem
-  // internet de verdade — sem isso, a sincronização só é tentada numa
-  // transição real de offline->online, que pode nunca disparar nesse cenário.
   setInterval(() => {
     if (navigator.onLine && getQueue().length > 0) trySyncQueue();
   }, 5 * 60 * 1000);
@@ -988,9 +997,6 @@
       .then(reg => setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000))
       .catch(err => console.warn('[SW] Falha no registro:', err));
 
-    // Recarrega sozinho quando uma nova versão é publicada — mas só na tela
-    // inicial (NPS) e antes de qualquer nota selecionada, para nunca
-    // interromper um paciente no meio da resposta.
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (currentStep === 0 && respostas.nps === null) window.location.reload();
       else swUpdatePendente = true;

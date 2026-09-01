@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.13] — 2026-09-01
+### Adicionado
+- Novo formulário `pesquisa-interno.html` — Paciente Interno (internado), Etapa 3 da Fase 2. Fluxo separado de `pesquisa.html` (mesmo padrão de `dashboard.html`), com overlay de configuração próprio (senha + Município/Unidade, mesma mecânica do Externo). Perguntas: Recepção, Enfermagem, Médico, Serviço Social, Higiene/Limpeza (estrelas 1-5) + NPS 0-10 + Comentário.
+- `codigo.js`: `doPost` passa a aceitar um campo `tipo` no payload. Mudança **aditiva only** — ausência de `tipo` (todo tablet de Caucaia hoje) mantém o comportamento idêntico de sempre, gravando em `Respostas_Externas`. `tipo: 'interno'` grava em `Respostas_Internas` via nova função `doPostInterno`.
+- `index.html` ganha card novo linkando pro formulário de Paciente Interno.
+- `sw.js` cacheia `pesquisa-interno.html`.
+
+---
+
 ## [1.1.12] — 2026-08-28
 ### Corrigido
 - Achado do revisor numa revisão geral pós-implantação (sem mudança de código associada, revisão pedida "a frio"): `trySyncQueue()` sobrescrevia a fila offline inteira (`localStorage`) usando o snapshot tirado no início da sincronização. Se um paciente terminasse o formulário e sua resposta caísse na fila (offline ou falha de envio) *durante* a janela em que uma sincronização anterior já estava rodando (a fila é processada um item por vez, com 800ms de espera entre eles — pode levar vários segundos), essa resposta nova era perdida silenciosamente: gravada no `localStorage` nesse meio-tempo, depois apagada quando a sincronização terminava, sem nunca chegar na planilha nem continuar na fila. Corrigido: agora `trySyncQueue()` relê a fila do zero ao final e remove só os itens confirmados como enviados (por ID), preservando qualquer entrada nova que tenha entrado durante a sincronização.

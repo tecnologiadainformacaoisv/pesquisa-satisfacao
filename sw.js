@@ -1,10 +1,11 @@
-const APP_VERSION = '1.1.12';
+const APP_VERSION = '1.1.13';
 const CACHE_NAME = `pesquisa-satisfacao-${APP_VERSION}`;
 
 const URLS = [
   '/pesquisa-satisfacao/',
   '/pesquisa-satisfacao/index.html',
   '/pesquisa-satisfacao/pesquisa.html',
+  '/pesquisa-satisfacao/pesquisa-interno.html',
   '/pesquisa-satisfacao/dashboard.html',
   '/pesquisa-satisfacao/manifest.json',
   '/pesquisa-satisfacao/manifest-dashboard.json',
