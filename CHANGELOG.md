@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.16] — 2026-09-01
+### Revertido
+- Filtro de Dia no dashboard volta a abrir sempre em "Todos" (revertendo o padrão "dia atual" introduzido na v1.1.10). Na prática, ao apresentar o dashboard, ficou confuso parecer que só havia 1 resposta no dia — "Todos" é mais representativo como visão padrão.
+### Corrigido
+- Relatório impresso (`window.print()`) escondia os `<select>` de filtro (Mês/Dia/Ano/Município/Unidade) por completo — o PDF/impresso não mostrava quais filtros geraram os números exibidos. Agora eles continuam visíveis na impressão, só sem aparência de dropdown (sem borda/fundo/seta).
+
+---
+
 ## [1.1.15] — 2026-09-01
 ### Adicionado
 - Dashboard (`dashboard.html`) ganha 2 bases novas no seletor: **Paciente Interno** e **Colaborador**, ao lado de Nova/Antiga — Etapa 5 da Fase 2, fecha o ciclo de visibilidade dos dados migrados/coletados nas etapas anteriores.

@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.15">
+<meta name="app-version" content="1.1.16">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.15 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.16 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -326,11 +326,20 @@
 
   /* Print styles */
   @media print {
-    #loginOverlay, header .btn-outline, .filters select, .btn-green { display: none !important; }
+    #loginOverlay, header .btn-outline, .btn-green { display: none !important; }
     .base-switch__buttons { display: none !important; }
     body { background: white; }
     .chart-card, .metric-card, .comments-section, .filters, .base-switch { box-shadow: none; border: 1px solid #dce6f0; }
     .charts-grid { grid-template-columns: 1fr 1fr; }
+    /* Mostra o valor selecionado de cada filtro como texto (em vez de sumir
+       ou aparecer com aparência de dropdown) — sem isso o relatório impresso
+       não dizia quais filtros geraram os números mostrados. */
+    .filters select {
+      display: inline-block !important;
+      -webkit-appearance: none; appearance: none;
+      border: none; background: transparent; padding: 2px 0;
+      color: #2c3e50; font-weight: 700; cursor: default;
+    }
   }
 </style>
 </head>
@@ -350,7 +359,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.15</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.16</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -956,13 +965,11 @@
     restaurarOuPadrao(selMes, pref.mes, opts.defaultTotal ? '' : String(now.getMonth() + 1));
 
     // Dia: se tem preferência explícita de outra base (persistência), tenta
-    // ela primeiro. Senão, na base nova, cai no dia atual por padrão — as
-    // unidades atendem todo dia, então normalmente já vai ter dado; se não
-    // tiver (dia sem nenhuma resposta ainda), atualizarDiasDisponiveis() já
-    // cai sozinho pra "Todos". Na base antiga (histórico fechado), não faz
-    // sentido — fica em "Todos" como já era.
+    // ela primeiro. Senão, sempre cai em "Todos" — já testamos o padrão de
+    // abrir no dia atual (v1.1.10) e na prática confunde quem olha o
+    // dashboard sem filtrar nada (parece que só teve 1 resposta hoje).
     const temPrefDia = pref.dia !== undefined && pref.dia !== '';
-    const diaPadrao = temPrefDia ? pref.dia : (opts.defaultTotal ? undefined : now.getDate());
+    const diaPadrao = temPrefDia ? pref.dia : undefined;
     atualizarDiasDisponiveis(diaPadrao);
 
     // Município
