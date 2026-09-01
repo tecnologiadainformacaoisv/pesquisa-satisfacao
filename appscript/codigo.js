@@ -109,9 +109,11 @@ function doPost(e) {
     const data  = JSON.parse(e.parameter.payload);
     const id    = data.id || Date.now();
 
-    // tipo 'interno' é o único caso especial — ausência do campo (todo tablet
-    // de Caucaia hoje) cai no comportamento de sempre, sem nenhuma mudança.
-    if (data.tipo === 'interno') return doPostInterno(data, id);
+    // tipo 'interno'/'colaborador' são casos especiais — ausência do campo
+    // (todo tablet de Caucaia hoje) cai no comportamento de sempre, sem
+    // nenhuma mudança.
+    if (data.tipo === 'interno')     return doPostInterno(data, id);
+    if (data.tipo === 'colaborador') return doPostColaborador(data, id);
 
     const sheet = getOrCreateSheet();
 
@@ -195,6 +197,52 @@ function doPostInterno(data, id) {
     data.servicoSocial != null ? data.servicoSocial : '',
     data.higiene       != null ? data.higiene       : '',
     data.nps           != null ? data.nps           : '',
+    sanitizarTexto(data.comentario)
+  ]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'ok' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Grava resposta de Colaborador (pesquisa-colaborador.html) em Respostas_Colaboradores.
+// Chamada de dentro do lock já adquirido por doPost — não adquire lock próprio.
+// Reaproveita SHEET_COLABORADORES/HEADERS_COLABORADORES/getOrCreateSheetGenerico_,
+// que vivem em sincronizacaoLegado.js (mesmo projeto Apps Script, mesmo escopo
+// global) — se esse arquivo for removido do projeto, isso quebra também.
+function doPostColaborador(data, id) {
+  const sheet = getOrCreateSheetGenerico_(SHEET_COLABORADORES, HEADERS_COLABORADORES, '#1a6b4a');
+
+  if (sheet.getLastRow() > 1) {
+    const totalLinhas = sheet.getLastRow() - 1;
+    const linhasParaChecar = Math.min(totalLinhas, DEDUP_JANELA);
+    const startRow = sheet.getLastRow() - linhasParaChecar + 1;
+    const idsExistentes = sheet.getRange(startRow, 1, linhasParaChecar, 1).getValues().flat();
+    if (idsExistentes.includes(id)) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', duplicado: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // Ordem = HEADERS_COLABORADORES: ID, Timestamp, Municipio, Unidade, TipoUnidade,
+  // Instalacoes, Higiene, Seguranca, MeiosTrabalho, ConfortoBemEstar,
+  // ReconhecimentoLideres, ReconhecimentoColegas, Alimentacao, Comentario.
+  // TipoUnidade fica vazio — a aba Equipamentos não guarda esse dado hoje.
+  sheet.appendRow([
+    id,
+    data.timestamp              || new Date().toISOString(),
+    data.municipio               || '',
+    data.unidade                 || '',
+    '',
+    data.instalacoes           != null ? data.instalacoes           : '',
+    data.higiene                != null ? data.higiene                : '',
+    data.seguranca              != null ? data.seguranca              : '',
+    data.meiosTrabalho          != null ? data.meiosTrabalho          : '',
+    data.confortoBemEstar       != null ? data.confortoBemEstar       : '',
+    data.reconhecimentoLideres  != null ? data.reconhecimentoLideres  : '',
+    data.reconhecimentoColegas  != null ? data.reconhecimentoColegas  : '',
+    data.alimentacao            != null ? data.alimentacao            : '',
     sanitizarTexto(data.comentario)
   ]);
 

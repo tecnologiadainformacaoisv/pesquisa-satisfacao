@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.14] — 2026-09-01
+### Adicionado
+- Novo formulário `pesquisa-colaborador.html` — Colaborador, Etapa 4 da Fase 2. Mesmo padrão de `pesquisa-interno.html` (arquivo separado, overlay de configuração próprio). Perguntas: Instalações, Higiene, Segurança, Meios de trabalho, Conforto/bem-estar, Reconhecimento (líderes), Reconhecimento (colegas) — estrelas 1-5 — mais Alimentação (Sim/Não, componente novo de 2 botões) e Comentário.
+- `codigo.js`: `doPost` ganha mais um branch, `tipo: 'colaborador'` → `doPostColaborador`, gravando em `Respostas_Colaboradores`. Aditivo apenas — Externo e Interno permanecem inalterados.
+- `index.html` ganha card linkando pro formulário de Colaborador.
+- `sw.js` cacheia `pesquisa-colaborador.html`.
+
+---
+
 ## [1.1.13] — 2026-09-01
 ### Adicionado
 - Novo formulário `pesquisa-interno.html` — Paciente Interno (internado), Etapa 3 da Fase 2. Fluxo separado de `pesquisa.html` (mesmo padrão de `dashboard.html`), com overlay de configuração próprio (senha + Município/Unidade, mesma mecânica do Externo). Perguntas: Recepção, Enfermagem, Médico, Serviço Social, Higiene/Limpeza (estrelas 1-5) + NPS 0-10 + Comentário.

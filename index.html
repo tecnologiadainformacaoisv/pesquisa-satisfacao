@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.13">
+<meta name="app-version" content="1.1.14">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="assets/logo-192.png">
 <link rel="apple-touch-icon" href="assets/logo-192.png">
@@ -137,6 +137,7 @@
 
   .card-pesquisa { --card-accent: linear-gradient(135deg, #1e5f8a, #2980b9); }
   .card-interno { --card-accent: linear-gradient(135deg, #7d3c98, #a569bd); }
+  .card-colaborador { --card-accent: linear-gradient(135deg, #b9770e, #f39c12); }
   .card-dashboard { --card-accent: linear-gradient(135deg, #1a6b4a, #27ae60); }
 
   .badge-auth {
@@ -187,6 +188,13 @@
     <span class="card-btn">Iniciar Pesquisa →</span>
   </a>
 
+  <a class="card card-colaborador" href="pesquisa-colaborador.html">
+    <div class="card-icon">👷</div>
+    <div class="card-title">Pesquisa — Colaborador</div>
+    <div class="card-desc">Pesquisa de satisfação sobre o ambiente e as condições de trabalho, para colaboradores.</div>
+    <span class="card-btn">Iniciar Pesquisa →</span>
+  </a>
+
   <a class="card card-dashboard" href="dashboard.html">
     <div class="card-icon">📊</div>
     <div class="badge-auth">🔒 Área administrativa</div>
@@ -197,7 +205,7 @@
 
 </div>
 
-<div class="footer">Instituto São Vicente · Pesquisa de Satisfação · v1.1.13</div>
+<div class="footer">Instituto São Vicente · Pesquisa de Satisfação · v1.1.14</div>
 
 <script>
   if ('serviceWorker' in navigator) {
