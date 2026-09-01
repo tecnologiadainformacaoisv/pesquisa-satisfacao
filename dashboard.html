@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.14">
+<meta name="app-version" content="1.1.15">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.14 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.15 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -90,11 +90,11 @@
   .base-btn.active .base-btn__sub { color: #4a7fa5; }
   .base-switch__note { font-size: 12px; color: #95a5a6; flex: 1; min-width: 200px; }
 
-  /* Cards de perguntas que só existem no formulário antigo */
-  .somente-antiga { display: none; }
-  body.base-antiga .somente-antiga { display: block; }
-  /* Tempo de Espera não existe no formulário antigo */
-  body.base-antiga #cardEsperaWrap { display: none; }
+  /* NPS não existe na base Colaborador — seção inteira escondida via JS */
+  #npsSection, .nps-only { display: none; }
+  body.tem-nps #npsSection, body.tem-nps .nps-only { display: block; }
+  .chart-card.nps-only { display: none; }
+  body.tem-nps .chart-card.nps-only { display: block; }
 
   .filters {
     padding: 16px 24px;
@@ -350,7 +350,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.14</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.15</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -372,6 +372,14 @@
       <button class="base-btn active" id="btnBaseNova" onclick="trocarBase('nova')">
         📱 Pesquisa Nova
         <span class="base-btn__sub">Tablets · formulário atual</span>
+      </button>
+      <button class="base-btn" id="btnBaseInterna" onclick="trocarBase('interna')">
+        🛏 Paciente Interno
+        <span class="base-btn__sub">Internados · avulso</span>
+      </button>
+      <button class="base-btn" id="btnBaseColaborador" onclick="trocarBase('colaborador')">
+        👷 Colaborador
+        <span class="base-btn__sub">Ambiente de trabalho</span>
       </button>
     </div>
     <div class="base-switch__note" id="baseNote"></div>
@@ -402,55 +410,11 @@
     </div>
   </div>
 
-  <!-- Cards de métricas -->
-  <div class="cards-grid">
-    <div class="card-panel metric-card" style="--accent:#1e5f8a">
-      <div class="icon">📊</div>
-      <div class="label">NPS Score</div>
-      <div class="value" id="cardNPS">—</div>
-      <div class="sub" id="cardNPSsub">Net Promoter Score</div>
-    </div>
-    <div class="card-panel metric-card" style="--accent:#8e44ad">
-      <div class="icon">👩‍💼</div>
-      <div class="label">Recepção</div>
-      <div class="value" id="cardRecepcao">—</div>
-      <div class="sub">média de ⭐ (máx 5)</div>
-    </div>
-    <div class="card-panel metric-card" style="--accent:#16a085">
-      <div class="icon">🧹</div>
-      <div class="label">Limpeza</div>
-      <div class="value" id="cardLimpeza">—</div>
-      <div class="sub">média de ⭐ (máx 5)</div>
-    </div>
-    <div class="card-panel metric-card" style="--accent:#d35400">
-      <div class="icon">🩺</div>
-      <div class="label">Atendimento Médico</div>
-      <div class="value" id="cardAtendimento">—</div>
-      <div class="sub">média de ⭐ (máx 5)</div>
-    </div>
-    <div class="card-panel metric-card" id="cardEsperaWrap" style="--accent:#c0392b">
-      <div class="icon">⏱</div>
-      <div class="label">Tempo de Espera</div>
-      <div class="value" id="cardEspera">—</div>
-      <div class="sub">média de ⭐ (máx 5)</div>
-    </div>
-    <!-- Perguntas exclusivas do formulário antigo -->
-    <div class="card-panel metric-card somente-antiga" id="cardEnfermagemWrap" style="--accent:#2980b9">
-      <div class="icon">👩‍⚕️</div>
-      <div class="label">Enfermagem</div>
-      <div class="value" id="cardEnfermagem">—</div>
-      <div class="sub">média (máx 5) · só no antigo</div>
-    </div>
-    <div class="card-panel metric-card somente-antiga" id="cardServicoSocialWrap" style="--accent:#27ae60">
-      <div class="icon">🤝</div>
-      <div class="label">Serviço Social</div>
-      <div class="value" id="cardServicoSocial">—</div>
-      <div class="sub">média (máx 5) · só no antigo</div>
-    </div>
-  </div>
+  <!-- Cards de métricas — conteúdo gerado por renderCardsGrid(), varia por base -->
+  <div class="cards-grid" id="cardsGrid"></div>
 
-  <!-- NPS Detalhado -->
-  <div class="card-panel chart-card" style="margin-bottom:20px">
+  <!-- NPS Detalhado — só existe em bases com NPS (todas exceto Colaborador) -->
+  <div class="card-panel chart-card nps-only" id="npsSection" style="margin-bottom:20px">
     <div class="chart-title">Net Promoter Score (NPS)</div>
     <div class="chart-sub">Promotores (9–10) menos Detratores (0–6)</div>
     <div class="nps-gauge-row">
@@ -489,13 +453,13 @@
       <div class="chart-wrap"><canvas id="chartCategorias"></canvas></div>
     </div>
 
-    <div class="card-panel chart-card">
+    <div class="card-panel chart-card nps-only">
       <div class="chart-title">Distribuição de Notas NPS</div>
       <div class="chart-sub">Quantas vezes cada nota foi dada</div>
       <div class="chart-wrap"><canvas id="chartNPSdist"></canvas></div>
     </div>
 
-    <div class="card-panel chart-card full">
+    <div class="card-panel chart-card full nps-only">
       <div class="chart-title">Evolução Mensal — NPS</div>
       <div class="chart-sub">Histórico dos últimos 12 meses</div>
       <div class="chart-wrap tall"><canvas id="chartTrend"></canvas></div>
@@ -504,7 +468,7 @@
 
   <!-- Comentários -->
   <div class="card-panel comments-section">
-    <h3>💬 Comentários dos Pacientes <span id="commentCount" style="font-weight:400;color:#95a5a6"></span></h3>
+    <h3>💬 Comentários <span id="commentEntidade"></span> <span id="commentCount" style="font-weight:400;color:#95a5a6"></span></h3>
     <div id="commentsList"></div>
   </div>
 </main>
@@ -530,13 +494,74 @@
   let todosDados = [];
   let equipamentos = []; // aba Equipamentos — fonte de verdade de município/unidade ativos
 
-  // Base de dados ativa: 'nova' (tablets, formulário atual) ou 'antiga' (Google Forms).
-  // As bases NÃO se misturam: o formulário antigo tinha Enfermagem e Serviço Social
-  // (removidas no novo) e não tinha Tempo de Espera (criada no novo). Somar as duas
-  // distorceria as médias, por isso a visualização é uma de cada vez.
+  // Config por base: categorias de estrela, se tem NPS, texto de nota, schema
+  // de export CSV. As bases NÃO se misturam entre si — cada formulário tem
+  // schema próprio, somar distorceria as médias; a visualização é uma de
+  // cada vez, trocada pelo seletor "Base de dados".
+  const BASE_CONFIG = {
+    nova: {
+      temNPS: true,
+      categorias: [
+        { campo: 'recepcao',    label: 'Recepção',      cor: '#8e44ad' },
+        { campo: 'limpeza',     label: 'Limpeza',       cor: '#16a085' },
+        { campo: 'atendimento', label: 'Atend. Médico', cor: '#d35400' },
+        { campo: 'espera',      label: 'Tempo Espera',  cor: '#c0392b' }
+      ],
+      nota: 'Formulário atual (tablets): inclui Tempo de Espera; não tem Enfermagem nem Serviço Social.',
+      entidade: 'Pacientes',
+      csvHeader: 'Data,Hora,Unidade,NPS,Recepcao,Limpeza,Atendimento,Espera,Comentario',
+      csvCampos: d => [d.nps, d.recepcao, d.limpeza, d.atendimento, d.espera]
+    },
+    antiga: {
+      temNPS: true,
+      categorias: [
+        { campo: 'recepcao',      label: 'Recepção',       cor: '#8e44ad' },
+        { campo: 'enfermagem',    label: 'Enfermagem',     cor: '#2980b9' },
+        { campo: 'atendimento',   label: 'Atend. Médico',  cor: '#d35400' },
+        { campo: 'servicoSocial', label: 'Serviço Social', cor: '#27ae60' },
+        { campo: 'limpeza',       label: 'Limpeza',        cor: '#16a085' }
+      ],
+      nota: 'Formulário antigo (Google Forms): inclui Enfermagem e Serviço Social; não tinha Tempo de Espera.',
+      entidade: 'Pacientes',
+      csvHeader: 'Data,Hora,Unidade,NPS,Recepcao,Enfermagem,Atendimento,ServicoSocial,Limpeza,Comentario',
+      csvCampos: d => [d.nps, d.recepcao, d.enfermagem, d.atendimento, d.servicoSocial, d.limpeza]
+    },
+    interna: {
+      temNPS: true,
+      categorias: [
+        { campo: 'recepcao',      label: 'Recepção',        cor: '#8e44ad' },
+        { campo: 'enfermagem',    label: 'Enfermagem',      cor: '#2980b9' },
+        { campo: 'medico',        label: 'Médico',          cor: '#d35400' },
+        { campo: 'servicoSocial', label: 'Serviço Social',  cor: '#27ae60' },
+        { campo: 'higiene',       label: 'Higiene/Limpeza', cor: '#16a085' }
+      ],
+      nota: 'Paciente Interno (internado) — pesquisa aplicada avulsa (link/QR), não via totem fixo.',
+      entidade: 'Pacientes',
+      csvHeader: 'Data,Hora,Unidade,NPS,Recepcao,Enfermagem,Medico,ServicoSocial,Higiene,Comentario',
+      csvCampos: d => [d.nps, d.recepcao, d.enfermagem, d.medico, d.servicoSocial, d.higiene]
+    },
+    colaborador: {
+      temNPS: false,
+      temAlimentacao: true,
+      categorias: [
+        { campo: 'instalacoes',           label: 'Instalações',        cor: '#8e44ad' },
+        { campo: 'higiene',                label: 'Higiene',            cor: '#16a085' },
+        { campo: 'seguranca',              label: 'Segurança',          cor: '#c0392b' },
+        { campo: 'meiosTrabalho',          label: 'Meios de Trabalho',  cor: '#2980b9' },
+        { campo: 'confortoBemEstar',       label: 'Conforto/Bem-estar', cor: '#f39c12' },
+        { campo: 'reconhecimentoLideres',  label: 'Reconh. Líderes',    cor: '#27ae60' },
+        { campo: 'reconhecimentoColegas',  label: 'Reconh. Colegas',    cor: '#1abc9c' }
+      ],
+      nota: 'Colaborador — satisfação com ambiente e condições de trabalho. Não tem NPS.',
+      entidade: 'Colaboradores',
+      csvHeader: 'Data,Hora,Unidade,Instalacoes,Higiene,Seguranca,MeiosTrabalho,ConfortoBemEstar,ReconhecimentoLideres,ReconhecimentoColegas,Alimentacao,Comentario',
+      csvCampos: d => [d.instalacoes, d.higiene, d.seguranca, d.meiosTrabalho, d.confortoBemEstar, d.reconhecimentoLideres, d.reconhecimentoColegas, d.alimentacao]
+    }
+  };
+
   let baseAtiva = 'nova';
-  let dadosNovos = null;    // cache da base nova
-  let dadosAntigos = null;  // cache da base antiga
+  // Cache por base — evita recarregar do Sheets toda troca de aba
+  const dadosCache = { nova: null, antiga: null, interna: null, colaborador: null };
 
   // Busca a senha da planilha imediatamente ao carregar a página
   const configPromise = fetch(SCRIPT_URL + '?action=configuracao')
@@ -602,18 +627,27 @@
       'Relatório gerado em ' + now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
-    [dadosNovos, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
-    todosDados = dadosNovos;
+    [dadosCache.nova, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
+    todosDados = dadosCache.nova;
     atualizarNotaBase();
     popularFiltros(todosDados);
     atualizar();
 
     document.getElementById('ultimaAtualizacao').textContent =
       'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
-    // Auto-refresh só faz sentido na base nova (a antiga é histórico estático,
-    // e são ~20k linhas — recarregar a cada 30s seria desperdício)
-    setInterval(() => { if (baseAtiva === 'nova') recarregarDados(); }, 30000);
+    // Auto-refresh não faz sentido na base antiga (histórico estático,
+    // Forms desativado, ~20k linhas — recarregar a cada 30s seria desperdício)
+    setInterval(() => { if (baseAtiva !== 'antiga') recarregarDados(); }, 30000);
   }
+
+  // Um carregador por base — mapeia pro fetch certo sem duplicar a lógica
+  // de troca em todo lugar que precisa buscar dados da base ativa.
+  const CARREGADORES = {
+    nova: carregarDados,
+    antiga: carregarDadosAntigos,
+    interna: carregarDadosInterna,
+    colaborador: carregarDadosColaborador
+  };
 
   // --- AUTO-REFRESH ---
   async function recarregarDados() {
@@ -623,14 +657,11 @@
     const savedMun = document.getElementById('filtroMunicipio').value;
     const savedUni = document.getElementById('filtroUnidade').value;
 
-    if (baseAtiva === 'antiga') {
-      // Base histórica é estática (Forms desativado) — só recarrega equipamentos
-      [dadosAntigos, equipamentos] = await Promise.all([carregarDadosAntigos(), carregarEquipamentos()]);
-      todosDados = dadosAntigos;
-    } else {
-      [dadosNovos, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
-      todosDados = dadosNovos;
-    }
+    const carregador = CARREGADORES[baseAtiva];
+    const [dados, equip] = await Promise.all([carregador(), carregarEquipamentos()]);
+    dadosCache[baseAtiva] = dados;
+    equipamentos = equip;
+    todosDados = dados || [];
 
     const selMun = document.getElementById('filtroMunicipio');
     selMun.innerHTML = '<option value="">Todos</option>';
@@ -735,6 +766,63 @@
     }
   }
 
+  // Genérico pra buscar uma base (Interna/Colaborador), mapeando os campos
+  // do schema pro formato interno usado pelo dashboard.
+  async function carregarDadosGenerico_(action, mapeador) {
+    if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      const resp = await fetch(SCRIPT_URL + '?action=' + action + '&token=' + DADOS_TOKEN + '&_=' + Date.now(), { signal: controller.signal });
+      clearTimeout(timeout);
+      const linhas = await resp.json();
+      if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
+      marcarErroCarregamento(false);
+      return linhas.map(mapeador);
+    } catch (err) {
+      console.warn(`[Dashboard] Falha ao buscar ${action}:`, err.message);
+      marcarErroCarregamento(true);
+      return null;
+    }
+  }
+
+  // Paciente Interno (internado) — aba Respostas_Internas.
+  function carregarDadosInterna() {
+    return carregarDadosGenerico_('dadosInternos', r => ({
+      id:            r.ID,
+      timestamp:     r.Timestamp,
+      municipio:     r.Municipio     || '',
+      unidade:       r.Unidade       || '',
+      recepcao:      r.Recepcao      !== '' ? Number(r.Recepcao)      : null,
+      enfermagem:    r.Enfermagem    !== '' ? Number(r.Enfermagem)    : null,
+      medico:        r.Medico        !== '' ? Number(r.Medico)        : null,
+      servicoSocial: r.ServicoSocial !== '' ? Number(r.ServicoSocial) : null,
+      higiene:       r.Limpeza       !== '' ? Number(r.Limpeza)       : null,
+      nps:           r.NPS           !== '' ? Number(r.NPS)           : null,
+      comentario:    r.Comentario    || ''
+    }));
+  }
+
+  // Colaborador — aba Respostas_Colaboradores. Sem NPS; Alimentacao é
+  // Sim/Não (texto), não estrela — tratado à parte no card e no CSV.
+  function carregarDadosColaborador() {
+    return carregarDadosGenerico_('dadosColaboradores', r => ({
+      id:                    r.ID,
+      timestamp:             r.Timestamp,
+      municipio:             r.Municipio             || '',
+      unidade:               r.Unidade               || '',
+      instalacoes:           r.Instalacoes           !== '' ? Number(r.Instalacoes)           : null,
+      higiene:               r.Higiene               !== '' ? Number(r.Higiene)               : null,
+      seguranca:             r.Seguranca             !== '' ? Number(r.Seguranca)             : null,
+      meiosTrabalho:         r.MeiosTrabalho         !== '' ? Number(r.MeiosTrabalho)         : null,
+      confortoBemEstar:      r.ConfortoBemEstar      !== '' ? Number(r.ConfortoBemEstar)      : null,
+      reconhecimentoLideres: r.ReconhecimentoLideres !== '' ? Number(r.ReconhecimentoLideres) : null,
+      reconhecimentoColegas: r.ReconhecimentoColegas !== '' ? Number(r.ReconhecimentoColegas) : null,
+      alimentacao:           r.Alimentacao           || '',
+      comentario:            r.Comentario            || ''
+    }));
+  }
+
   // Token de geração: se o usuário clicar nos dois botões em sequência rápida,
   // a resposta da troca mais antiga (que pode terminar de carregar DEPOIS da
   // mais nova, já que a base antiga demora mais) é descartada em vez de
@@ -760,18 +848,13 @@
 
     document.getElementById('btnBaseNova').classList.toggle('active', base === 'nova');
     document.getElementById('btnBaseAntiga').classList.toggle('active', base === 'antiga');
-    document.body.classList.toggle('base-antiga', base === 'antiga');
+    document.getElementById('btnBaseInterna').classList.toggle('active', base === 'interna');
+    document.getElementById('btnBaseColaborador').classList.toggle('active', base === 'colaborador');
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
 
-    let dados;
-    if (base === 'antiga') {
-      if (!dadosAntigos) dadosAntigos = await carregarDadosAntigos();
-      dados = dadosAntigos;
-    } else {
-      if (!dadosNovos) dadosNovos = await carregarDados();
-      dados = dadosNovos;
-    }
+    if (!dadosCache[base]) dadosCache[base] = await CARREGADORES[base]();
+    const dados = dadosCache[base];
 
     // Uma troca mais recente já assumiu enquanto esse fetch estava em voo —
     // descarta esse resultado obsoleto em vez de sobrescrever a UI atual.
@@ -782,17 +865,16 @@
     // Tenta restaurar mês/ano/município/unidade que já estavam selecionados
     // (ex: comparar agosto nas duas bases). Se algo não existir na base de
     // destino (ex: ano 2025 não existe na base nova), cai no padrão: base
-    // antiga (histórico fechado) abre em "Total"; base nova, no mês atual.
+    // antiga (histórico fechado) abre em "Total"; as demais, no mês atual.
     popularFiltros(todosDados, { defaultTotal: base === 'antiga', preferir });
     atualizar();
   }
 
   function atualizarNotaBase() {
+    document.body.classList.toggle('tem-nps', BASE_CONFIG[baseAtiva].temNPS);
     const nota = document.getElementById('baseNote');
     if (!nota) return;
-    nota.textContent = baseAtiva === 'antiga'
-      ? 'Formulário antigo (Google Forms): inclui Enfermagem e Serviço Social; não tinha Tempo de Espera.'
-      : 'Formulário atual (tablets): inclui Tempo de Espera; não tem Enfermagem nem Serviço Social.';
+    nota.textContent = BASE_CONFIG[baseAtiva].nota;
   }
 
   async function carregarEquipamentos() {
@@ -816,7 +898,7 @@
   // Na base antiga isso não se aplica: ela é histórico fechado, então as opções
   // vêm só dos próprios dados (unidade nova nunca teve resposta no Forms).
   function municipiosDisponiveis() {
-    const dosEquipamentos = baseAtiva === 'nova' ? equipamentos.map(e => e.municipio) : [];
+    const dosEquipamentos = baseAtiva !== 'antiga' ? equipamentos.map(e => e.municipio) : [];
     return [...new Set([
       ...todosDados.map(d => d.municipio),
       ...dosEquipamentos
@@ -824,7 +906,7 @@
   }
 
   function unidadesDisponiveis(municipio) {
-    const dosEquipamentos = baseAtiva === 'nova'
+    const dosEquipamentos = baseAtiva !== 'antiga'
       ? equipamentos.filter(e => !municipio || e.municipio === municipio).map(e => e.unidade)
       : [];
     return [...new Set([
@@ -949,13 +1031,8 @@
     // — respeitando a base ativa, senão uma falha na base antiga acaba
     // silenciosamente trocando os dados exibidos pelos da base nova.
     if (todosDados.length === 0 && SCRIPT_URL !== 'COLE_SUA_URL_AQUI') {
-      if (baseAtiva === 'antiga') {
-        dadosAntigos = await carregarDadosAntigos();
-        todosDados = dadosAntigos || [];
-      } else {
-        dadosNovos = await carregarDados();
-        todosDados = dadosNovos;
-      }
+      dadosCache[baseAtiva] = await CARREGADORES[baseAtiva]();
+      todosDados = dadosCache[baseAtiva] || [];
     }
 
     const mesVal = document.getElementById('filtroMes').value;
@@ -993,69 +1070,97 @@
     return v === null ? '—' : v.toFixed(casas);
   }
 
+  // Ícone por campo — só cosmético, cai num genérico (⭐) se não listado
+  const ICONES_CATEGORIA = {
+    recepcao: '👩‍💼', limpeza: '🧹', atendimento: '🩺', espera: '⏱',
+    enfermagem: '👩‍⚕️', servicoSocial: '🤝', medico: '🩺', higiene: '🧼',
+    instalacoes: '🏢', seguranca: '🦺', meiosTrabalho: '🧰',
+    confortoBemEstar: '😊', reconhecimentoLideres: '👔', reconhecimentoColegas: '🤝'
+  };
+
   function calcularMetricas() {
-    const n = dadosFiltrados.length;
+    const cfg = BASE_CONFIG[baseAtiva];
 
-    // NPS
-    const comNPS = dadosFiltrados.filter(d => d.nps !== null);
-    const total = comNPS.length;
-    const promoters = comNPS.filter(d => d.nps >= 9).length;
-    const passives = comNPS.filter(d => d.nps >= 7 && d.nps <= 8).length;
-    const detractors = comNPS.filter(d => d.nps <= 6).length;
-    const nps = total ? Math.round(((promoters - detractors) / total) * 100) : null;
+    if (cfg.temNPS) {
+      const comNPS = dadosFiltrados.filter(d => d.nps !== null);
+      const total = comNPS.length;
+      const promoters = comNPS.filter(d => d.nps >= 9).length;
+      const passives = comNPS.filter(d => d.nps >= 7 && d.nps <= 8).length;
+      const detractors = comNPS.filter(d => d.nps <= 6).length;
+      const nps = total ? Math.round(((promoters - detractors) / total) * 100) : null;
 
-    const npsStr = nps === null ? '—' : (nps > 0 ? '+' : '') + nps;
-    document.getElementById('cardNPS').textContent = npsStr;
-    document.getElementById('npsScoreBig').textContent = npsStr;
-    document.getElementById('npsScoreBig').style.color = nps === null ? '#95a5a6' : nps >= 50 ? '#27ae60' : nps >= 0 ? '#f39c12' : '#e74c3c';
+      const npsStr = nps === null ? '—' : (nps > 0 ? '+' : '') + nps;
+      document.getElementById('npsScoreBig').textContent = npsStr;
+      document.getElementById('npsScoreBig').style.color = nps === null ? '#95a5a6' : nps >= 50 ? '#27ae60' : nps >= 0 ? '#f39c12' : '#e74c3c';
 
-    const pPro = total ? Math.round((promoters / total) * 100) : 0;
-    const pPas = total ? Math.round((passives / total) * 100) : 0;
-    const pDet = total ? Math.round((detractors / total) * 100) : 0;
+      const pPro = total ? Math.round((promoters / total) * 100) : 0;
+      const pPas = total ? Math.round((passives / total) * 100) : 0;
+      const pDet = total ? Math.round((detractors / total) * 100) : 0;
 
-    document.getElementById('pctPromoters').textContent = total ? pPro + '%' : '—';
-    document.getElementById('pctPassives').textContent = total ? pPas + '%' : '—';
-    document.getElementById('pctDetractors').textContent = total ? pDet + '%' : '—';
-    document.getElementById('cntPromoters').textContent = promoters + ' paciente' + (promoters !== 1 ? 's' : '');
-    document.getElementById('cntPassives').textContent = passives + ' paciente' + (passives !== 1 ? 's' : '');
-    document.getElementById('cntDetractors').textContent = detractors + ' paciente' + (detractors !== 1 ? 's' : '');
+      document.getElementById('pctPromoters').textContent = total ? pPro + '%' : '—';
+      document.getElementById('pctPassives').textContent = total ? pPas + '%' : '—';
+      document.getElementById('pctDetractors').textContent = total ? pDet + '%' : '—';
+      document.getElementById('cntPromoters').textContent = promoters + ' ' + cfg.entidade.toLowerCase();
+      document.getElementById('cntPassives').textContent = passives + ' ' + cfg.entidade.toLowerCase();
+      document.getElementById('cntDetractors').textContent = detractors + ' ' + cfg.entidade.toLowerCase();
 
-    document.getElementById('cardRecepcao').textContent = fmt(media('recepcao'));
-    document.getElementById('cardLimpeza').textContent = fmt(media('limpeza'));
-    document.getElementById('cardAtendimento').textContent = fmt(media('atendimento'));
-
-    if (baseAtiva === 'antiga') {
-      document.getElementById('cardEnfermagem').textContent = fmt(media('enfermagem'));
-      document.getElementById('cardServicoSocial').textContent = fmt(media('servicoSocial'));
+      renderCardsGrid(npsStr, nps);
     } else {
-      document.getElementById('cardEspera').textContent = fmt(media('espera'));
+      renderCardsGrid(null, null);
     }
   }
 
-  // Categorias de estrelas de cada base (o formulário mudou entre elas)
-  function categoriasDaBase() {
-    return baseAtiva === 'antiga'
-      ? [
-          { campo: 'recepcao',      label: 'Recepção',       cor: '#8e44ad' },
-          { campo: 'enfermagem',    label: 'Enfermagem',     cor: '#2980b9' },
-          { campo: 'atendimento',   label: 'Atend. Médico',  cor: '#d35400' },
-          { campo: 'servicoSocial', label: 'Serviço Social', cor: '#27ae60' },
-          { campo: 'limpeza',       label: 'Limpeza',        cor: '#16a085' }
-        ]
-      : [
-          { campo: 'recepcao',    label: 'Recepção',      cor: '#8e44ad' },
-          { campo: 'limpeza',     label: 'Limpeza',       cor: '#16a085' },
-          { campo: 'atendimento', label: 'Atend. Médico', cor: '#d35400' },
-          { campo: 'espera',      label: 'Tempo Espera',  cor: '#c0392b' }
-        ];
+  // Monta o cards-grid do zero a cada atualização — schema muda de base pra
+  // base (NPS existe ou não, Alimentação é Sim/Não em vez de estrela), então
+  // é mais simples gerar o HTML todo do que manter IDs fixos por campo.
+  function renderCardsGrid(npsStr, npsVal) {
+    const cfg = BASE_CONFIG[baseAtiva];
+    const grid = document.getElementById('cardsGrid');
+    let html = '';
+
+    if (cfg.temNPS) {
+      html += `<div class="card-panel metric-card" style="--accent:#1e5f8a">
+        <div class="icon">📊</div>
+        <div class="label">NPS Score</div>
+        <div class="value">${npsStr}</div>
+        <div class="sub">Net Promoter Score</div>
+      </div>`;
+    }
+
+    cfg.categorias.forEach(c => {
+      html += `<div class="card-panel metric-card" style="--accent:${c.cor}">
+        <div class="icon">${ICONES_CATEGORIA[c.campo] || '⭐'}</div>
+        <div class="label">${c.label}</div>
+        <div class="value">${fmt(media(c.campo))}</div>
+        <div class="sub">média de ⭐ (máx 5)</div>
+      </div>`;
+    });
+
+    if (cfg.temAlimentacao) {
+      const comResposta = dadosFiltrados.filter(d => d.alimentacao === 'Sim' || d.alimentacao === 'Não');
+      const pctSim = comResposta.length ? Math.round(comResposta.filter(d => d.alimentacao === 'Sim').length / comResposta.length * 100) : null;
+      html += `<div class="card-panel metric-card" style="--accent:#e67e22">
+        <div class="icon">🍽</div>
+        <div class="label">Alimentação de Qualidade</div>
+        <div class="value">${pctSim === null ? '—' : pctSim + '%'}</div>
+        <div class="sub">responderam "Sim" (${comResposta.length})</div>
+      </div>`;
+    }
+
+    grid.innerHTML = html;
   }
 
   function renderizarGraficos(todos) {
     requestAnimationFrame(() => {
-      renderNPSbar();
+      const temNPS = BASE_CONFIG[baseAtiva].temNPS;
       renderCategorias();
-      renderNPSdist();
-      renderTrend(todos);
+      if (temNPS) {
+        renderNPSbar();
+        renderNPSdist();
+        renderTrend(todos);
+      } else {
+        destroyChart('nps'); destroyChart('dist'); destroyChart('trend');
+      }
     });
   }
 
@@ -1095,7 +1200,7 @@
 
   function renderCategorias() {
     destroyChart('cat');
-    const cats = categoriasDaBase();
+    const cats = BASE_CONFIG[baseAtiva].categorias;
     const labels = cats.map(c => c.label);
     const vals = cats.map(c => media(c.campo));
     const colors = cats.map(c => c.cor);
@@ -1223,6 +1328,7 @@
   }
 
   function renderizarComentarios() {
+    document.getElementById('commentEntidade').textContent = 'dos ' + BASE_CONFIG[baseAtiva].entidade;
     const lista = document.getElementById('commentsList');
     const comComentario = dadosFiltrados.filter(d => d.comentario && d.comentario.trim());
     document.getElementById('commentCount').textContent = '(' + comComentario.length + ')';
@@ -1259,25 +1365,19 @@
 
     if (!dados.length) { alert('Nenhum dado para exportar no período selecionado.'); return; }
 
-    const antiga = baseAtiva === 'antiga';
-    const header = antiga
-      ? 'Data,Hora,Unidade,NPS,Recepcao,Enfermagem,Atendimento,ServicoSocial,Limpeza,Comentario'
-      : 'Data,Hora,Unidade,NPS,Recepcao,Limpeza,Atendimento,Espera,Comentario';
+    const cfg = BASE_CONFIG[baseAtiva];
 
     const rows = dados.map(d => {
       const dt = new Date(d.timestamp);
       const base = [dt.toLocaleDateString('pt-BR'), dt.toLocaleTimeString('pt-BR'), '"' + (d.unidade || '') + '"'];
-      const campos = antiga
-        ? [d.nps, d.recepcao, d.enfermagem, d.atendimento, d.servicoSocial, d.limpeza]
-        : [d.nps, d.recepcao, d.limpeza, d.atendimento, d.espera];
       return [
         ...base,
-        ...campos.map(v => v ?? ''),
+        ...cfg.csvCampos(d).map(v => v ?? ''),
         '"' + sanitizarCsv(d.comentario).replace(/"/g, '""') + '"'
       ].join(',');
     });
 
-    const csv = [header, ...rows].join('\n');
+    const csv = [cfg.csvHeader, ...rows].join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1287,7 +1387,8 @@
     const anoVal = document.getElementById('filtroAno').value;
     const parteMes = mesVal ? nomesMeses[parseInt(mesVal)] : 'todos-meses';
     const parteAno = anoVal || 'todos-anos';
-    a.download = `satisfacao_${antiga ? 'ANTIGA_' : ''}${parteMes}_${parteAno}.csv`;
+    const prefixoBase = baseAtiva === 'nova' ? '' : baseAtiva.toUpperCase() + '_';
+    a.download = `satisfacao_${prefixoBase}${parteMes}_${parteAno}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }

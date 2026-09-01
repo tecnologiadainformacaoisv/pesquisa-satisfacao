@@ -301,7 +301,9 @@ function doGet(e) {
     if (action === 'configuracao')  return getConfiguracao();
 
     if (token !== DADOS_TOKEN) return respostaNaoAutorizada();
-    if (action === 'dadosAntigos')  return getDadosAntigos();
+    if (action === 'dadosAntigos')       return getDadosAntigos();
+    if (action === 'dadosInternos')      return getDadosGenerico_(SHEET_INTERNOS, HEADERS_INTERNOS);
+    if (action === 'dadosColaboradores') return getDadosGenerico_(SHEET_COLABORADORES, HEADERS_COLABORADORES);
     return getDados();
   } catch (err) {
     return ContentService
@@ -362,6 +364,35 @@ function getDadosAntigos() {
   if (!cabecalhoValido(headers, HEADERS_ANTIGAS)) return erroCabecalho(SHEET_ANTIGAS);
 
   const rows    = values.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i]; });
+    return obj;
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify(rows))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Genérica pra Respostas_Internas/Respostas_Colaboradores — mesmo padrão de
+// getDadosAntigos, mas parametrizada por nome de aba/schema em vez de
+// duplicar a função pra cada uma. sheet/headers vêm de sincronizacaoLegado.js
+// (mesmo projeto Apps Script, mesmo escopo global).
+function getDadosGenerico_(nomeAba, headersEsperados) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(nomeAba);
+
+  if (!sheet || sheet.getLastRow() <= 1) {
+    return ContentService
+      .createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const values  = sheet.getDataRange().getValues();
+  const headers = values[0];
+  if (!cabecalhoValido(headers, headersEsperados)) return erroCabecalho(nomeAba);
+
+  const rows = values.slice(1).map(row => {
     const obj = {};
     headers.forEach((h, i) => { obj[h] = row[i]; });
     return obj;

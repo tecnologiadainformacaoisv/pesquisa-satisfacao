@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.14** — em produção desde 2026-06-12.
+**v1.1.15** — em produção desde 2026-06-12.
 
 ---
 
@@ -121,8 +121,10 @@ projeto-pesquisa-satisfacao/
 ### Apps Script (`appscript/codigo.js`)
 | Endpoint | Ação |
 |---|---|
-| `?action=dados` (padrão) | Retorna todas as respostas da aba **Respostas** |
+| `?action=dados` (padrão) | Retorna todas as respostas da aba **Respostas_Externas** |
 | `?action=dadosAntigos` | Retorna o histórico migrado do Google Forms (aba **Respostas_Antigas**) |
+| `?action=dadosInternos` | Retorna as respostas de Paciente Interno (aba **Respostas_Internas**) |
+| `?action=dadosColaboradores` | Retorna as respostas de Colaborador (aba **Respostas_Colaboradores**) |
 | `?action=config` | Retorna equipamentos ativos da aba **Equipamentos** |
 | `?action=configuracao` | Retorna config chave/valor da aba **Configuracao** (senha, etc.) |
 | POST com `payload` | Salva nova resposta |
@@ -218,7 +220,7 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 > Última atualização: 2026-08-28
 
-- **Versão:** v1.1.14 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
+- **Versão:** v1.1.15 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.
@@ -270,12 +272,18 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
   que autocontido (sem depender de `codigo.js`) e sem `SyncControl`/checkpoint
   incremental — usa checagem de ID já existente no destino pra idempotência.
 
-- **Etapas 3, 4, 5 (pendentes):** formulário de Paciente Interno no PWA,
-  formulário de Colaborador no PWA, e exibição de Interno/Colaborador no
-  dashboard. Decisão já tomada: Interno/Colaborador rodam **avulsos**
-  (link/QR — modelo ainda a definir, por ora simulando via tablet/celular
-  configurado igual o Externo, já que não há previsão de totens dedicados
-  pra essas unidades).
+- **Etapa 3 (concluída):** formulário de Paciente Interno no PWA
+  (`pesquisa-interno.html`), arquivo separado (mesmo padrão de
+  `dashboard.html`), gravando em `Respostas_Internas` via `doPost` com
+  `tipo: 'interno'` — aditivo, sem alterar o fluxo Externo.
+- **Etapa 4 (concluída):** formulário de Colaborador (`pesquisa-colaborador.html`),
+  mesmo padrão, gravando em `Respostas_Colaboradores` via `tipo: 'colaborador'`.
+- **Etapa 5 (concluída):** dashboard (`dashboard.html`) ganha bases **Paciente
+  Interno** e **Colaborador** no seletor, ao lado de Nova/Antiga.
+
+  Decisão já tomada: Interno/Colaborador rodam **avulsos** (link/QR — modelo
+  ainda a definir, por ora simulando via tablet/celular configurado igual o
+  Externo, já que não há previsão de totens dedicados pra essas unidades).
 
 ---
 

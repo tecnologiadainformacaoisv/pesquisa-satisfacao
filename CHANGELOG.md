@@ -5,6 +5,16 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.15] — 2026-09-01
+### Adicionado
+- Dashboard (`dashboard.html`) ganha 2 bases novas no seletor: **Paciente Interno** e **Colaborador**, ao lado de Nova/Antiga — Etapa 5 da Fase 2, fecha o ciclo de visibilidade dos dados migrados/coletados nas etapas anteriores.
+- `codigo.js`: `doGet` ganha `?action=dadosInternos` e `?action=dadosColaboradores`, protegidos pelo mesmo `token` de `dados`/`dadosAntigos`.
+### Alterado
+- Cards de métricas do dashboard passam a ser gerados dinamicamente por base (`renderCardsGrid()`) em vez de IDs fixos por campo — necessário porque Colaborador não tem NPS e tem um campo Sim/Não (Alimentação) que não existe nas outras bases. Comportamento das bases Nova/Antiga não muda, só a forma como o HTML é gerado.
+- Seção de NPS (gauge + 2 gráficos) fica oculta quando a base ativa não tem NPS (só acontece em Colaborador).
+
+---
+
 ## [1.1.14] — 2026-09-01
 ### Adicionado
 - Novo formulário `pesquisa-colaborador.html` — Colaborador, Etapa 4 da Fase 2. Mesmo padrão de `pesquisa-interno.html` (arquivo separado, overlay de configuração próprio). Perguntas: Instalações, Higiene, Segurança, Meios de trabalho, Conforto/bem-estar, Reconhecimento (líderes), Reconhecimento (colegas) — estrelas 1-5 — mais Alimentação (Sim/Não, componente novo de 2 botões) e Comentário.
