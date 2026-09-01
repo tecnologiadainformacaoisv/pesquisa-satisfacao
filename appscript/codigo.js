@@ -1,5 +1,5 @@
 const SPREADSHEET_ID  = '1b-QuMPD99jZm36JqC3A1tSzhkAaRfjKPvhqalnw_jmw';
-const SHEET_NAME      = 'Respostas';
+const SHEET_NAME      = 'Respostas_Externas';
 const SHEET_ANTIGAS   = 'Respostas_Antigas';
 const SHEET_CONFIG    = 'Equipamentos';
 const SHEET_CFG       = 'Configuracao';
