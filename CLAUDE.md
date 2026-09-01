@@ -226,7 +226,58 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
   - Dashboard administrativo (`dashboard.html`) protegido por senha (vinda da planilha, aba **Configuracao**), sessão persistida por 30 dias em `localStorage` — não pede login a cada refresh.
   - Dashboard tem seletor **Pesquisa Nova × Pesquisa Antiga** (ver seção "Bases separadas" acima), com filtros de Mês/Dia/Ano (inclusive "Total")/Município/Unidade que tentam persistir ao trocar de base.
   - Tablet configurado por município + unidade via overlay protegido por senha.
-- **Backend Apps Script** com endpoints `?action=dados | dadosAntigos | config | configuracao` e POST de respostas, gravando na aba **Respostas**.
+- **Backend Apps Script** com endpoints `?action=dados | dadosAntigos | config | configuracao` e POST de respostas, gravando na aba **Respostas_Externas** (renomeada de `Respostas` em 2026-08-31 para padronizar com `Respostas_Internas`/`Respostas_Colaboradores`).
+
+---
+
+## Fase 2 — expansão (em andamento desde 2026-08-31)
+
+> Ver histórico de decisões completo na conversa de 2026-08-31/09-01. Resumo do que já foi feito:
+
+- **Etapa 1 (concluída):** 39 unidades novas cadastradas na aba **Equipamentos**
+  (10 municípios: Caucaia, Maracanaú, Forquilha, Guaraciaba do Norte, Iguatu,
+  Lavras da Mangabeira, Orós, Pacatuba, Pedra Branca, Tabuleiro do Norte,
+  Várzea Alegre) — subconjunto de uma planilha índice mestre fornecida pelo
+  usuário, **não é ainda os 13 municípios completos do ISV**. Habilita só o
+  formulário **Externo** (o único que existe no PWA hoje) nessas unidades via
+  overlay de configuração — nenhum tablet físico foi instalado, é só cadastro.
+
+- **Etapa 2 (concluída):** migração do histórico de **Paciente Interno**
+  (internado) e **Colaborador**, hoje coletados via 80 Google Forms/planilhas
+  separados (39 unidades × 2 tipos), pras abas **Respostas_Internas** e
+  **Respostas_Colaboradores** da planilha de produção. Volume real migrado:
+  65 respostas em Internas, 81 em Colaboradores (a maioria das 80 unidades
+  ainda não tem ninguém respondendo — não é bug, é rollout real).
+
+  **⚠️ Detalhe de infraestrutura não óbvio, importante pra quem mexer nisso depois:**
+  o script de sincronização diária **não roda no projeto Apps Script principal**
+  (o vinculado a esta planilha, de propriedade de `qualidade.isv@gmail.com`).
+  Esse projeto, por ter sido criado por uma conta pessoal fora do domínio
+  `institutosaovicente.com.br`, esbarra numa restrição do Google Workspace
+  ("apps de terceiros não configurados") que bloqueia `SpreadsheetApp.openById()`
+  pra arquivos de outras contas — mesmo com compartilhamento e autorização
+  concedidos. Afetava 74 das 80 planilhas de origem.
+
+  A solução foi criar um **projeto Apps Script standalone separado**, pela
+  conta **admin@institutosaovicente.com.br** (via `script.new`, não vinculado
+  a nenhuma planilha), que hoje é quem roda a sincronização diária (trigger
+  às 4h) de verdade. O arquivo `appscript/sincronizacaoLegado.js` deste
+  repositório **continua no código como referência/histórico, mas seu
+  trigger foi desativado** — não é mais ele quem sincroniza em produção.
+  Esse projeto standalone não está versionado no git (foi colado direto no
+  editor do Apps Script); se precisar recriá-lo ou entender a lógica, o
+  código é praticamente idêntico a `appscript/sincronizacaoLegado.js`, só
+  que autocontido (sem depender de `codigo.js`) e sem `SyncControl`/checkpoint
+  incremental — usa checagem de ID já existente no destino pra idempotência.
+
+- **Etapas 3, 4, 5 (pendentes):** formulário de Paciente Interno no PWA,
+  formulário de Colaborador no PWA, e exibição de Interno/Colaborador no
+  dashboard. Decisão já tomada: Interno/Colaborador rodam **avulsos**
+  (link/QR — modelo ainda a definir, por ora simulando via tablet/celular
+  configurado igual o Externo, já que não há previsão de totens dedicados
+  pra essas unidades).
+
+---
 
 ## Decisões técnicas tomadas
 
