@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.17">
+<meta name="app-version" content="1.1.18">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -493,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.17</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.18</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -989,10 +989,13 @@
       .catch(err => console.warn('[SW] Falha no registro:', err));
 
     // Recarrega sozinho quando uma nova versão é publicada — mas só na tela
-    // inicial (NPS) e antes de qualquer nota selecionada, para nunca
-    // interromper um paciente no meio da resposta.
+    // inicial (NPS), antes de qualquer nota selecionada e com o overlay de
+    // configuração fechado, para nunca interromper um paciente no meio da
+    // resposta nem derrubar alguém no meio de configurar o tablet (senha e
+    // seleção digitadas se perderiam com o reload).
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (currentStep === 0 && respostas.nps === null) window.location.reload();
+      const configAberto = document.getElementById('configOverlay').style.display === 'flex';
+      if (currentStep === 0 && respostas.nps === null && !configAberto) window.location.reload();
       else swUpdatePendente = true;
     });
   }

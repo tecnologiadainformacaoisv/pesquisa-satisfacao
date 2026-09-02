@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa - Paciente Interno">
-<meta name="app-version" content="1.1.17">
+<meta name="app-version" content="1.1.18">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação — Paciente Interno</title>
 <style>
@@ -520,7 +520,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa Paciente Interno · v1.1.17</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa Paciente Interno · v1.1.18</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -997,8 +997,11 @@
       .then(reg => setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000))
       .catch(err => console.warn('[SW] Falha no registro:', err));
 
+    // Não recarrega com o overlay de configuração aberto — senão a senha e
+    // a seleção digitadas se perdem no meio da configuração do aparelho.
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (currentStep === 0 && respostas.nps === null) window.location.reload();
+      const configAberto = document.getElementById('configOverlay').style.display === 'flex';
+      if (currentStep === 0 && respostas.nps === null && !configAberto) window.location.reload();
       else swUpdatePendente = true;
     });
   }

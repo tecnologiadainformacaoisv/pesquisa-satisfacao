@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.18] — 2026-09-02
+### Corrigido
+- Achado durante bateria de testes de toque real (puppeteer): o auto-reload do Service Worker (existe desde v0.3.2, recarrega a página sozinha quando uma versão nova ativa) podia disparar bem no meio de alguém preenchendo o overlay de configuração do tablet, perdendo a senha/seleção digitada. Corrigido nos 3 formulários (`pesquisa.html`, `pesquisa-interno.html`, `pesquisa-colaborador.html`): o reload automático agora também verifica se o overlay de configuração está fechado antes de recarregar. Não afeta o fluxo normal de resposta do paciente/colaborador — só a tela de configuração.
+### Testado
+- Bateria de teste de toque real (não API) rodada nos 3 formulários via automação de navegador (puppeteer): configuração completa + clique em cada estrela/NPS/Sim-Não + envio, confirmando dado correto na planilha única de produção. 0 erros de console.
+- Script de limpeza de dados de teste (`appscript/limpezaTestes.js`) usado para remover 10 linhas de teste acumuladas ao longo dos testes desta sessão, com conferência prévia (dry-run) antes da exclusão definitiva.
+
+---
+
 ## [1.1.17] — 2026-09-02
 ### Corrigido
 - Achado numa auditoria geral pós-Fase 2: o gráfico "Evolução Mensal — NPS" ignorava o filtro de Município/Unidade (só os outros 3 gráficos/cards respeitavam) — filtrar por uma unidade específica continuava mostrando a tendência agregada de todas as unidades da base, sem nenhum aviso visual disso. Corrigido: o gráfico de tendência agora respeita Município/Unidade (mas continua ignorando Mês/Dia/Ano de propósito, já que é sempre "últimos 12 meses").
