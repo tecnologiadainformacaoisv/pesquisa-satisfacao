@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.19] — 2026-09-08
+### Alterado
+- `index.html`: título do card de Paciente Externo padronizado pra "Pesquisa — Paciente Externo", seguindo o mesmo padrão dos cards de Interno/Colaborador (antes era só "Formulário de Pesquisa", genérico e inconsistente com os demais).
+
+---
+
 ## [1.1.18] — 2026-09-02
 ### Corrigido
 - Achado durante bateria de testes de toque real (puppeteer): o auto-reload do Service Worker (existe desde v0.3.2, recarrega a página sozinha quando uma versão nova ativa) podia disparar bem no meio de alguém preenchendo o overlay de configuração do tablet, perdendo a senha/seleção digitada. Corrigido nos 3 formulários (`pesquisa.html`, `pesquisa-interno.html`, `pesquisa-colaborador.html`): o reload automático agora também verifica se o overlay de configuração está fechado antes de recarregar. Não afeta o fluxo normal de resposta do paciente/colaborador — só a tela de configuração.
