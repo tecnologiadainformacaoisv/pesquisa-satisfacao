@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administração — Pesquisa de Satisfação ISV</title>
+<link rel="stylesheet" href="../css/instituto.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: #f3f6f9;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #16324a;
+  }
+  header {
+    background: linear-gradient(135deg, #0a3d62, #1e5f8a);
+    color: #fff;
+    padding: 18px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  header h1 { font-size: 18px; font-weight: 800; }
+  header .quem { font-size: 12.5px; opacity: 0.85; }
+  main { max-width: 1000px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  #loginBox {
+    max-width: 380px; margin: 80px auto; background: #fff; border-radius: 16px;
+    padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  }
+  #loginBox h2 { font-size: 18px; color: #0a3d62; margin-bottom: 6px; }
+  #loginBox p { font-size: 13px; color: #7f8c8d; margin-bottom: 18px; }
+  #loginBox input {
+    width: 100%; padding: 12px 14px; border: 1px solid #d7e2ea; border-radius: 10px;
+    font-size: 14px; margin-bottom: 12px;
+  }
+  #loginBox button {
+    width: 100%; padding: 13px; border: none; border-radius: 10px;
+    background: linear-gradient(135deg, #1e5f8a, #2980b9); color: #fff;
+    font-weight: 700; cursor: pointer;
+  }
+  #loginErro { color: #c0392b; font-size: 13px; margin-top: 10px; text-align: center; }
+
+  .painel { display: none; }
+
+  section {
+    background: #fff; border-radius: 14px; padding: 22px 24px;
+    margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  section h2 { font-size: 15px; color: #0a3d62; margin-bottom: 4px; }
+  section .sub { font-size: 12.5px; color: #7f8c8d; margin-bottom: 16px; }
+
+  .form-convite { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .form-convite input, .form-convite select {
+    padding: 10px 12px; border: 1px solid #d7e2ea; border-radius: 8px; font-size: 13.5px;
+  }
+  .form-convite input[type="email"] { flex: 1; min-width: 220px; }
+  .form-convite button {
+    padding: 10px 18px; border: none; border-radius: 8px;
+    background: #1a6b4a; color: #fff; font-weight: 700; cursor: pointer; font-size: 13.5px;
+  }
+  .form-convite button:disabled { opacity: 0.6; cursor: default; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  th { text-align: left; padding: 8px 10px; color: #7f8c8d; font-size: 11.5px; text-transform: uppercase; border-bottom: 2px solid #eef2f5; }
+  td { padding: 9px 10px; border-bottom: 1px solid #eef2f5; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .badge.admin { background: #eafaf1; color: #1a6b4a; }
+  .badge.visualizador { background: #eaf2fa; color: #1e5f8a; }
+  .badge.divergente { background: #fdf1ef; color: #c0392b; }
+  .badge.ok { background: #eafaf1; color: #1a6b4a; }
+  .vazio { text-align: center; color: #a3b5c2; padding: 20px; font-size: 13px; }
+  .acesso-negado { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+</style>
+</head>
+<body>
+
+<div id="loginBox">
+  <h2>Administração</h2>
+  <p>Pesquisa de Satisfação ISV — acesso restrito a administradores.</p>
+  <form id="formLogin">
+    <input type="email" id="email" placeholder="e-mail institucional" required>
+    <input type="password" id="senha" placeholder="senha" required>
+    <button type="submit" id="btnLogin">Entrar</button>
+  </form>
+  <div id="loginErro"></div>
+</div>
+
+<div class="painel" id="painel">
+  <header>
+    <h1>🛠 Administração — Pesquisa de Satisfação</h1>
+    <div>
+      <span class="quem" id="quemEstaLogado"></span>
+      <button id="btnSair" style="margin-left:12px;background:transparent;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12.5px;">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="acessoNegado" class="acesso-negado" style="display:none">
+      Você está autenticado, mas sua conta não tem papel de administrador.
+      Peça a um admin existente pra ajustar seu acesso.
+    </div>
+
+    <div id="conteudoAdmin" style="display:none">
+      <section>
+        <h2>Convidar novo usuário</h2>
+        <div class="sub">O convite é enviado por e-mail; a pessoa define a própria senha (nunca vemos a senha de ninguém).</div>
+        <form class="form-convite" id="formConvite">
+          <input type="email" id="emailConvite" placeholder="e-mail@institutosaovicente.com.br" required>
+          <select id="papelConvite">
+            <option value="visualizador">Visualizador (só dashboard)</option>
+            <option value="admin">Admin (configura tablets + convida gente)</option>
+          </select>
+          <input type="text" id="municipioConvite" placeholder="Município esperado (opcional)">
+          <input type="text" id="unidadeConvite" placeholder="Unidade esperada (opcional)">
+          <button type="submit" id="btnConvidar">Convidar</button>
+        </form>
+        <div id="msgConvite" style="margin-top:10px;font-size:13px;"></div>
+      </section>
+
+      <section>
+        <h2>Usuários</h2>
+        <div class="sub">Todos os perfis cadastrados no sistema.</div>
+        <table>
+          <thead>
+            <tr><th>Nome</th><th>Papel</th><th>Município/Unidade esperado</th><th>Criado em</th></tr>
+          </thead>
+          <tbody id="tabelaUsuarios"></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Log de auditoria</h2>
+        <div class="sub">Últimas 50 ações registradas — login, convite, configuração de tablet.</div>
+        <table>
+          <thead>
+            <tr><th>Quando</th><th>Ação</th><th>Detalhes</th></tr>
+          </thead>
+          <tbody id="tabelaLog"></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  if (!window.supabase) {
+    document.body.innerHTML = '<p style="padding:40px;text-align:center">Falha ao carregar biblioteca de autenticação. Recarregue a página.</p>';
+    throw new Error('window.supabase indefinido.');
+  }
+
+  const SUPABASE_URL = 'https://fgsxqiywncarflpbxxgm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnc3hxaXl3bmNhcmZscGJ4eGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzgwODgsImV4cCI6MjEwNDU1NDA4OH0.IoY6OPJiPvmwLjOXzBnkO-FYVVm7GW5YSATmF_mFc18';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginBox = document.getElementById('loginBox');
+  const painel = document.getElementById('painel');
+  const loginErro = document.getElementById('loginErro');
+
+  // ---------------------------------------------------------------------
+  // Login
+  // ---------------------------------------------------------------------
+  document.getElementById('formLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('senha').value;
+    loginErro.textContent = '';
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+    if (error) {
+      loginErro.textContent = 'E-mail ou senha incorretos.';
+      return;
+    }
+
+    // Log de auditoria de login — não bloqueia o fluxo se falhar.
+    const { error: erroLog } = await supabaseClient.from('log_auditoria').insert({
+      usuario_id: data.user.id, acao: 'login', detalhes: {},
+    });
+    if (erroLog) console.warn('Login ok, mas falhou ao registrar auditoria:', erroLog.message);
+
+    await abrirPainel();
+  });
+
+  document.getElementById('btnSair').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  });
+
+  // ---------------------------------------------------------------------
+  // Painel — só carrega dados se o papel for 'admin' (RLS também barra no
+  // banco, isto aqui é só pra UI não ficar em branco travada)
+  // ---------------------------------------------------------------------
+  async function abrirPainel() {
+    const { data: sessao } = await supabaseClient.auth.getSession();
+    if (!sessao.session) return;
+
+    const { data: perfil, error } = await supabaseClient
+      .from('perfis')
+      .select('papel, nome')
+      .eq('id', sessao.session.user.id)
+      .single();
+
+    loginBox.style.display = 'none';
+    painel.style.display = 'block';
+    document.getElementById('quemEstaLogado').textContent = sessao.session.user.email;
+
+    if (error || !perfil || perfil.papel !== 'admin') {
+      document.getElementById('acessoNegado').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('conteudoAdmin').style.display = 'block';
+    await carregarUsuarios();
+    await carregarLog();
+  }
+
+  async function carregarUsuarios() {
+    const { data, error } = await supabaseClient
+      .from('perfis')
+      .select('nome, papel, municipio_esperado, unidade_esperada, criado_em')
+      .order('criado_em', { ascending: false });
+
+    const corpo = document.getElementById('tabelaUsuarios');
+    if (error || !data || data.length === 0) {
+      corpo.innerHTML = '<tr><td colspan="4" class="vazio">Nenhum usuário encontrado.</td></tr>';
+      return;
+    }
+
+    corpo.innerHTML = data.map(u => `
+      <tr>
+        <td>${escapeHtml(u.nome || '—')}</td>
+        <td><span class="badge ${u.papel}">${u.papel}</span></td>
+        <td>${escapeHtml([u.municipio_esperado, u.unidade_esperada].filter(Boolean).join(' — ') || '—')}</td>
+        <td>${formatarData(u.criado_em)}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function carregarLog() {
+    const { data, error } = await supabaseClient
+      .from('log_auditoria')
+      .select('criado_em, acao, detalhes')
+      .order('criado_em', { ascending: false })
+      .limit(50);
+
+    const corpo = document.getElementById('tabelaLog');
+    if (error || !data || data.length === 0) {
+      corpo.innerHTML = '<tr><td colspan="3" class="vazio">Nenhum registro ainda.</td></tr>';
+      return;
+    }
+
+    corpo.innerHTML = data.map(l => {
+      const divergente = l.detalhes && l.detalhes.divergente === true;
+      const detalhesTexto = formatarDetalhes(l.acao, l.detalhes);
+      return `
+        <tr>
+          <td>${formatarData(l.criado_em)}</td>
+          <td>${escapeHtml(l.acao)}</td>
+          <td>${detalhesTexto} ${divergente ? '<span class="badge divergente">⚠ fora do esperado</span>' : (l.acao === 'config_tablet' ? '<span class="badge ok">ok</span>' : '')}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function formatarDetalhes(acao, d) {
+    if (!d) return '—';
+    if (acao === 'config_tablet') return escapeHtml(`${d.municipio || '?'} / ${d.unidade || '?'}`);
+    if (acao === 'convite') return escapeHtml(`convidou ${d.email_convidado || '?'} (${d.papel || '?'})`);
+    return '—';
+  }
+
+  function formatarData(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('pt-BR');
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // ---------------------------------------------------------------------
+  // Convite — usa a Admin API do Supabase Auth via chamada direta (não a
+  // service_role key, que nunca deve ir pro navegador — usa o endpoint
+  // de convite comum, autenticado pela sessão do admin logado).
+  // ---------------------------------------------------------------------
+  document.getElementById('formConvite').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btnConvidar = document.getElementById('btnConvidar');
+    const msgConvite = document.getElementById('msgConvite');
+    btnConvidar.disabled = true;
+    msgConvite.textContent = '';
+    msgConvite.style.color = '';
+
+    const email = document.getElementById('emailConvite').value;
+    const papel = document.getElementById('papelConvite').value;
+    const municipio = document.getElementById('municipioConvite').value.trim() || null;
+    const unidade = document.getElementById('unidadeConvite').value.trim() || null;
+
+    try {
+      // Convidar usuário exige service_role (Auth Admin API) — nunca vai
+      // pro navegador. Por isso passa pela Edge Function "admin-convidar",
+      // que confere que quem está chamando é admin antes de convidar.
+      const { data: sessao } = await supabaseClient.auth.getSession();
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-convidar`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${sessao.session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email, papel,
+          municipio_esperado: municipio,
+          unidade_esperado: unidade,
+        }),
+      });
+      const resultado = await resp.json();
+
+      if (!resp.ok) throw new Error(resultado.erro || 'Falha ao convidar.');
+
+      msgConvite.textContent = `Convite enviado pra ${email} (${papel}).`;
+      msgConvite.style.color = '#1a6b4a';
+      document.getElementById('formConvite').reset();
+      await carregarUsuarios();
+      await carregarLog();
+    } catch (err) {
+      msgConvite.textContent = err.message;
+      msgConvite.style.color = '#c0392b';
+    } finally {
+      btnConvidar.disabled = false;
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // Se já tem sessão (revisita a página), pula direto pro painel.
+  // ---------------------------------------------------------------------
+  (async () => {
+    const { data } = await supabaseClient.auth.getSession();
+    if (data.session) await abrirPainel();
+  })();
+</script>
+</body>
+</html>
