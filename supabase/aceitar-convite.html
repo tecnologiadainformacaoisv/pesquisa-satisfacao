@@ -51,11 +51,10 @@
   <div id="msg" class="msg"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.45.4/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
   const SUPABASE_URL = 'https://fgsxqiywncarflpbxxgm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnc3hxaXl3bmNhcmZscGJ4eGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzgwODgsImV4cCI6MjEwNDU1NDA4OH0.IoY6OPJiPvmwLjOXzBnkO-FYVVm7GW5YSATmF_mFc18';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const subtitulo = document.getElementById('subtitulo');
   const form = document.getElementById('form');
@@ -72,6 +71,18 @@
     subtitulo.textContent = `Olá! Confirmado: ${session.user.email}. Defina sua senha abaixo.`;
     form.style.display = 'block';
   }
+
+  // Se o script do CDN não carregou por qualquer motivo (URL errada,
+  // bloqueio de rede, CDN fora do ar), window.supabase não existe — sem
+  // essa checagem a página travava pra sempre em "Confirmando seu
+  // convite...", sem erro nenhum visível (foi o que aconteceu aqui: a
+  // versão do CDN estava com o caminho errado).
+  if (!window.supabase) {
+    mostrarErro('Falha ao carregar biblioteca de autenticação. Recarregue a página; se persistir, avise o suporte.');
+    throw new Error('window.supabase indefinido — script do CDN não carregou.');
+  }
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // O Supabase manda o token no fragmento da URL (#access_token=...). O
   // supabase-js detecta isso ao carregar (detectSessionInUrl, ligado por
