@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Definir senha — Pesquisa de Satisfação ISV</title>
+<link rel="stylesheet" href="../css/instituto.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(155deg, #0a3d62 0%, #1e5f8a 55%, #2980b9 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 20px;
+  }
+  .card {
+    background: #fff; border-radius: 20px; padding: 36px 32px;
+    max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  h1 { font-size: 20px; color: #0a3d62; margin-bottom: 8px; }
+  p { font-size: 13.5px; color: #7f8c8d; margin-bottom: 20px; line-height: 1.5; }
+  label { display: block; font-size: 13px; font-weight: 600; color: #1e3a5f; margin-bottom: 6px; }
+  input {
+    width: 100%; padding: 12px 14px; border: 1px solid #d7e2ea; border-radius: 10px;
+    font-size: 14px; margin-bottom: 16px;
+  }
+  button {
+    width: 100%; padding: 13px; border: none; border-radius: 10px;
+    background: linear-gradient(135deg, #1e5f8a, #2980b9); color: #fff;
+    font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .msg { margin-top: 14px; font-size: 13.5px; text-align: center; }
+  .msg.erro { color: #c0392b; }
+  .msg.ok { color: #1a6b4a; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Definir senha de acesso</h1>
+  <p id="subtitulo">Confirmando seu convite...</p>
+
+  <form id="form" style="display:none">
+    <label for="senha">Nova senha (mín. 6 caracteres)</label>
+    <input type="password" id="senha" minlength="6" required>
+    <button type="submit" id="btn">Definir senha</button>
+  </form>
+
+  <div id="msg" class="msg"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.45.4/supabase.min.js"></script>
+<script>
+  const SUPABASE_URL = 'https://fgsxqiywncarflpbxxgm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnc3hxaXl3bmNhcmZscGJ4eGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzgwODgsImV4cCI6MjEwNDU1NDA4OH0.IoY6OPJiPvmwLjOXzBnkO-FYVVm7GW5YSATmF_mFc18';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const subtitulo = document.getElementById('subtitulo');
+  const form = document.getElementById('form');
+  const msg = document.getElementById('msg');
+  const btn = document.getElementById('btn');
+
+  function mostrarErro(texto) {
+    subtitulo.textContent = 'Não foi possível confirmar o convite.';
+    msg.textContent = texto;
+    msg.className = 'msg erro';
+  }
+
+  function mostrarSessaoConfirmada(session) {
+    subtitulo.textContent = `Olá! Confirmado: ${session.user.email}. Defina sua senha abaixo.`;
+    form.style.display = 'block';
+  }
+
+  // O Supabase manda o token no fragmento da URL (#access_token=...). O
+  // supabase-js detecta isso ao carregar (detectSessionInUrl, ligado por
+  // padrão), mas esse parsing é assíncrono — chamar getSession() de
+  // imediato pode vir ANTES do client terminar de processar a URL,
+  // fazendo um link válido parecer inválido por corrida de tempo. Por
+  // isso: escuta onAuthStateChange (jeito recomendado pela própria
+  // Supabase) em vez de confiar num getSession() de tiro único.
+  let resolvido = false;
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (resolvido) return;
+    if ((event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') && session) {
+      resolvido = true;
+      mostrarSessaoConfirmada(session);
+    }
+  });
+
+  // Rede de segurança: se depois de um tempo nenhum evento chegou (link
+  // sem token, expirado ou já usado), mostra o erro em vez de deixar a
+  // página presa em "Confirmando seu convite..." pra sempre.
+  setTimeout(async () => {
+    if (resolvido) return;
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      resolvido = true;
+      mostrarSessaoConfirmada(data.session);
+    } else {
+      mostrarErro('Link de convite inválido, já usado ou expirado. Peça um novo convite.');
+    }
+  }, 2500);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    const senha = document.getElementById('senha').value;
+    const { error } = await supabase.auth.updateUser({ password: senha });
+
+    if (error) {
+      msg.textContent = 'Erro ao salvar: ' + error.message;
+      msg.className = 'msg erro';
+      btn.disabled = false;
+      btn.textContent = 'Definir senha';
+      return;
+    }
+
+    form.style.display = 'none';
+    msg.textContent = 'Senha definida com sucesso! Já pode fechar esta página.';
+    msg.className = 'msg ok';
+  });
+</script>
+</body>
+</html>
