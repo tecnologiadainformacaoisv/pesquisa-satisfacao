@@ -20,10 +20,17 @@ município por engano.
 ## Etapas do projeto
 
 - [x] **Etapa A** — desenho do schema (`schema.sql`), papéis e auditoria
-- [ ] **Etapa B** — trocar login do dashboard pra Supabase Auth
-- [ ] **Etapa C** — Edge Function como proxy (esconde o token do Apps Script do navegador)
+- [x] **Etapa B (código pronto, não conectado)** — `etapa-b-login-dashboard.js`: login via Supabase Auth, log de auditoria, leitura de papel
+- [x] **Etapa C (código pronto, não conectado)** — `functions/dashboard-proxy/index.ts`: Edge Function que esconde o token do Apps Script do navegador
 - [ ] **Etapa D** — painel de administração (lista de usuários, convite, log)
 - [ ] **Etapa E** — travar overlay de configuração do tablet só para admin + gravar log de configuração
+
+### Etapas B/C — como ativar (depois que o projeto Supabase existir)
+
+1. Preencher `SUPABASE_URL`/`SUPABASE_ANON_KEY` em `etapa-b-login-dashboard.js`
+2. `supabase functions deploy dashboard-proxy` (ver instruções no topo do `index.ts`)
+3. Configurar os secrets `APPS_SCRIPT_URL`/`APPS_SCRIPT_TOKEN`/`SUPABASE_URL`/`SUPABASE_ANON_KEY` da function
+4. Só então trocar o login de `dashboard.html` — nunca antes, senão a equipe perde acesso (ninguém tem conta Supabase ainda)
 
 ## Como criar o projeto Supabase (manual, feito por você — não tenho acesso à sua conta)
 
