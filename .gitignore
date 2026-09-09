@@ -3,3 +3,4 @@ node_modules/
 appscript/deploy.log
 .DS_Store
 Thumbs.db
+supabase/.temp/

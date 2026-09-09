@@ -6,7 +6,7 @@
 
 ## Versão atual
 
-**v1.1.19** — em produção desde 2026-06-12.
+**v1.1.20** — em produção desde 2026-06-12.
 
 ---
 
@@ -181,6 +181,20 @@ O token compartilhado (acima) continua sendo a mitigação vigente. A opção
 mais robusta que sobra, se um dia quiserem ir além do token, é um backend
 intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
+**Atualização (v1.1.20, 2026-09-09) — login do dashboard trocado pra
+Supabase Auth.** A tela de senha única compartilhada de `dashboard.html`
+foi substituída por login individual (e-mail + senha) via Supabase Auth —
+ver pasta `supabase/` (schema, painel de administração, Edge Functions).
+Resolve o problema de identidade citado acima ("sabe a senha" → "é uma
+pessoa de verdade, convidada") sem precisar de conta Workspace pra todo
+mundo. **O que NÃO mudou ainda:** as chamadas de dados (`?action=dados`,
+`dadosAntigos`, etc.) continuam indo direto pro Apps Script com o
+`DADOS_TOKEN` embutido no código-fonte, exatamente como antes — a troca
+pra passar por uma Edge Function (que escondia o token do navegador, ver
+`supabase/functions/dashboard-proxy/`) foi **deliberadamente deixada pra
+uma sessão futura**, pra não empilhar dois riscos na mesma mudança. Ver
+`supabase/README.md` pro estado atual de cada etapa (A-E).
+
 ---
 
 ## Regras que não devem ser alteradas sem perguntar
@@ -220,7 +234,7 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 > Última atualização: 2026-08-28
 
-- **Versão:** v1.1.19 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
+- **Versão:** v1.1.20 — **em produção** desde 2026-06-12 (primeira unidade: Caucaia). Branch `master`. Implantada nas 4 unidades de Caucaia desde 2026-08-04/05.
 - **PWA estável e instalado** em tablets fixos nas unidades de saúde.
 - **O que funciona hoje:**
   - Formulário multi-step do paciente (`pesquisa.html`): NPS → Recepção → Limpeza → Atendimento → Espera → Comentário → Obrigado, com botão Voltar em todas as perguntas.

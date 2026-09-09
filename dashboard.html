@@ -10,10 +10,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.19">
+<meta name="app-version" content="1.1.20">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.19 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.20 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -350,22 +351,24 @@
   <div class="login-box">
     <div style="font-size:48px;margin-bottom:16px">🔒</div>
     <h2>Área Administrativa</h2>
-    <p>Digite a senha para acessar o dashboard</p>
-    <input type="password" id="senhaInput" placeholder="Senha" onkeydown="if(event.key==='Enter')fazerLogin()">
-    <button onclick="fazerLogin()">Entrar</button>
-    <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
+    <p>Entre com seu e-mail e senha da equipe</p>
+    <input type="email" id="emailInput" placeholder="E-mail" autocomplete="username" onkeydown="if(event.key==='Enter')fazerLogin()">
+    <input type="password" id="senhaInput" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
+    <button onclick="fazerLogin()" id="btnLogin">Entrar</button>
+    <div class="login-error" id="loginError">E-mail ou senha incorretos.</div>
   </div>
 </div>
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.19</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.20</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
     <button class="btn btn-green" onclick="exportarCSV()">⬇ Exportar CSV</button>
     <button class="btn btn-white" onclick="window.print()">🖨 Imprimir Relatório</button>
     <button class="btn btn-outline" id="btnRefresh">🔄 Atualizar</button>
+    <button class="btn btn-outline" id="btnSair" onclick="sairDashboard()">🚪 Sair</button>
   </div>
 </header>
 
@@ -487,9 +490,16 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwK--quEUwdbc2tvEBiC3UfazOcX0pu9wWGep-0oM3T-s0yZaJ2PYAs9-jv7UpN6Y9O3Q/exec';
 
   const STORAGE_KEY = 'pesquisa_satisfacao_v1';
-  const SESSAO_KEY = 'pesquisa_satisfacao_dashboard_sessao';
-  const SESSAO_DIAS = 30; // login fica lembrado por esse tempo — não pede senha de novo a cada refresh
-  let SENHA = 'hospital123'; // fallback — substituído pelo valor da planilha ao carregar
+
+  // Login via Supabase Auth (Etapa E, 2026-09-09) — substitui a senha
+  // única compartilhada que existia antes. Sessão fica persistida
+  // automaticamente pelo próprio supabase-js (localStorage), sem precisar
+  // de lógica manual de expiração como antes.
+  const SUPABASE_URL      = 'https://fgsxqiywncarflpbxxgm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnc3hxaXl3bmNhcmZscGJ4eGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzgwODgsImV4cCI6MjEwNDU1NDA4OH0.IoY6OPJiPvmwLjOXzBnkO-FYVVm7GW5YSATmF_mFc18';
+  const supabaseAuth = window.supabase
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
   // Exigido pelo backend em ?action=dados/dadosAntigos (dados de paciente).
   // Precisa bater exatamente com DADOS_TOKEN em appscript/codigo.js — pra
@@ -572,41 +582,26 @@
   // Cache por base — evita recarregar do Sheets toda troca de aba
   const dadosCache = { nova: null, antiga: null, interna: null, colaborador: null };
 
-  // Busca a senha da planilha imediatamente ao carregar a página
-  const configPromise = fetch(SCRIPT_URL + '?action=configuracao')
-    .then(r => r.json())
-    .then(cfg => { if (cfg && cfg.senha) SENHA = cfg.senha; })
-    .catch(() => {});
-
   // Versão exibida no cabeçalho e no título da aba — lida do <meta app-version>,
   // que é a fonte única de verdade (evita badge dessincronizado da versão real)
   const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || '?';
   document.getElementById('versionBadge').textContent = 'v' + APP_VERSION;
   document.title = `Dashboard v${APP_VERSION} — Pesquisa de Satisfação`;
 
-  // --- LOGIN ---
-  // Sessão fica salva no localStorage por SESSAO_DIAS — refresh normal da
-  // página não pede senha de novo, só depois de expirar ou limpar o navegador.
-  function sessaoValida() {
-    try {
-      const s = JSON.parse(localStorage.getItem(SESSAO_KEY) || 'null');
-      const valido = !!(s && s.ts && (Date.now() - s.ts) < SESSAO_DIAS * 24 * 60 * 60 * 1000);
-      // Renova a validade a cada acesso — quem usa o dashboard todo dia nunca
-      // é deslogado de repente; os 30 dias contam a partir da última visita.
-      if (valido) salvarSessao();
-      return valido;
-    } catch (e) { return false; }
+  // --- LOGIN (Supabase Auth) ---
+  // Sessão persiste automaticamente via supabase-js (localStorage próprio,
+  // com refresh token) — não precisa mais de lógica manual de expiração.
+  async function verificarSessaoExistente() {
+    if (!supabaseAuth) { document.getElementById('emailInput').focus(); return; }
+    const { data } = await supabaseAuth.auth.getSession();
+    if (data.session) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      iniciar();
+    } else {
+      document.getElementById('emailInput').focus();
+    }
   }
-  function salvarSessao() {
-    localStorage.setItem(SESSAO_KEY, JSON.stringify({ ts: Date.now() }));
-  }
-
-  if (sessaoValida()) {
-    document.getElementById('loginOverlay').style.display = 'none';
-    iniciar();
-  } else {
-    document.getElementById('senhaInput').focus();
-  }
+  verificarSessaoExistente();
 
   // --- LISTENERS DOS FILTROS ---
   document.getElementById('filtroMes').addEventListener('change', mesAnoChanged);
@@ -617,16 +612,45 @@
   document.getElementById('btnRefresh').addEventListener('click', recarregarDados);
 
   async function fazerLogin() {
-    await configPromise; // garante que a senha da planilha foi carregada
-    const v = document.getElementById('senhaInput').value;
-    if (v === SENHA) {
-      salvarSessao();
-      document.getElementById('loginOverlay').style.display = 'none';
-      iniciar();
-    } else {
+    if (!supabaseAuth) {
+      document.getElementById('loginError').textContent = 'Falha ao carregar autenticação. Recarregue a página.';
+      document.getElementById('loginError').style.display = 'block';
+      return;
+    }
+
+    const btnLogin = document.getElementById('btnLogin');
+    btnLogin.disabled = true;
+    btnLogin.textContent = 'Entrando...';
+    document.getElementById('loginError').style.display = 'none';
+
+    const email = document.getElementById('emailInput').value;
+    const senha = document.getElementById('senhaInput').value;
+
+    const { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password: senha });
+
+    btnLogin.disabled = false;
+    btnLogin.textContent = 'Entrar';
+
+    if (error || !data.session) {
+      document.getElementById('loginError').textContent = 'E-mail ou senha incorretos.';
       document.getElementById('loginError').style.display = 'block';
       document.getElementById('senhaInput').value = '';
+      return;
     }
+
+    // Log de auditoria — não bloqueia o login se falhar.
+    const { error: erroLog } = await supabaseAuth.from('log_auditoria').insert({
+      usuario_id: data.user.id, acao: 'login', detalhes: {},
+    });
+    if (erroLog) console.warn('Login ok, mas falhou ao registrar auditoria:', erroLog.message);
+
+    document.getElementById('loginOverlay').style.display = 'none';
+    iniciar();
+  }
+
+  async function sairDashboard() {
+    if (supabaseAuth) await supabaseAuth.auth.signOut();
+    location.reload();
   }
 
   // --- INIT ---
