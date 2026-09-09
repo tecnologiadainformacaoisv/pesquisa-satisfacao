@@ -236,10 +236,12 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 > Ver histórico de decisões completo na conversa de 2026-08-31/09-01. Resumo do que já foi feito:
 
-- **Etapa 1 (concluída):** 39 unidades novas cadastradas na aba **Equipamentos**
-  (10 municípios: Caucaia, Maracanaú, Forquilha, Guaraciaba do Norte, Iguatu,
+- **Etapa 1 (concluída):** 40 unidades novas cadastradas na aba **Equipamentos**
+  (37 ativas — 3 eram duplicata de unidade que já existia em Caucaia e foram
+  desativadas por `desativarDuplicatasCaucaia()`, não apagadas) em 10
+  municípios: Caucaia, Maracanaú, Forquilha, Guaraciaba do Norte, Iguatu,
   Lavras da Mangabeira, Orós, Pacatuba, Pedra Branca, Tabuleiro do Norte,
-  Várzea Alegre) — subconjunto de uma planilha índice mestre fornecida pelo
+  Várzea Alegre — subconjunto de uma planilha índice mestre fornecida pelo
   usuário, **não é ainda os 13 municípios completos do ISV**. Habilita só o
   formulário **Externo** (o único que existe no PWA hoje) nessas unidades via
   overlay de configuração — nenhum tablet físico foi instalado, é só cadastro.
@@ -284,6 +286,35 @@ intermediário guardando segredo de verdade (fora do escopo por enquanto).
   Decisão já tomada: Interno/Colaborador rodam **avulsos** (link/QR — modelo
   ainda a definir, por ora simulando via tablet/celular configurado igual o
   Externo, já que não há previsão de totens dedicados pra essas unidades).
+
+- **Etapa 1b / "Fase 2b" (concluída em 2026-09-09):** cadastro de mais 114
+  unidades na aba **Equipamentos** (`appscript/expansaoEquipamentosFase2b.js`),
+  fechando os municípios já iniciados na Etapa 1 + Massapé completo (33
+  unidades, 1º cadastro do município). Total confirmado por leitura real do
+  `?action=config`: **155 unidades ativas** (37 da Etapa 1 + 114 novas + a
+  duplicata Maracanau/Maracanaú corrigida sem mudar contagem — ver abaixo).
+  Fontes cruzadas: a planilha índice mestre (texto colado pelo usuário) e o
+  documento oficial "Relação Unidades atualizadas Setembro-2026.pdf" (com
+  CNES, ignorado como dado — só usado pra resolver ambiguidade de nome).
+
+  8 unidades de **Várzea Alegre** divergiam entre as duas fontes (4 só na
+  planilha mestre, 4 só no PDF oficial) — decisão do gestor: cadastrar a
+  **união das duas listas** em vez de escolher, por ser mais fácil desativar
+  depois do que deixar pesquisa de fora de unidade real.
+
+  **Pendências que ainda não foram cadastradas** (aguardando confirmação/lista
+  do gestor, não cadastrar sem isso):
+  - **Caririaçu** (município 12, nem estava nos 13 originalmente mapeados) —
+    documento oficial não traz nenhuma unidade nomeada ainda.
+  - **Guaraciaba do Norte**: "4 equipes adicionais de Atenção Básica" citadas
+    no documento oficial sem CNES nem nome individualizado.
+
+  **Bug corrigido no mesmo dia:** a Fase 2b cadastrou "Maracanaú" (com
+  acento, do documento oficial) mas a unidade que já existia desde a Etapa 1
+  estava gravada como "Maracanau" (sem acento) — a checagem de duplicata só
+  normaliza caixa/espaço, não acento, então virou 2 municípios separados no
+  dropdown/dashboard. Corrigido com um script de execução única (rodado e
+  removido do projeto depois — não precisa ficar permanente).
 
 ---
 
