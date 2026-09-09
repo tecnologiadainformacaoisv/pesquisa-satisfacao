@@ -13,8 +13,13 @@
 //   - troca de fetch: em vez de `fetch(SCRIPT_URL + '?action=dados&token=...')`,
 //     usar `fetchViaSupabase('dados')` (função no fim deste arquivo)
 
-const SUPABASE_URL      = 'COLE_A_URL_DO_PROJETO_AQUI';       // ex.: https://xxxx.supabase.co
-const SUPABASE_ANON_KEY = 'COLE_A_ANON_KEY_AQUI';
+// Projeto "Pesquisa Satisfacao - Controle de Acesso" (org ISV Summit),
+// criado em 2026-09-09. A anon key é segura de deixar aqui — ela é feita
+// pra ser pública, o RLS em supabase/schema.sql é quem protege os dados
+// (bem diferente do service_role key ou do token de gerenciamento da
+// conta, esses sim nunca devem ir pro código).
+const SUPABASE_URL      = 'https://fgsxqiywncarflpbxxgm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnc3hxaXl3bmNhcmZscGJ4eGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzgwODgsImV4cCI6MjEwNDU1NDA4OH0.IoY6OPJiPvmwLjOXzBnkO-FYVVm7GW5YSATmF_mFc18';
 const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/dashboard-proxy`;
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

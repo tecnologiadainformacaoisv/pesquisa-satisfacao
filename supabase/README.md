@@ -1,7 +1,15 @@
 # Controle de acesso — Supabase (projeto separado, ver CLAUDE.md)
 
-> **Status: Etapa A (desenho) — ainda não implementado no dashboard/tablets.**
-> Nada aqui afeta produção até a Etapa E ser feita e testada.
+> **Status (2026-09-09): projeto Supabase criado e schema aplicado.**
+> Nada aqui afeta produção até a Etapa E ser feita e testada — dashboard.html
+> continua com a senha compartilhada de sempre por enquanto.
+>
+> - Projeto: **"Pesquisa Satisfacao - Controle de Acesso"** (org ISV Summit,
+>   ref `fgsxqiywncarflpbxxgm`, região `sa-east-1`)
+> - Schema aplicado (tabelas `perfis` e `log_auditoria`, RLS ativo)
+> - Autocadastro desativado, só provider de e-mail ativo
+> - Primeiro admin convidado: `henrique.krvalho@gmail.com` — checar caixa de
+>   entrada (e spam) pra confirmar o e-mail de convite e definir a senha
 
 ## Por quê
 
