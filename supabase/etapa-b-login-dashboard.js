@@ -74,11 +74,11 @@ async function papelDoUsuarioLogado() {
   if (!sessaoAtual) return null;
   const { data, error } = await supabase
     .from('perfis')
-    .select('papel, nome, municipio_esperado, unidade_esperada')
+    .select('papel, nome, municipios')
     .eq('id', sessaoAtual.user.id)
     .single();
   if (error) return null;
-  return data; // { papel: 'admin' | 'visualizador', nome, municipio_esperado, unidade_esperada }
+  return data; // { papel: 'super_admin' | 'admin' | 'visualizador', nome, municipios }
 }
 
 // ----------------------------------------------------------------------------

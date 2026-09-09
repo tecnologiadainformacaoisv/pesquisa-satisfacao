@@ -65,6 +65,7 @@
   th { text-align: left; padding: 8px 10px; color: #7f8c8d; font-size: 11.5px; text-transform: uppercase; border-bottom: 2px solid #eef2f5; }
   td { padding: 9px 10px; border-bottom: 1px solid #eef2f5; }
   .badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .badge.super_admin { background: #fdf3e2; color: #a8650f; }
   .badge.admin { background: #eafaf1; color: #1a6b4a; }
   .badge.visualizador { background: #eaf2fa; color: #1e5f8a; }
   .badge.divergente { background: #fdf1ef; color: #c0392b; }
@@ -97,22 +98,21 @@
 
   <main>
     <div id="acessoNegado" class="acesso-negado" style="display:none">
-      Você está autenticado, mas sua conta não tem papel de administrador.
-      Peça a um admin existente pra ajustar seu acesso.
+      Você está autenticado, mas sua conta não é super administradora.
+      Só o super admin (TI) gerencia usuários — peça pra ele ajustar seu acesso.
     </div>
 
     <div id="conteudoAdmin" style="display:none">
       <section>
         <h2>Convidar novo usuário</h2>
-        <div class="sub">O convite é enviado por e-mail; a pessoa define a própria senha (nunca vemos a senha de ninguém).</div>
+        <div class="sub">O convite é enviado por e-mail; a pessoa define a própria senha (nunca vemos a senha de ninguém). Admin/Visualizador só veem os municípios listados abaixo — separe por vírgula se for mais de um.</div>
         <form class="form-convite" id="formConvite">
           <input type="email" id="emailConvite" placeholder="e-mail@institutosaovicente.com.br" required>
           <select id="papelConvite">
-            <option value="visualizador">Visualizador (só dashboard)</option>
-            <option value="admin">Admin (configura tablets + convida gente)</option>
+            <option value="visualizador">Visualizador (só dashboard do município)</option>
+            <option value="admin">Gestor (configura tablets + dashboard do município)</option>
           </select>
-          <input type="text" id="municipioConvite" placeholder="Município esperado (opcional)">
-          <input type="text" id="unidadeConvite" placeholder="Unidade esperada (opcional)">
+          <input type="text" id="municipiosConvite" placeholder="Municípios (ex.: Guaraciaba do Norte, Orós)" style="flex:1; min-width:260px">
           <button type="submit" id="btnConvidar">Convidar</button>
         </form>
         <div id="msgConvite" style="margin-top:10px;font-size:13px;"></div>
@@ -123,7 +123,7 @@
         <div class="sub">Todos os perfis cadastrados no sistema.</div>
         <table>
           <thead>
-            <tr><th>Nome</th><th>Papel</th><th>Município/Unidade esperado</th><th>Criado em</th></tr>
+            <tr><th>Nome</th><th>Papel</th><th>Municípios</th><th>Criado em</th></tr>
           </thead>
           <tbody id="tabelaUsuarios"></tbody>
         </table>
@@ -205,7 +205,7 @@
     painel.style.display = 'block';
     document.getElementById('quemEstaLogado').textContent = sessao.session.user.email;
 
-    if (error || !perfil || perfil.papel !== 'admin') {
+    if (error || !perfil || perfil.papel !== 'super_admin') {
       document.getElementById('acessoNegado').style.display = 'block';
       return;
     }
@@ -218,7 +218,7 @@
   async function carregarUsuarios() {
     const { data, error } = await supabaseClient
       .from('perfis')
-      .select('nome, papel, municipio_esperado, unidade_esperada, criado_em')
+      .select('nome, papel, municipios, criado_em')
       .order('criado_em', { ascending: false });
 
     const corpo = document.getElementById('tabelaUsuarios');
@@ -231,7 +231,7 @@
       <tr>
         <td>${escapeHtml(u.nome || '—')}</td>
         <td><span class="badge ${u.papel}">${u.papel}</span></td>
-        <td>${escapeHtml([u.municipio_esperado, u.unidade_esperada].filter(Boolean).join(' — ') || '—')}</td>
+        <td>${escapeHtml((u.municipios || []).join(', ') || (u.papel === 'super_admin' ? 'todos' : '—'))}</td>
         <td>${formatarData(u.criado_em)}</td>
       </tr>
     `).join('');
@@ -294,13 +294,20 @@
 
     const email = document.getElementById('emailConvite').value;
     const papel = document.getElementById('papelConvite').value;
-    const municipio = document.getElementById('municipioConvite').value.trim() || null;
-    const unidade = document.getElementById('unidadeConvite').value.trim() || null;
+    const municipios = document.getElementById('municipiosConvite').value
+      .split(',').map(m => m.trim()).filter(Boolean);
+
+    if (municipios.length === 0) {
+      msgConvite.textContent = 'Informe pelo menos 1 município.';
+      msgConvite.style.color = '#c0392b';
+      btnConvidar.disabled = false;
+      return;
+    }
 
     try {
       // Convidar usuário exige service_role (Auth Admin API) — nunca vai
       // pro navegador. Por isso passa pela Edge Function "admin-convidar",
-      // que confere que quem está chamando é admin antes de convidar.
+      // que confere que quem está chamando é super_admin antes de convidar.
       const { data: sessao } = await supabaseClient.auth.getSession();
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-convidar`, {
         method: 'POST',
@@ -308,11 +315,7 @@
           Authorization: `Bearer ${sessao.session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email, papel,
-          municipio_esperado: municipio,
-          unidade_esperado: unidade,
-        }),
+        body: JSON.stringify({ email, papel, municipios }),
       });
       const resultado = await resp.json();
 
