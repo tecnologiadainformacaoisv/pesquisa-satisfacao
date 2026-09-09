@@ -133,8 +133,14 @@ const UNIDADES_FASE2B = [
   ['Tabuleiro do Norte', 'UBS Barra do Feijão'],
   ["Tabuleiro do Norte", "UBS Olho D'Água da Bica"],
 
-  // Várzea Alegre (9 novas — as 4 divergentes entre planilha mestre e
-  // documento oficial ficaram de fora, ver "AINDA PENDENTES" abaixo)
+  // Várzea Alegre (17 novas — decisão do gestor em 2026-09-09: cadastrar a
+  // UNIÃO das duas fontes (mestre + PDF oficial) em vez de esperar a
+  // confirmação, já que as 2 divergem entre si mas nenhuma contradiz a
+  // outra (nenhuma diz "essa unidade não existe", só está incompleta cada
+  // uma no seu jeito — o próprio PDF tem várias linhas de Várzea Alegre com
+  // CNES "a confirmar"). Mais fácil remover depois se aparecer problema do
+  // que deixar pesquisa de fora de unidade real. Inclui as 4 que só
+  // estavam na planilha mestre + as 4 que só estavam no PDF oficial.
   ['Várzea Alegre', 'UBS Calabaça'],
   ['Várzea Alegre', 'UBS Canindezinho'],
   ['Várzea Alegre', 'UBS Naraniú'],
@@ -143,7 +149,17 @@ const UNIDADES_FASE2B = [
   ['Várzea Alegre', 'UBS Riachinho'],
   ['Várzea Alegre', 'UBS Riacho Verde'],
   ['Várzea Alegre', 'CAPS'],
-  ['Várzea Alegre', 'CAIS / Centro de Especialidades']
+  ['Várzea Alegre', 'CAIS / Centro de Especialidades'],
+  // só na planilha índice mestre:
+  ['Várzea Alegre', 'UBS Dep. Figueiredo Correia'],
+  ['Várzea Alegre', 'UBS Francisco Rolim de Morais'],
+  ['Várzea Alegre', 'UBS Juazeirinho'],
+  ['Várzea Alegre', 'UBS Quatro Bocas'],
+  // só no PDF oficial:
+  ['Várzea Alegre', 'UBS Grossos'],
+  ['Várzea Alegre', 'UBS Praça Santo Antônio'],
+  ['Várzea Alegre', 'UBS Sanharol'],
+  ['Várzea Alegre', 'UBS Ibicatu']
 ];
 
 // RESOLVIDAS em 2026-09-09, com o documento oficial "Relação Unidades
@@ -168,16 +184,17 @@ const UNIDADES_FASE2B = [
 //     item de Tabuleiro, ainda sem solução.
 //   - Caririaçu (município 12, novo — nem estava nos 13 mapeados
 //     anteriormente): todo o documento está "a confirmar", nenhuma unidade
-//     nomeada ainda.
-//   - Várzea Alegre: DIVERGÊNCIA entre a planilha índice mestre e o
-//     documento oficial. A planilha mestre tem "UBS Dep. Figueiredo
-//     Correia", "UBS Francisco Rolim de Morais", "UBS Juazeirinho", "UBS
-//     Quatro Bocas" (e "UBS CAIS" separado de "CAIS / Centro de
-//     Especialidades") que NÃO aparecem no documento oficial; o documento
-//     oficial tem "UBS Grossos", "UBS Praça Santo Antônio", "UBS Sanharol",
-//     "UBS Ibicatu" que NÃO estavam na planilha mestre. Nenhuma dessas foi
-//     incluída acima — confirmar com a Sec. Ivo (Várzea Alegre) qual lista é
-//     a correta antes de cadastrar qualquer uma.
+//     nomeada ainda. Aguardando a lista completa do gestor antes de
+//     cadastrar qualquer unidade (mesmo sem CNES).
+//
+// RESOLVIDO em 2026-09-09: a divergência de Várzea Alegre (planilha mestre
+// tinha "UBS Dep. Figueiredo Correia", "UBS Francisco Rolim de Morais",
+// "UBS Juazeirinho", "UBS Quatro Bocas" que o PDF oficial não tinha; o PDF
+// oficial tinha "UBS Grossos", "UBS Praça Santo Antônio", "UBS Sanharol",
+// "UBS Ibicatu" que a planilha mestre não tinha) foi decidida pelo gestor:
+// cadastrar a união das duas listas em vez de escolher uma — já incluída
+// no array acima. Se alguma dessas 8 se confirmar como duplicata/erro,
+// desativar na aba Equipamentos (coluna Ativo) em vez de apagar a linha.
 
 function normalizarParaComparacao2b_(s) {
   return String(s || '').trim().toLowerCase().normalize('NFC');
