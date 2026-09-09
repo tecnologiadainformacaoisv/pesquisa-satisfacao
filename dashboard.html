@@ -501,12 +501,32 @@
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     : null;
 
-  // Exigido pelo backend em ?action=dados/dadosAntigos (dados de paciente).
-  // Precisa bater exatamente com DADOS_TOKEN em appscript/codigo.js — pra
-  // trocar, editar os dois e reimplantar (frontend + deploy.ps1). Não é uma
-  // trava de segurança real (fica visível pra quem ler este arquivo), é uma
-  // barreira de esforço deliberado — ver CLAUDE.md.
-  const DADOS_TOKEN = '14e74bc81d4d799b2c42881f204ca5979840234b32b119f9';
+  // Etapa E-2 (2026-09-09): as chamadas de dados passam a ir pra Edge
+  // Function "dashboard-proxy" em vez de direto pro Apps Script. Ela é
+  // quem guarda o APPS_SCRIPT_TOKEN como secret (nunca chega no navegador)
+  // e só repassa a chamada depois de confirmar que existe uma sessão
+  // Supabase válida — ver supabase/functions/dashboard-proxy/index.ts.
+  const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/dashboard-proxy`;
+
+  // Helper único pra todas as chamadas de dados — manda a sessão atual (ou
+  // a anon key, pra ações públicas tipo "config") no header Authorization.
+  // A Edge Function decide o que exige login de verdade, não o cliente.
+  // Sem supabaseAuth (CDN falhou) ainda manda a anon key — sem isso, até a
+  // ação pública "config" (equipamentos) quebraria por depender do
+  // supabase-js ter carregado, uma regressão em relação ao comportamento
+  // anterior (que chamava o Apps Script direto, sem depender de nada além
+  // da rede).
+  async function fetchProxy(query, signal) {
+    let token = SUPABASE_ANON_KEY;
+    if (supabaseAuth) {
+      const { data: sessao } = await supabaseAuth.auth.getSession();
+      if (sessao.session) token = sessao.session.access_token;
+    }
+    return fetch(`${EDGE_FUNCTION_URL}?${query}`, {
+      signal,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
 
   let charts = {};
   let dadosFiltrados = [];
@@ -736,7 +756,7 @@
 
         // cache-buster: o Apps Script serve GET por trás de um cache do Google e
         // pode devolver resposta antiga sem isso
-        const resp = await fetch(SCRIPT_URL + '?token=' + DADOS_TOKEN + '&_=' + Date.now(), { signal: controller.signal });
+        const resp = await fetchProxy('action=dados&_=' + Date.now(), controller.signal);
         clearTimeout(timeout);
 
         const linhas = await resp.json();
@@ -772,7 +792,7 @@
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000); // base grande (~20k linhas)
-      const resp = await fetch(SCRIPT_URL + '?action=dadosAntigos&token=' + DADOS_TOKEN + '&_=' + Date.now(), { signal: controller.signal });
+      const resp = await fetchProxy('action=dadosAntigos&_=' + Date.now(), controller.signal);
       clearTimeout(timeout);
       const linhas = await resp.json();
       if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
@@ -806,7 +826,7 @@
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 20000);
-      const resp = await fetch(SCRIPT_URL + '?action=' + action + '&token=' + DADOS_TOKEN + '&_=' + Date.now(), { signal: controller.signal });
+      const resp = await fetchProxy('action=' + action + '&_=' + Date.now(), controller.signal);
       clearTimeout(timeout);
       const linhas = await resp.json();
       if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
@@ -915,7 +935,7 @@
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
-      const resp = await fetch(SCRIPT_URL + '?action=config&_=' + Date.now(), { signal: controller.signal });
+      const resp = await fetchProxy('action=config&_=' + Date.now(), controller.signal);
       clearTimeout(timeout);
       const lista = await resp.json();
       return Array.isArray(lista) ? lista : [];

@@ -8,7 +8,7 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 ## [1.1.20] — 2026-09-09
 ### Alterado
 - `dashboard.html`: login trocado de senha única compartilhada pra Supabase Auth (e-mail + senha individual, convite feito por admin). Adiciona botão "Sair". Sessão persiste via supabase-js (localStorage próprio, refresh token) em vez da lógica manual anterior.
-- Chamadas de dados (`?action=dados`, `dadosAntigos`, etc.) continuam indo direto pro Apps Script com o mesmo `DADOS_TOKEN` de antes — troca pra Edge Function como proxy fica pra uma etapa futura (ver `supabase/README.md`).
+- `dashboard.html`: as 4 chamadas de dados (`dados`, `dadosAntigos`, `dadosInternos`/`dadosColaboradores`, `config`) trocadas de fetch direto ao Apps Script (com `DADOS_TOKEN` embutido) pra passar pela Edge Function `dashboard-proxy` — o token não existe mais no código-fonte do dashboard, fica guardado como secret no servidor.
 
 ---
 

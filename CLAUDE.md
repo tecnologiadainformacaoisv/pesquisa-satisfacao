@@ -182,17 +182,30 @@ mais robusta que sobra, se um dia quiserem ir além do token, é um backend
 intermediário guardando segredo de verdade (fora do escopo por enquanto).
 
 **Atualização (v1.1.20, 2026-09-09) — login do dashboard trocado pra
-Supabase Auth.** A tela de senha única compartilhada de `dashboard.html`
-foi substituída por login individual (e-mail + senha) via Supabase Auth —
-ver pasta `supabase/` (schema, painel de administração, Edge Functions).
-Resolve o problema de identidade citado acima ("sabe a senha" → "é uma
-pessoa de verdade, convidada") sem precisar de conta Workspace pra todo
-mundo. **O que NÃO mudou ainda:** as chamadas de dados (`?action=dados`,
-`dadosAntigos`, etc.) continuam indo direto pro Apps Script com o
-`DADOS_TOKEN` embutido no código-fonte, exatamente como antes — a troca
-pra passar por uma Edge Function (que escondia o token do navegador, ver
-`supabase/functions/dashboard-proxy/`) foi **deliberadamente deixada pra
-uma sessão futura**, pra não empilhar dois riscos na mesma mudança. Ver
+Supabase Auth + token escondido via Edge Function.** A tela de senha
+única compartilhada de `dashboard.html` foi substituída por login
+individual (e-mail + senha) via Supabase Auth — ver pasta `supabase/`
+(schema, painel de administração, Edge Functions). Resolve o problema de
+identidade citado acima ("sabe a senha" → "é uma pessoa de verdade,
+convidada") sem precisar de conta Workspace pra todo mundo.
+
+Na mesma data, as chamadas de dados (`?action=dados`, `dadosAntigos`,
+`dadosInternos`, `dadosColaboradores`, `config`) passaram a ir pra Edge
+Function `dashboard-proxy` (`supabase/functions/dashboard-proxy/`) em vez
+de direto pro Apps Script — **o `DADOS_TOKEN` não existe mais no
+código-fonte do `dashboard.html`**, foi movido pra secret
+`APPS_SCRIPT_TOKEN` da Edge Function (nunca chega no navegador). O token
+em si continua sendo o mesmo valor de `appscript/codigo.js`
+(`DADOS_TOKEN`) — **pra trocar, agora é só editar o secret da Edge
+Function** (`supabase secrets set APPS_SCRIPT_TOKEN=...`) e
+`appscript/codigo.js` + redeploy do Apps Script; `dashboard.html` não
+precisa mais ser tocado nessa troca.
+
+O que ainda não mudou: `pesquisa.html` (tablets) continua com o overlay
+de configuração protegido pela senha da aba Configuracao, sem exigir
+login de admin — essa parte (travar configuração de tablet só pra admin)
+é a única peça da Fase de controle de acesso ainda não feita, de
+propósito, por tocar no arquivo mais sensível de produção. Ver
 `supabase/README.md` pro estado atual de cada etapa (A-E).
 
 ---
