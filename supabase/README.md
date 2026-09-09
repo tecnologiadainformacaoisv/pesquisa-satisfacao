@@ -8,8 +8,10 @@
 >   ref `fgsxqiywncarflpbxxgm`, região `sa-east-1`)
 > - Schema aplicado (tabelas `perfis` e `log_auditoria`, RLS ativo)
 > - Autocadastro desativado, só provider de e-mail ativo
-> - Primeiro admin convidado: `henrique.krvalho@gmail.com` — checar caixa de
->   entrada (e spam) pra confirmar o e-mail de convite e definir a senha
+> - Primeiro admin convidado: **`tecnologiadainformacao@institutosaovicente.com.br`**
+>   (institucional — todo acesso admin fica atrelado ao Instituto, não a
+>   e-mail pessoal) — checar essa caixa de entrada (e spam) pra confirmar o
+>   convite e definir a senha
 
 ## Por quê
 
