@@ -1,66 +1,69 @@
 # Controle de acesso — Supabase (projeto separado, ver CLAUDE.md)
 
-> **Status (2026-09-09): projeto Supabase criado e schema aplicado.**
-> Nada aqui afeta produção até a Etapa E ser feita e testada — dashboard.html
-> continua com a senha compartilhada de sempre por enquanto.
+> **Status (2026-09-09): Etapas A-D concluídas e em produção no dashboard.**
+> Só falta a Etapa E-2 parte 2 (travar config do tablet em `pesquisa.html`).
 >
 > - Projeto: **"Pesquisa Satisfacao - Controle de Acesso"** (org ISV Summit,
 >   ref `fgsxqiywncarflpbxxgm`, região `sa-east-1`)
-> - Schema aplicado (tabelas `perfis` e `log_auditoria`, RLS ativo)
+> - Schema aplicado (tabelas `perfis` e `log_auditoria`, RLS ativo) + migration
+>   0002/0003 (papel `super_admin`, `perfis.municipios` como lista)
 > - Autocadastro desativado, só provider de e-mail ativo
-> - Primeiro admin convidado: **`tecnologiadainformacao@institutosaovicente.com.br`**
->   (institucional — todo acesso admin fica atrelado ao Instituto, não a
->   e-mail pessoal) — checar essa caixa de entrada (e spam) pra confirmar o
->   convite e definir a senha
+> - Super admin: **`tecnologiadainformacao@institutosaovicente.com.br`**
+>   (institucional — vê/gerencia tudo)
+> - `dashboard.html` já usa Supabase Auth pra login e a Edge Function
+>   `dashboard-proxy` pra dados (token não fica mais no código-fonte)
+> - Painel de administração em `admin.html` (convite de gestores, lista de
+>   usuários, log de auditoria) — só super_admin acessa
 
 ## Por quê
 
-Hoje (v1.1.19) o dashboard usa **senha única compartilhada** (vinda da aba
-`Configuracao`), sem identidade por pessoa — qualquer um com a senha acessa,
-e o token de leitura dos dados fica visível no código-fonte de
+Antes (v1.1.19), o dashboard usava **senha única compartilhada** (vinda da
+aba `Configuracao`), sem identidade por pessoa — qualquer um com a senha
+acessava, e o token de leitura dos dados ficava visível no código-fonte de
 `dashboard.html`. Ver seção "Proteção de acesso aos dados" no `CLAUDE.md`
 principal.
 
-Decidido em 2026-09 (conversa com o Henrique): trocar por login individual
-via **Supabase Auth**, com convite (sem autocadastro), 2 papéis (admin /
-visualizador), e log de quem configurou qual tablet — pra detectar, por
+Trocado por login individual via **Supabase Auth** (convite, sem
+autocadastro) + log de quem configurou qual tablet — pra detectar, por
 exemplo, um supervisor de Pedra Branca configurando um equipamento de outro
 município por engano.
 
+**Atualização (2026-09-09, decisão do gestor):** gestores e visualizadores
+não veem outros municípios além do(s) próprio(s) — só o super_admin (TI) vê
+tudo. Uma pessoa pode estar ligada a mais de 1 município (supervisor
+regional). Ver seção "Papéis" abaixo.
+
 ## Etapas do projeto
 
-- [x] **Etapa A** — desenho do schema (`schema.sql`), papéis e auditoria
-- [x] **Etapa B (código pronto, não conectado)** — `etapa-b-login-dashboard.js`: login via Supabase Auth, log de auditoria, leitura de papel
-- [x] **Etapa C (código pronto, não conectado)** — `functions/dashboard-proxy/index.ts`: Edge Function que esconde o token do Apps Script do navegador
-- [ ] **Etapa D** — painel de administração (lista de usuários, convite, log)
-- [ ] **Etapa E** — travar overlay de configuração do tablet só para admin + gravar log de configuração
-
-### Etapas B/C — como ativar (depois que o projeto Supabase existir)
-
-1. Preencher `SUPABASE_URL`/`SUPABASE_ANON_KEY` em `etapa-b-login-dashboard.js`
-2. `supabase functions deploy dashboard-proxy` (ver instruções no topo do `index.ts`)
-3. Configurar os secrets `APPS_SCRIPT_URL`/`APPS_SCRIPT_TOKEN`/`SUPABASE_URL`/`SUPABASE_ANON_KEY` da function
-4. Só então trocar o login de `dashboard.html` — nunca antes, senão a equipe perde acesso (ninguém tem conta Supabase ainda)
-
-## Como criar o projeto Supabase (manual, feito por você — não tenho acesso à sua conta)
-
-1. Ir em https://supabase.com → criar projeto novo (plano free serve)
-2. **Authentication → Providers**: deixar só "Email" ativo (desativar os outros)
-3. **Authentication → Settings**: desativar "Allow new users to sign up" — ninguém cria conta própria, só admin convida
-4. **SQL Editor**: colar o conteúdo de `schema.sql` inteiro → Run
-5. **Authentication → Users → Invite user**: convidar você mesmo (ou o Henrique) primeiro
-6. Rodar o UPDATE comentado no fim do `schema.sql`, trocando o e-mail, pra virar o primeiro admin
-7. Me avisar quando tiver feito — sigo com a Etapa B (troca do login do dashboard)
+- [x] **Etapa A** — schema (`schema.sql` + migrations 0002/0003), papéis, auditoria
+- [x] **Etapa B** — login do dashboard via Supabase Auth
+- [x] **Etapa C** — Edge Function `dashboard-proxy` (token escondido, filtro por município)
+- [x] **Etapa D** — painel de administração (`admin.html`), Edge Function `admin-convidar`
+- [ ] **Etapa E-2 (parte 2)** — travar overlay de configuração do tablet em `pesquisa.html` só para admin/super_admin + gravar log de `config_tablet`. Ainda não feita de propósito — é o arquivo mais sensível de produção (4 tablets ao vivo).
 
 ## Papéis
 
-| Papel | Pode |
-|---|---|
-| `admin` | Configurar tablets, convidar usuários, ver dashboard completo, ver log de auditoria |
-| `visualizador` | Só ver o dashboard |
+| Papel | Escopo | Pode |
+|---|---|---|
+| `super_admin` | Tudo | Ver/gerenciar todos os municípios, convidar usuários (`admin.html`), configurar qualquer tablet, ver log de auditoria completo |
+| `admin` (gestor) | `perfis.municipios` (lista) | Configurar tablet e ver dashboard só do(s) próprio(s) município(s). **Não** gerencia outros usuários |
+| `visualizador` | `perfis.municipios` (lista) | Só ver o dashboard do(s) próprio(s) município(s) |
 
-## O que fica registrado
+## Convidar um gestor/visualizador novo
 
-- **Convite**: quem convidou, quando, e-mail convidado, papel atribuído
+1. Logar em `admin.html` como super_admin
+2. Preencher e-mail, papel, e os municípios (separados por vírgula se for mais de 1)
+3. A pessoa recebe o convite por e-mail e define a própria senha em `aceitar-convite.html`
+
+## O que fica registrado (log_auditoria)
+
+- **Convite**: quem convidou, quando, e-mail convidado, papel e municípios atribuídos
 - **Login**: quem entrou, quando
-- **Configuração de tablet**: quem configurou, município/unidade escolhidos, comparação com o município/unidade esperado do usuário (`divergente: true/false`)
+- **Configuração de tablet** (ainda não implementado — Etapa E-2 parte 2): quem configurou, município/unidade escolhidos, comparação com os municípios esperados do usuário (`divergente: true/false`)
+
+## Notas de infraestrutura (bugs reais já corrigidos, pra não repetir)
+
+- **CORS**: toda Edge Function chamada do navegador (não só server-to-server) precisa responder o preflight `OPTIONS` e mandar `Access-Control-Allow-*` em toda resposta — sem isso o navegador bloqueia mesmo com o servidor respondendo 200.
+- **`verify_jwt`**: por padrão a plataforma Supabase exige JWT válido antes do código da function rodar — isso bloqueia o preflight `OPTIONS` (sem header de auth). Functions que fazem sua própria verificação de JWT internamente (ambas as deste projeto) precisam de `verify_jwt = false` em `supabase/config.toml`.
+- **User-Agent no fetch pro Apps Script**: o fetch do Deno sem UA explícito às vezes faz o Google devolver uma página de erro do Drive em vez de seguir o redirect até o JSON real — `dashboard-proxy` manda um UA de navegador explícito por causa disso.
+- **Rate limit do plano free**: testes muito seguidos no mesmo dia podem devolver `WORKER_RESOURCE_LIMIT` temporário — não é bug de código, passa depois de uma pausa curta.
