@@ -1,22 +1,26 @@
 // Complemento da Etapa 1 (Fase 2): unidades que faltavam nos 10 municípios já
 // cadastrados + as primeiras unidades de Massapé (município 11 que ainda não
-// tinha nenhuma unidade cadastrada). Comparação feita contra a planilha
-// índice mestre mais completa enviada pelo gestor em 2026-09-09 (relação de
-// 124 unidades) x aba Equipamentos em produção (41 linhas ativas na época).
+// tinha nenhuma unidade cadastrada). Comparação feita contra duas fontes do
+// gestor, ambas de 2026-09-09: a planilha índice mestre (124 unidades) e,
+// depois, o documento oficial "Relação Unidades atualizadas Setembro-2026"
+// (com códigos CNES), que resolveu as pendências de duplicata/nome
+// alternativo e revelou mais 17 unidades novas (Academia da Saúde em
+// Forquilha, Vigilância Epidemiológica/EMAD II/NASF em Orós, Vigilância
+// Epidemiológica em Massapé, Unidade de Atendimento 24hrs em Maracanaú, e as
+// 10 UBS de Tabuleiro do Norte que antes só apareciam como item genérico
+// "Unidades Básicas de Saúde") — tudo x aba Equipamentos em produção (41
+// linhas ativas em 09/09).
 //
 // MESMO padrão de popularEquipamentosFase2() em expansaoEquipamentos.js:
 // idempotente (pula o que já existe), não mexe em nada além de inserir linha
 // nova na aba Equipamentos — não afeta pesquisa.html/dashboard.html/doGet.
 //
-// Unidades da lista mestre que pareciam nome alternativo de algo já
-// cadastrado (mesma lição do "UPA Centro" vs "UPA Luiz Nerys" na Etapa 1)
-// foram DELIBERADAMENTE deixadas de fora daqui — ver seção "NÃO incluídas"
-// no fim do arquivo e o relatório entregue ao gestor em 09/2026. Cadastrar
-// só depois de confirmar com quem mandou a planilha se é unidade nova ou
-// nome mais completo de uma unidade que já existe.
+// Unidades que pareciam nome alternativo de algo já cadastrado (mesma lição
+// do "UPA Centro" vs "UPA Luiz Nerys" na Etapa 1) foram DELIBERADAMENTE
+// deixadas de fora daqui — ver seção "NÃO incluídas" no fim do arquivo.
 
 const UNIDADES_FASE2B = [
-  // Forquilha (10 novas)
+  // Forquilha (12 novas)
   ['Forquilha', 'Centro de Parto Normal Francisco Eliezer X. Rodrigues'],
   ['Forquilha', 'UBS Francisco Rufino de Sousa'],
   ['Forquilha', 'UBS Maria das Dores Rodrigues Custódio'],
@@ -27,6 +31,8 @@ const UNIDADES_FASE2B = [
   ['Forquilha', 'UBS Gerardo Ananias Guimarães'],
   ['Forquilha', 'UBS Sebastião Rodrigues Monção'],
   ['Forquilha', 'UBS Antero Mendes'],
+  ['Forquilha', 'Academia da Saúde - Unidade 1'],
+  ['Forquilha', 'Academia da Saúde - Centro'],
 
   // Guaraciaba do Norte (3 novas)
   ['Guaraciaba do Norte', "UBS Buraco D'Água"],
@@ -45,10 +51,11 @@ const UNIDADES_FASE2B = [
   ['Lavras da Mangabeira', 'NIA'],
   ['Lavras da Mangabeira', 'NAIA'],
 
-  // Maracanaú (1 nova)
+  // Maracanaú (2 novas)
   ['Maracanaú', 'Hospital da Mulher e da Criança Eneida Soares Pessoa'],
+  ['Maracanaú', 'Unidade de Atendimento 24hrs'],
 
-  // Massapé (32 novas — município inteiro, primeiro cadastro)
+  // Massapé (33 novas — município inteiro, primeiro cadastro)
   ['Massapé', 'Anexo Baixio (CSF Aiuá)'],
   ['Massapé', 'Anexo Cachoeirinha (CSF Tangente)'],
   ['Massapé', 'Anexo Cacimba Velha de Baixo (CSF Tangente)'],
@@ -81,8 +88,9 @@ const UNIDADES_FASE2B = [
   ['Massapé', 'CSF Tuína'],
   ['Massapé', 'Espaço Acolher'],
   ['Massapé', 'Hospital Municipal / Hospital Senador Ozires Pontes'],
+  ['Massapé', 'Vigilância Epidemiológica'],
 
-  // Orós (19 novas)
+  // Orós (23 novas)
   ['Orós', 'CEO Francisco Gabimar Bezerra'],
   ['Orós', 'UBS Barra'],
   ['Orós', 'UBS Caatinga'],
@@ -103,46 +111,73 @@ const UNIDADES_FASE2B = [
   ['Orós', 'UBS Sítio Jardim'],
   ['Orós', 'UBS Isaac Cândido'],
   ['Orós', 'UBS Maria José Nunes'],
+  ['Orós', 'Vigilância Epidemiológica'],
+  ['Orós', 'Equipe de Atendimento Domiciliar - EMAD II'],
+  ['Orós', 'NASF'],
 
-  // Tabuleiro do Norte (4 novas)
+  // Tabuleiro do Norte (14 novas — as 4 anteriores + as 10 UBS que só
+  // apareciam como item genérico "Unidades Básicas de Saúde" na planilha
+  // índice mestre, detalhadas no documento oficial com CNES)
   ['Tabuleiro do Norte', 'CAPS'],
   ['Tabuleiro do Norte', 'Centro de Reabilitação'],
   ['Tabuleiro do Norte', 'Melhor em Casa'],
   ['Tabuleiro do Norte', 'Centro de Epidemiologia'],
+  ['Tabuleiro do Norte', 'UBS Peixe Gordo'],
+  ['Tabuleiro do Norte', 'UBS Groelândia'],
+  ['Tabuleiro do Norte', 'UBS Gangorrinha'],
+  ['Tabuleiro do Norte', 'UBS José Mendes Sobrinho'],
+  ['Tabuleiro do Norte', 'UBS Maria de Fátima Freitas'],
+  ['Tabuleiro do Norte', 'UBS Alcides Monteiro Chaves'],
+  ['Tabuleiro do Norte', 'UBS Hilário Domingos'],
+  ['Tabuleiro do Norte', 'UBS Pedra Preta'],
+  ['Tabuleiro do Norte', 'UBS Barra do Feijão'],
+  ["Tabuleiro do Norte", "UBS Olho D'Água da Bica"],
 
-  // Várzea Alegre (14 novas)
+  // Várzea Alegre (9 novas — as 4 divergentes entre planilha mestre e
+  // documento oficial ficaram de fora, ver "AINDA PENDENTES" abaixo)
   ['Várzea Alegre', 'UBS Calabaça'],
   ['Várzea Alegre', 'UBS Canindezinho'],
-  ['Várzea Alegre', 'UBS Dep. Figueiredo Correia'],
-  ['Várzea Alegre', 'UBS Francisco Rolim de Morais'],
-  ['Várzea Alegre', 'UBS Juazeirinho'],
   ['Várzea Alegre', 'UBS Naraniú'],
   ['Várzea Alegre', 'UBS Patos'],
-  ['Várzea Alegre', 'UBS Quatro Bocas'],
   ['Várzea Alegre', 'UBS Varjota'],
-  ['Várzea Alegre', 'UBS CAIS'],
   ['Várzea Alegre', 'UBS Riachinho'],
   ['Várzea Alegre', 'UBS Riacho Verde'],
   ['Várzea Alegre', 'CAPS'],
   ['Várzea Alegre', 'CAIS / Centro de Especialidades']
 ];
 
-// NÃO incluídas acima de propósito (nomes da planilha mestre que batem
-// demais com algo já cadastrado, ou são ambíguos) — cadastrar só depois de
-// confirmar com quem mandou a planilha:
-//   - Forquilha: "CEO Jerônimo da Costa Filho" (pode ser nome oficial de
-//     "CEO Municipal de Forquilha", já cadastrado)
-//   - Guaraciaba do Norte: "CEO – Centro de Especialidades Odontológicas"
-//     (pode ser "CEO Guaraciaba do Norte"); "UBS Martinslândia" (pode ser
-//     "UBS Martislândia", só variação de grafia); "UBS Sítio Estivas" (pode
-//     ser "UBS Estivas")
-//   - Lavras da Mangabeira: "UBS Mangabeira" (pode ser "UBS Lavras da
-//     Mangabeira")
-//   - Orós: "CAPS Weber Lopes Pinheiro" (pode ser "CAPS Orós"); "UBS Centro"
-//     (pode ser "UBS Orós")
-//   - Tabuleiro do Norte: "Unidades Básicas de Saúde" — item genérico na
-//     planilha mestre, não dá pra saber se é 1 unidade específica ou um
-//     placeholder cobrindo várias UBS que precisam ser detalhadas
+// RESOLVIDAS em 2026-09-09, com o documento oficial "Relação Unidades
+// atualizadas Setembro-2026" (tem CNES): eram todas duplicata/nome
+// alternativo de algo já cadastrado — confirmado que NÃO são unidades novas,
+// não cadastrar:
+//   - Forquilha: "CEO Jerônimo da Costa Filho" = "CEO Municipal de Forquilha"
+//   - Guaraciaba do Norte: "CEO – Centro de Especialidades Odontológicas" =
+//     "CEO Guaraciaba do Norte"; "UBS Martinslândia" = "UBS Martislândia"
+//     (nosso cadastro tem um typo — nome oficial é "Martinslândia", com n;
+//     vale corrigir a grafia na planilha, mas não é unidade nova); "UBS
+//     Sítio Estivas" = "UBS Estivas"
+//   - Lavras da Mangabeira: "UBS Mangabeira" = "UBS Lavras da Mangabeira"
+//   - Orós: "CAPS Weber Lopes Pinheiro" = "CAPS Orós"; "UBS Centro" = "UBS
+//     Orós"
+//   - Tabuleiro do Norte: "Unidades Básicas de Saúde" era item genérico —
+//     RESOLVIDO, virou as 10 UBS nomeadas já incluídas acima.
+//
+// AINDA PENDENTES (não cadastrar sem confirmar com o gestor):
+//   - Guaraciaba do Norte: documento oficial cita "4 equipes adicionais de
+//     Atenção Básica" sem CNES nem nome individualizado — mesmo problema do
+//     item de Tabuleiro, ainda sem solução.
+//   - Caririaçu (município 12, novo — nem estava nos 13 mapeados
+//     anteriormente): todo o documento está "a confirmar", nenhuma unidade
+//     nomeada ainda.
+//   - Várzea Alegre: DIVERGÊNCIA entre a planilha índice mestre e o
+//     documento oficial. A planilha mestre tem "UBS Dep. Figueiredo
+//     Correia", "UBS Francisco Rolim de Morais", "UBS Juazeirinho", "UBS
+//     Quatro Bocas" (e "UBS CAIS" separado de "CAIS / Centro de
+//     Especialidades") que NÃO aparecem no documento oficial; o documento
+//     oficial tem "UBS Grossos", "UBS Praça Santo Antônio", "UBS Sanharol",
+//     "UBS Ibicatu" que NÃO estavam na planilha mestre. Nenhuma dessas foi
+//     incluída acima — confirmar com a Sec. Ivo (Várzea Alegre) qual lista é
+//     a correta antes de cadastrar qualquer uma.
 
 function normalizarParaComparacao2b_(s) {
   return String(s || '').trim().toLowerCase().normalize('NFC');
