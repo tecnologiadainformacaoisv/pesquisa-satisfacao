@@ -21,11 +21,23 @@
   h1 { font-size: 20px; color: #0a3d62; margin-bottom: 8px; }
   p { font-size: 13.5px; color: #7f8c8d; margin-bottom: 20px; line-height: 1.5; }
   label { display: block; font-size: 13px; font-weight: 600; color: #1e3a5f; margin-bottom: 6px; }
-  input {
-    width: 100%; padding: 12px 14px; border: 1px solid #d7e2ea; border-radius: 10px;
-    font-size: 14px; margin-bottom: 16px;
+  .campo-senha {
+    position: relative;
+    margin-bottom: 16px;
   }
-  button {
+  input {
+    width: 100%; padding: 12px 44px 12px 14px; border: 1px solid #d7e2ea; border-radius: 10px;
+    font-size: 14px;
+  }
+  #btnOlho {
+    position: absolute; right: 4px; top: 4px; bottom: 4px;
+    width: 38px; border: none; background: transparent; border-radius: 8px;
+    font-size: 17px; cursor: pointer; color: #7f8c8d;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnOlho:hover { background: #f0f4f8; }
+  #btnOlho:focus-visible { outline: 2px solid #2980b9; outline-offset: 1px; }
+  button[type="submit"] {
     width: 100%; padding: 13px; border: none; border-radius: 10px;
     background: linear-gradient(135deg, #1e5f8a, #2980b9); color: #fff;
     font-weight: 700; font-size: 14px; cursor: pointer;
@@ -44,7 +56,10 @@
 
   <form id="form" style="display:none">
     <label for="senha">Nova senha (mín. 6 caracteres)</label>
-    <input type="password" id="senha" minlength="6" required>
+    <div class="campo-senha">
+      <input type="password" id="senha" minlength="6" required autocomplete="new-password">
+      <button type="button" id="btnOlho" aria-label="Mostrar senha" title="Mostrar senha">👁</button>
+    </div>
     <button type="submit" id="btn">Definir senha</button>
   </form>
 
@@ -60,6 +75,19 @@
   const form = document.getElementById('form');
   const msg = document.getElementById('msg');
   const btn = document.getElementById('btn');
+  const campoSenha = document.getElementById('senha');
+  const btnOlho = document.getElementById('btnOlho');
+
+  // Alterna entre senha oculta/visível — sem isso, um erro de digitação
+  // só é percebido depois de já ter salvo, arriscando a pessoa "perder"
+  // o próprio acesso por ter guardado uma senha diferente da que pensou.
+  btnOlho.addEventListener('click', () => {
+    const oculta = campoSenha.type === 'password';
+    campoSenha.type = oculta ? 'text' : 'password';
+    btnOlho.textContent = oculta ? '🙈' : '👁';
+    btnOlho.setAttribute('aria-label', oculta ? 'Ocultar senha' : 'Mostrar senha');
+    btnOlho.title = oculta ? 'Ocultar senha' : 'Mostrar senha';
+  });
 
   function mostrarErro(texto) {
     subtitulo.textContent = 'Não foi possível confirmar o convite.';
