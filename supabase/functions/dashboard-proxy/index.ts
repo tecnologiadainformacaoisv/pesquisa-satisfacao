@@ -30,7 +30,25 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 // tablet) — mesma distinção que já existe em appscript/codigo.js.
 const ACOES_PUBLICAS = new Set(['config', 'configuracao']);
 
+// CORS: dashboard.html roda em outro domínio (GitHub Pages) e manda um
+// header customizado (Authorization) — isso obriga o navegador a mandar
+// um preflight OPTIONS antes da chamada real. Sem responder esse
+// preflight com os headers certos, o navegador BLOQUEIA a resposta antes
+// mesmo dela chegar no JS — a chamada aparece como falha de rede no
+// cliente mesmo que o servidor tenha respondido 200 (é exatamente o que
+// aconteceu ao testar isto direto por curl: funcionou, porque curl não
+// aplica regra de CORS — só o navegador aplica).
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+};
+
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: CORS_HEADERS });
+  }
+
   const url = new URL(req.url);
   const action = url.searchParams.get('action') || 'dados';
 
@@ -39,7 +57,7 @@ Deno.serve(async (req) => {
     const jwt = authHeader.replace('Bearer ', '');
 
     if (!jwt) {
-      return new Response(JSON.stringify({ erro: 'Não autenticado.' }), { status: 401 });
+      return new Response(JSON.stringify({ erro: 'Não autenticado.' }), { status: 401, headers: CORS_HEADERS });
     }
 
     // Confirma que o JWT é de uma sessão Supabase válida — não decodifica
@@ -50,7 +68,7 @@ Deno.serve(async (req) => {
     const { data: userData, error } = await supabase.auth.getUser(jwt);
 
     if (error || !userData?.user) {
-      return new Response(JSON.stringify({ erro: 'Sessão inválida ou expirada.' }), { status: 401 });
+      return new Response(JSON.stringify({ erro: 'Sessão inválida ou expirada.' }), { status: 401, headers: CORS_HEADERS });
     }
     // Usuário válido — segue pro Apps Script. (Checagem de papel/RLS já
     // aconteceu no login; aqui só confirmamos que a sessão é real.)
@@ -73,6 +91,6 @@ Deno.serve(async (req) => {
 
   return new Response(body, {
     status: resp.status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 });

@@ -1,0 +1,16 @@
+# Config do CLI do Supabase pra este projeto (ref fgsxqiywncarflpbxxgm).
+#
+# verify_jwt = false nas duas functions abaixo: por padrão a plataforma
+# exige um JWT válido no header Authorization ANTES do código da function
+# rodar — isso bloqueia o preflight CORS (OPTIONS), que o navegador manda
+# sem nenhum header de autenticação, e impediria as ações públicas
+# (config/configuracao) de funcionar sem login. As duas functions já
+# fazem sua própria verificação de JWT internamente pras ações que
+# exigem login (dashboard-proxy) ou pra confirmar que quem chama é admin
+# (admin-convidar) — não precisam da checagem da plataforma por cima.
+
+[functions.dashboard-proxy]
+verify_jwt = false
+
+[functions.admin-convidar]
+verify_jwt = false
