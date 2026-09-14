@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.34">
+<meta name="app-version" content="1.1.35">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.34 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.35 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -389,7 +389,18 @@
        em vários navegadores a menos que isto seja forçado. */
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    .chart-card, .metric-card { box-shadow: none; border: 1px solid #dce6f0; break-inside: avoid; }
+    .chart-card, .metric-card {
+      box-shadow: none; border: 1px solid #dce6f0; break-inside: avoid; padding: 14px 16px;
+    }
+    /* Gráficos mais baixos na impressão (senão cada card fica alto demais
+       pra caber mais de um por página, deixando bastante espaço em branco
+       sobrando quando só 1 cabe). Ainda maior que o breakpoint mobile
+       (220px/280px) pra não espremer demais os rótulos dos eixos. Canvas
+       escala junto com a altura do wrap. */
+    .chart-wrap { height: 200px !important; }
+    .chart-wrap.tall { height: 240px !important; }
+    .nps-gauge-row { margin-bottom: 10px; }
+    .cards-grid, .charts-grid { gap: 10px; margin-bottom: 14px; }
     /* .comments-section (a caixa toda, com 200+ comentários às vezes) NÃO
        pode ter break-inside:avoid — isso forçava o navegador a jogar o
        bloco inteiro pra próxima página por não caber de uma vez, deixando
@@ -442,7 +453,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.34</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.35</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">

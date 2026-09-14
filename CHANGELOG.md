@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.35] — 2026-09-14
+### Alterado
+- `dashboard.html`: relatório impresso — gráficos, cards e espaçamentos reduzidos especificamente na impressão (senão iguais ao tamanho de tela), pra sobrar menos espaço em branco entre páginas quando só 1 gráfico cabia onde teria espaço pra mais.
+
+---
+
 ## [1.1.34] — 2026-09-14
 ### Revertido
 - `dashboard.html`: removida por completo a feature de capa no relatório impresso (v1.1.24 a v1.1.33, 8+ tentativas) — problema recorrente de renderização na transição capa→página 2 sem solução estável encontrada. Voltou ao estado anterior à capa (v1.1.23: timbrado como fundo de página inteira, sem capa própria), mantendo os 2 fixes que já tinham sido feitos nesse meio tempo e são independentes da capa: `<img>` fixed em vez de `background-attachment:fixed` (bug de renderização "espinhos") e `box-decoration-break: clone` (padding repetindo em toda página).
