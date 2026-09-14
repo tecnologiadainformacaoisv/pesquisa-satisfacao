@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.30] — 2026-09-14
+### Corrigido
+- `dashboard.html`: rodapé de contato do timbrado repetido (páginas de conteúdo) vazava numa frestinha por baixo da capa impressa. Capa ganhou 3mm de folga só na borda inferior (topo/laterais já cobriam exato) pra garantir cobertura total da página física.
+
+---
+
 ## [1.1.29] — 2026-09-14
 ### Alterado
 - `dashboard.html`: os 4 círculos decorativos da capa (reconstruídos em CSS na v1.1.28, aproximação visual imprecisa) viraram uma única imagem real (`assets/capa-circulos.png`), recortada de um PNG exportado pelo próprio usuário direto do Word — fica pixel-fiel ao modelo em vez de aproximado.
