@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.41">
+<meta name="app-version" content="1.1.42">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.41 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.42 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -127,6 +127,12 @@
     background: white; max-width: 200px;
   }
   .filters select:focus { border-color: #2980b9; }
+  /* Unidade tem nomes bem mais longos que os outros filtros (ex: "Anexo
+     Cacimba Velha de Cima (CSF Tangente)") — largura maior só pra esse,
+     senão corta o texto. Os outros filtros ficaram mais enxutos (ex: Ano
+     virou "(Total)") justamente pra abrir esse espaço sem estourar a
+     linha. */
+  .filters select#filtroUnidade { max-width: 260px; }
 
   .total-badge {
     background: #eaf4fb;
@@ -462,7 +468,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.41</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.42</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -1154,7 +1160,7 @@
     // que tem quase 2 anos de histórico)
     const anos = [...new Set(dados.map(d => new Date(d.timestamp).getFullYear()))].sort();
     const selAno = document.getElementById('filtroAno');
-    selAno.innerHTML = '<option value="">Total (todos os anos)</option>';
+    selAno.innerHTML = '<option value="">(Total)</option>';
     (anos.length ? anos : [now.getFullYear()]).forEach(a => {
       const o = document.createElement('option'); o.value = a; o.textContent = a; selAno.appendChild(o);
     });

@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.42] — 2026-09-14
+### Alterado
+- `dashboard.html`: filtro Ano — texto "Total (todos os anos)" encurtado pra "(Total)". Filtro Unidade mais largo (200px → 260px, só ele) — nomes longos de unidade (ex: "Anexo Cacimba Velha de Cima (CSF Tangente)") cortavam.
+
+---
+
 ## [1.1.41] — 2026-09-14
 ### Adicionado
 - `dashboard.html`: opções de Município/Unidade coloridas por contagem — verde quem tem resposta, cinza itálico quem está cadastrado mas ainda sem nenhuma.
