@@ -528,6 +528,23 @@
     });
   }
 
+  // DIAGNÓSTICO TEMPORÁRIO (2026-09-14) — investigando "Falha ao carregar
+  // dados do servidor" intermitente sem erro correspondente nos logs da
+  // Edge Function. Hipótese: o Google às vezes devolve uma página HTML de
+  // erro (Drive) no lugar do JSON esperado, o que quebra o JSON.parse aqui
+  // no cliente sem gerar exceção nenhuma do lado da Edge Function — por
+  // isso não aparece em log nenhum. Loga o corpo bruto quando o parse falha
+  // pra confirmar. Remover depois de confirmado/mitigado.
+  async function parseRespostaJson_(resp) {
+    const texto = await resp.text();
+    try {
+      return JSON.parse(texto);
+    } catch (err) {
+      console.error('[Dashboard][diagnóstico] resposta não era JSON válido. status=' + resp.status + ' corpo (primeiros 300 chars):', texto.slice(0, 300));
+      throw new Error('Resposta do servidor não é JSON válido (status ' + resp.status + ')');
+    }
+  }
+
   let charts = {};
   let dadosFiltrados = [];
   let todosDados = [];
@@ -763,7 +780,7 @@
         const resp = await fetchProxy('action=dados&_=' + Date.now(), controller.signal);
         clearTimeout(timeout);
 
-        const linhas = await resp.json();
+        const linhas = await parseRespostaJson_(resp);
 
         if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
 
@@ -798,7 +815,7 @@
       const timeout = setTimeout(() => controller.abort(), 30000); // base grande (~20k linhas)
       const resp = await fetchProxy('action=dadosAntigos&_=' + Date.now(), controller.signal);
       clearTimeout(timeout);
-      const linhas = await resp.json();
+      const linhas = await parseRespostaJson_(resp);
       if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
 
       marcarErroCarregamento(false);
@@ -832,7 +849,7 @@
       const timeout = setTimeout(() => controller.abort(), 20000);
       const resp = await fetchProxy('action=' + action + '&_=' + Date.now(), controller.signal);
       clearTimeout(timeout);
-      const linhas = await resp.json();
+      const linhas = await parseRespostaJson_(resp);
       if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
       marcarErroCarregamento(false);
       return linhas.map(mapeador);
@@ -941,7 +958,7 @@
       const timeout = setTimeout(() => controller.abort(), 20000); // ver comentário em carregarDados()
       const resp = await fetchProxy('action=config&_=' + Date.now(), controller.signal);
       clearTimeout(timeout);
-      const lista = await resp.json();
+      const lista = await parseRespostaJson_(resp);
       return Array.isArray(lista) ? lista : [];
     } catch (err) {
       console.warn('[Dashboard] Falha ao buscar equipamentos:', err.message);
