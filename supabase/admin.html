@@ -115,14 +115,14 @@
     <div id="conteudoAdmin" style="display:none">
       <section>
         <h2>Convidar novo usuário</h2>
-        <div class="sub">O convite é enviado por e-mail; a pessoa define a própria senha (nunca vemos a senha de ninguém). Admin/Visualizador só veem os municípios listados abaixo — separe por vírgula se for mais de um.</div>
+        <div class="sub">O convite é enviado por e-mail; a pessoa define a própria senha (nunca vemos a senha de ninguém). Admin/Visualizador só veem os municípios selecionados abaixo (Ctrl+clique pra marcar mais de um).</div>
         <form class="form-convite" id="formConvite">
           <input type="email" id="emailConvite" placeholder="e-mail@institutosaovicente.com.br" required>
           <select id="papelConvite">
             <option value="visualizador">Visualizador (só dashboard do município)</option>
             <option value="admin">Gestor (configura tablets + dashboard do município)</option>
           </select>
-          <input type="text" id="municipiosConvite" placeholder="Municípios (ex.: Guaraciaba do Norte, Orós)" style="flex:1; min-width:260px">
+          <select id="municipiosConvite" multiple size="4" style="flex:1; min-width:260px"></select>
           <button type="submit" id="btnConvidar">Convidar</button>
         </form>
         <div id="msgConvite" style="margin-top:10px;font-size:13px;"></div>
@@ -160,6 +160,13 @@
     document.body.innerHTML = '<p style="padding:40px;text-align:center">Falha ao carregar biblioteca de autenticação. Recarregue a página.</p>';
     throw new Error('window.supabase indefinido.');
   }
+
+  // Mesma URL do Apps Script usada em dashboard.html/pesquisa.html —
+  // ?action=config é pública (os tablets também dependem dela sem login).
+  // Usada aqui só pra listar os municípios reais (evita erro de digitação
+  // no convite/edição — texto livre podia gravar "Caucaia " ou "caucaia"
+  // e a pessoa não enxergar dado nenhum, silenciosamente).
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwK--quEUwdbc2tvEBiC3UfazOcX0pu9wWGep-0oM3T-s0yZaJ2PYAs9-jv7UpN6Y9O3Q/exec';
 
   const SUPABASE_URL = 'https://fgsxqiywncarflpbxxgm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnc3hxaXl3bmNhcmZscGJ4eGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzgwODgsImV4cCI6MjEwNDU1NDA4OH0.IoY6OPJiPvmwLjOXzBnkO-FYVVm7GW5YSATmF_mFc18';
@@ -225,8 +232,43 @@
     }
 
     document.getElementById('conteudoAdmin').style.display = 'block';
+    await carregarMunicipiosDisponiveis();
     await carregarUsuarios();
     await carregarLog();
+  }
+
+  let municipiosDisponiveis = []; // lista real, vinda da aba Equipamentos
+
+  async function carregarMunicipiosDisponiveis() {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000); // mesmo padrão de dashboard.html
+      const resp = await fetch(`${SCRIPT_URL}?action=config&_=${Date.now()}`, { signal: controller.signal });
+      clearTimeout(timeout);
+      const lista = await resp.json();
+      municipiosDisponiveis = Array.isArray(lista)
+        ? [...new Set(lista.map(e => e.municipio).filter(Boolean))].sort()
+        : [];
+    } catch (err) {
+      console.warn('[Admin] Falha ao buscar municípios da aba Equipamentos:', err.message);
+      municipiosDisponiveis = [];
+    }
+
+    const selConvite = document.getElementById('municipiosConvite');
+    selConvite.innerHTML = municipiosDisponiveis
+      .map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('')
+      || '<option disabled>Falha ao carregar municípios — recarregue a página</option>';
+  }
+
+  // Une a lista real com o que o usuário já tinha gravado — sem isso, um
+  // município que a pessoa já tinha mas que não está mais ativo na aba
+  // Equipamentos (ou falhou o fetch) sumiria da tela e seria apagado do
+  // perfil dela ao salvar sem ninguém perceber.
+  function optionsMunicipios(selecionados) {
+    const setSel = new Set(selecionados || []);
+    const todos = [...new Set([...municipiosDisponiveis, ...setSel])].sort();
+    return todos
+      .map(m => `<option value="${escapeHtml(m)}" ${setSel.has(m) ? 'selected' : ''}>${escapeHtml(m)}${municipiosDisponiveis.includes(m) ? '' : ' (não está mais na aba Equipamentos)'}</option>`).join('');
   }
 
   let usuariosCache = []; // guarda os dados brutos pra reabrir o modo edição sem refazer a query
@@ -288,7 +330,7 @@
         <option value="super_admin" ${u.papel === 'super_admin' ? 'selected' : ''}>super_admin</option>
       </select>`;
     linha.querySelector('.col-municipios').innerHTML =
-      `<input type="text" class="edicao-municipios" value="${escapeHtml((u.municipios || []).join(', '))}" placeholder="ex.: Caucaia">`;
+      `<select class="edicao-municipios" multiple size="4">${optionsMunicipios(u.municipios)}</select>`;
     linha.querySelector('td:last-child').innerHTML = `
       <button class="btn-salvar" data-salvar="${id}">Salvar</button>
       <button class="btn-cancelar" data-cancelar="${id}">Cancelar</button>`;
@@ -300,8 +342,7 @@
     if (!linha) return;
 
     const papel = linha.querySelector('.edicao-papel').value;
-    const municipios = linha.querySelector('.edicao-municipios').value
-      .split(',').map(m => m.trim()).filter(Boolean);
+    const municipios = [...linha.querySelector('.edicao-municipios').selectedOptions].map(o => o.value);
 
     if (papel !== 'super_admin' && municipios.length === 0) {
       msg.textContent = 'admin/visualizador precisa de pelo menos 1 município.';
@@ -402,8 +443,7 @@
 
     const email = document.getElementById('emailConvite').value;
     const papel = document.getElementById('papelConvite').value;
-    const municipios = document.getElementById('municipiosConvite').value
-      .split(',').map(m => m.trim()).filter(Boolean);
+    const municipios = [...document.getElementById('municipiosConvite').selectedOptions].map(o => o.value);
 
     if (municipios.length === 0) {
       msgConvite.textContent = 'Informe pelo menos 1 município.';
