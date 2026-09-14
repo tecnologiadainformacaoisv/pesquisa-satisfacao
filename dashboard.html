@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.35">
+<meta name="app-version" content="1.1.36">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.35 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.36 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -400,6 +400,14 @@
     .chart-wrap { height: 200px !important; }
     .chart-wrap.tall { height: 240px !important; }
     .nps-gauge-row { margin-bottom: 10px; }
+    /* Métricas gerais mais compactas — sobra espaço pra o card de NPS
+       (que vem logo depois, ver "Gráficos" abaixo) subir pra mesma página
+       em vez de começar sozinho na seguinte. */
+    .metric-card { padding: 10px 14px; }
+    .metric-card .value { font-size: 26px; }
+    .metric-card .label { margin-bottom: 3px; }
+    .metric-card .sub { margin-top: 2px; }
+    .print-section-title { margin: 10px 0 8px; }
     .cards-grid, .charts-grid { gap: 10px; margin-bottom: 14px; }
     /* .comments-section (a caixa toda, com 200+ comentários às vezes) NÃO
        pode ter break-inside:avoid — isso forçava o navegador a jogar o
@@ -453,7 +461,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.35</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.36</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -518,7 +526,7 @@
   <!-- Cards de métricas — conteúdo gerado por renderCardsGrid(), varia por base -->
   <div class="cards-grid" id="cardsGrid"></div>
 
-  <div class="print-section-title">Gráficos</div>
+  <div class="print-section-title"></div><!-- linha divisória, sem texto "Gráficos" a pedido do usuário -->
   <!-- NPS Detalhado — só existe em bases com NPS (todas exceto Colaborador) -->
   <div class="card-panel chart-card nps-only" id="npsSection" style="margin-bottom:20px">
     <div class="chart-title">Net Promoter Score (NPS)</div>

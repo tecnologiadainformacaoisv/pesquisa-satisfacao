@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.36] — 2026-09-14
+### Alterado
+- `dashboard.html`: relatório impresso — título "Gráficos" removido (linha divisória continua), a pedido do usuário. Cards de "Métricas gerais" mais compactos (padding/fonte menores só na impressão), pra sobrar espaço do card de NPS subir pra mesma página em vez de começar sozinho na seguinte.
+
+---
+
 ## [1.1.35] — 2026-09-14
 ### Alterado
 - `dashboard.html`: relatório impresso — gráficos, cards e espaçamentos reduzidos especificamente na impressão (senão iguais ao tamanho de tela), pra sobrar menos espaço em branco entre páginas quando só 1 gráfico cabia onde teria espaço pra mais.
