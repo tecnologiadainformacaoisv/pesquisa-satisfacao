@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.33] — 2026-09-14
+### Alterado
+- `dashboard.html`: relatório impresso — trocada por completo a técnica usada pra separar a capa (sem timbrado) das páginas de conteúdo (com timbrado repetido). Em vez de padding no `body` + margin negativo na capa pra "cancelar"/"cobrir" (fonte de bugs recorrentes especificamente na transição capa→página 2, mesmo com a matemática conferida), usa `@page :first { margin: 0 }` (capa) + `@page { margin: 34mm 16mm 38mm }` (demais páginas) — recurso nativo de CSS Paged Media, sem cálculo manual em mm.
+
+---
+
 ## [1.1.32] — 2026-09-14
 ### Revertido
 - `dashboard.html`: a reestruturação da v1.1.31 (timbrado como background de `#printConteudo` em vez de `<img>` fixed) saiu pior — imagem distorcida e texto do cabeçalho vazando na capa em todas as páginas. Revertido pra arquitetura da v1.1.30 (`<img>` fixed + capa mascarando com folga de 3mm), que estava correta na matemática (conferida pelo revisor), enquanto se investiga com mais cuidado antes de tentar de novo.
