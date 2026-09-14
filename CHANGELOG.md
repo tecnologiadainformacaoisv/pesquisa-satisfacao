@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.26] — 2026-09-14
+### Corrigido
+- `dashboard.html`: capa do relatório impresso estava mostrando o mesmo timbrado repetido (cabeçalho/marca d'água/rodapé) que aparece nas páginas de conteúdo. A capa agora tem fundo branco opaco e design próprio (barras de acento azul/verde no topo e no rodapé, sem repetir o cabeçalho/rodapé do timbrado), full-bleed até a borda física da página.
+
+---
+
 ## [1.1.25] — 2026-09-14
 ### Corrigido
 - `dashboard.html`: relatório impresso — o timbrado saía com um padrão de "espinhos"/interferência visual em vez da imagem, tanto na capa quanto nas páginas seguintes. Causa: `background-image` + `background-attachment: fixed` + `background-size: 100% 100%` no `body` é uma combinação com bug real de renderização em impressão no Chrome. Trocado por uma tag `<img id="printTimbradoBg">` de verdade com `position: fixed`, técnica confiável pra repetir algo em toda página impressa.
