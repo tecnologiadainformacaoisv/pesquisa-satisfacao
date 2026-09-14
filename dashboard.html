@@ -752,7 +752,11 @@
     if (SCRIPT_URL !== 'COLE_SUA_URL_AQUI') {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 12000);
+        // 20s — igual às demais bases (dadosAntigos: 30s, genérico: 20s); 12s
+        // era curto demais pra cadeia dashboard → Edge Function → Apps Script
+        // e causava falso "falha ao carregar" mesmo quando o servidor
+        // respondia normal, só um pouco depois do cliente já ter desistido.
+        const timeout = setTimeout(() => controller.abort(), 20000);
 
         // cache-buster: o Apps Script serve GET por trás de um cache do Google e
         // pode devolver resposta antiga sem isso
@@ -934,7 +938,7 @@
     if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 20000); // ver comentário em carregarDados()
       const resp = await fetchProxy('action=config&_=' + Date.now(), controller.signal);
       clearTimeout(timeout);
       const lista = await resp.json();
