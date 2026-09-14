@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.38">
+<meta name="app-version" content="1.1.39">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.38 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.39 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -462,7 +462,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.38</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.39</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -1285,7 +1285,7 @@
       ['Período', periodo],
       ['Município', municipio || 'Todos'],
       ['Unidade', unidade || 'Todas'],
-      [null, dadosFiltrados.length + ' resposta' + (dadosFiltrados.length !== 1 ? 's' : '')],
+      ['Total de respostas', dadosFiltrados.length],
       [null, 'Gerado em ' + new Date().toLocaleString('pt-BR')],
     ];
     document.getElementById('printMeta').innerHTML = itens.map(([label, valor]) => {

@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.39] — 2026-09-14
+### Alterado
+- `dashboard.html`: barra de informações do relatório impresso — total de respostas ganha rótulo "Total de respostas:" (antes aparecia solto, sem negrito, junto dos outros campos rotulados: Base/Período/Município/Unidade).
+
+---
+
 ## [1.1.38] — 2026-09-14
 ### Alterado
 - `dashboard.html`: título do cabeçalho impresso aumentado (20px → 28px).
