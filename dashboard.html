@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.24">
+<meta name="app-version" content="1.1.25">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.24 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.25 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -328,7 +328,7 @@
   /* Capa/cabeçalho/rodapé/títulos de seção — só existem visualmente no papel
      (@media print abaixo torna visível); na tela ficam ocultos porque a
      página já tem seu próprio cabeçalho/navegação. */
-  #printCover, #printHeader, #printFooter, .print-section-title { display: none; }
+  #printTimbradoBg, #printCover, #printHeader, #printFooter, .print-section-title { display: none; }
 
   #printCover {
     display: none; flex-direction: column; align-items: center; text-align: center;
@@ -392,22 +392,22 @@
     #printCover { display: flex; min-height: calc(297mm - 34mm - 38mm); }
 
     /* Timbrado do ISV (docs/Timbrado ISV.png → assets/timbrado-isv.png) como
-       fundo de página inteira. background-attachment:fixed é o truque pra
-       isso repetir em TODA página impressa no Chrome/Edge, não só na
-       primeira — sem isso a imagem apareceria uma vez só. @page margin:0
-       deixa a arte encostar na borda física do papel (a barra azul/verde
-       do timbrado é sangrada até a borda); o "respiro" pro conteúdo real
-       não invadir a arte (barra do topo, marca d'água, rodapé de contato)
-       vem do padding no body logo abaixo — os valores foram estimados a
-       partir da imagem, ajustar se a impressão real vier desalinhada.
-       -webkit-print-color-adjust acima já força a imagem a imprimir. */
+       fundo de página inteira — ver #printTimbradoBg (tag <img> própria,
+       não background do body: a combinação background-attachment:fixed +
+       background-size percentual tem um bug real de renderização no Chrome
+       em impressão, aparece como um padrão de "espinhos"/interferência em
+       vez da imagem — só o valor imagem nunca chega a imprimir direito.
+       Um <img> de verdade com position:fixed é a técnica confiável de
+       repetir algo em toda página impressa). @page margin:0 deixa a arte
+       encostar na borda física do papel (a barra azul/verde do timbrado é
+       sangrada até a borda); o "respiro" pro conteúdo real não invadir a
+       arte (barra do topo, marca d'água, rodapé de contato) vem do padding
+       no body logo abaixo — os valores foram estimados a partir da imagem,
+       ajustar se a impressão real vier desalinhada. */
     @page { size: A4; margin: 0; }
+    #printTimbradoBg { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
     body {
-      background-image: url('assets/timbrado-isv.png');
-      background-repeat: no-repeat;
-      background-position: top center;
-      background-size: 100% 100%;
-      background-attachment: fixed;
+      background: none; /* sem isso o cinza de fundo da tela (#f0f4f8) tingia as bordas por trás do timbrado */
       padding: 34mm 16mm 38mm;
       /* Sem isso, o padding-top/padding-bottom de um elemento que quebra em
          várias páginas só é aplicado na 1ª e na última página — nas páginas
@@ -436,6 +436,11 @@
 </style>
 </head>
 <body>
+
+<!-- Timbrado do relatório impresso — <img> real com position:fixed (não
+     background do body), técnica confiável pra repetir em toda página
+     impressa no Chrome. Ver comentário completo no @media print. -->
+<img id="printTimbradoBg" src="assets/timbrado-isv.png" alt="">
 
 <!-- Login -->
 <div id="loginOverlay">
@@ -482,7 +487,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.24</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.25</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">

@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.25] — 2026-09-14
+### Corrigido
+- `dashboard.html`: relatório impresso — o timbrado saía com um padrão de "espinhos"/interferência visual em vez da imagem, tanto na capa quanto nas páginas seguintes. Causa: `background-image` + `background-attachment: fixed` + `background-size: 100% 100%` no `body` é uma combinação com bug real de renderização em impressão no Chrome. Trocado por uma tag `<img id="printTimbradoBg">` de verdade com `position: fixed`, técnica confiável pra repetir algo em toda página impressa.
+
+---
+
 ## [1.1.24] — 2026-09-14
 ### Corrigido
 - `dashboard.html`: relatório impresso — `padding-top`/`padding-bottom` do `body` (respiro entre o conteúdo real e a arte do timbrado) só se aplicava na 1ª e na última página; nas páginas do meio o conteúdo colava direto na borda/rodapé do timbrado. Corrigido com `box-decoration-break: clone`, que repete esse respiro em toda página.
