@@ -525,6 +525,10 @@
     return fetch(`${EDGE_FUNCTION_URL}?${query}`, {
       signal,
       headers: { Authorization: `Bearer ${token}` },
+      // A URL agora é igual a cada chamada (sem cache-buster, ver
+      // buscarLinhasComRetry_) — força não usar/gravar cache do navegador,
+      // reforçando o Cache-Control: no-store que a Edge Function já manda.
+      cache: 'no-store',
     });
   }
 
@@ -552,9 +556,14 @@
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
-        // cache-buster novo a cada tentativa: o Apps Script serve GET por
-        // trás de um cache do Google, não pode reaproveitar o mesmo _=.
-        const resp = await fetchProxy(`action=${action}&_=${Date.now()}`, controller.signal);
+        // Sem cache-buster aqui de propósito (2026-09-14): a Edge Function
+        // (dashboard-proxy) já gera o próprio "_" antes de chamar o Apps
+        // Script — mandar um daqui também só fazia a querystring pro
+        // Supabase mudar a cada chamada, o que parece ter contribuído pra
+        // acionar a proteção anti-bot da Cloudflare na frente do Supabase
+        // (ver histórico de 404 com página de challenge, mesmo padrão de
+        // URL+intervalo regular repetido). Ver supabase/functions/dashboard-proxy/index.ts.
+        const resp = await fetchProxy(`action=${action}`, controller.signal);
         clearTimeout(timeout);
         const linhas = await parseRespostaJson_(resp);
         if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
@@ -728,8 +737,10 @@
     document.getElementById('ultimaAtualizacao').textContent =
       'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
     // Auto-refresh não faz sentido na base antiga (histórico estático,
-    // Forms desativado, ~20k linhas — recarregar a cada 30s seria desperdício)
-    setInterval(() => { if (baseAtiva !== 'antiga') recarregarDados(); }, 30000);
+    // Forms desativado, ~20k linhas — recarregar seria desperdício).
+    // 60s (era 30s) — intervalo mais espaçado parece menos "tráfego
+    // automatizado" pra proteção anti-bot da Cloudflare (ver 2026-09-14).
+    setInterval(() => { if (baseAtiva !== 'antiga') recarregarDados(); }, 60000);
   }
 
   // Um carregador por base — mapeia pro fetch certo sem duplicar a lógica

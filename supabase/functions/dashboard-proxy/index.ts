@@ -46,6 +46,11 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, content-type',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  // 2026-09-14: desde que o navegador parou de mandar cache-buster (_=)
+  // nesta chamada (ver dashboard.html), a URL do fetch fica idêntica a
+  // cada refresh — sem isso, o navegador/algum cache intermediário podia
+  // servir uma resposta antiga em vez de bater na function de novo.
+  'Cache-Control': 'no-store',
 };
 
 // Ações que devolvem lista de linhas com município (pra filtrar por
@@ -108,6 +113,15 @@ Deno.serve(async (req) => {
   // tentativa de forjar), esta linha sobrescreve com o token real do
   // secret. Não inverter a ordem numa refatoração futura.
   alvo.searchParams.set('token', APPS_SCRIPT_TOKEN);
+  // Cache-buster próprio (não repassado do navegador — ver dashboard.html,
+  // 2026-09-14): o Apps Script serve GET por trás de um cache do Google e
+  // pode devolver resposta antiga sem isso, mas gerar aqui em vez de
+  // aceitar um "_" vindo do cliente evita que o navegador precise mandar
+  // um parâmetro único a cada chamada só pra isso — um padrão de tráfego
+  // "sempre com querystring diferente, no mesmo endpoint, em intervalo
+  // regular" é exatamente o que sistemas anti-bot (a proteção da Cloudflare
+  // na frente do Supabase, aparentemente) tendem a flagar.
+  alvo.searchParams.set('_', String(Date.now()));
 
   // User-Agent explícito: sem isso, o fetch do Deno manda um UA genérico
   // que o Google às vezes trata como bot e devolve uma página de erro do
