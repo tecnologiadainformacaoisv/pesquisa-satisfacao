@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.27] — 2026-09-14
+### Alterado
+- `dashboard.html`: capa do relatório impresso — as barras de acento azul/verde no topo e rodapé (adicionadas na v1.1.26) ainda pareciam um "cabeçalho/rodapé" pro usuário. Removidas; no lugar, um realce verde suave só atrás do texto do título (baseado no modelo real `docs/Capa.dotx`, que usa faixas coloridas do tamanho do texto, não barras de página inteira).
+
+---
+
 ## [1.1.26] — 2026-09-14
 ### Corrigido
 - `dashboard.html`: capa do relatório impresso estava mostrando o mesmo timbrado repetido (cabeçalho/marca d'água/rodapé) que aparece nas páginas de conteúdo. A capa agora tem fundo branco opaco e design próprio (barras de acento azul/verde no topo e no rodapé, sem repetir o cabeçalho/rodapé do timbrado), full-bleed até a borda física da página.

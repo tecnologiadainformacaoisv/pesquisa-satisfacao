@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.26">
+<meta name="app-version" content="1.1.27">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.26 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.27 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -337,25 +337,29 @@
       fixo por trás de tudo) só nesta página. Capa é um design próprio, sem o
       cabeçalho/rodapé que se repete nas páginas de conteúdo. */
   }
-  .print-cover__topbar, .print-cover__bottombar {
-    height: 6mm; width: 100%;
-    background: linear-gradient(90deg, #0a3d62 0% 72%, #55b262 72% 100%);
-  }
-  .print-cover__logo { width: min(340px, 70%); height: auto; margin-top: 14mm; }
+  .print-cover__logo { width: min(340px, 70%); height: auto; margin-top: 28mm; }
   .print-cover__tagline {
     font-style: italic; font-size: 13px; color: #0a3d62; margin-top: 10px; font-weight: 600;
   }
   .print-cover__central {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
+  /* Faixa verde de destaque atrás do título — do modelo (docs/Capa.dotx):
+     não é uma barra de página inteira (isso seria "cabeçalho"), é só um
+     realce curto atrás do texto, do tamanho do próprio título. */
+  .print-cover__titulo-wrap { position: relative; display: inline-block; padding: 4mm 8mm; }
+  .print-cover__titulo-wrap::before {
+    content: ''; position: absolute; inset: 0; background: #55b262; opacity: 0.15;
+    border-radius: 4px; z-index: -1;
+  }
   .print-cover__titulo {
     font-size: 34px; font-weight: 900; color: #0a3d62; line-height: 1.15; max-width: 90%;
   }
   .print-cover__subtitulo {
-    font-size: 16px; color: #55b262; font-weight: 700; margin-top: 12px;
+    font-size: 16px; color: #55b262; font-weight: 700; margin-top: 14px;
   }
   .print-cover__rodape {
-    font-size: 11px; color: #95a5a6; margin-bottom: 8mm;
+    font-size: 11px; color: #95a5a6; margin-bottom: 12mm;
   }
 
   #printHeader { padding-bottom: 14px; margin-bottom: 18px; border-bottom: 2px solid #0a3d62; }
@@ -470,15 +474,15 @@
      = município filtrado (ou "Rede ISV" se "Todos"); Subtítulo = mês/ano +
      quantos equipamentos de saúde estão no relatório. -->
 <div id="printCover">
-  <div class="print-cover__topbar"></div>
   <img src="assets/Logo-isv.svg" alt="Instituto São Vicente" class="print-cover__logo">
   <div class="print-cover__tagline">Inovar para cuidar, Gerir para transformar!</div>
   <div class="print-cover__central">
-    <div class="print-cover__titulo" id="printCoverTitulo"></div>
+    <div class="print-cover__titulo-wrap">
+      <div class="print-cover__titulo" id="printCoverTitulo"></div>
+    </div>
     <div class="print-cover__subtitulo" id="printCoverSubtitulo"></div>
   </div>
   <div class="print-cover__rodape" id="printCoverRodape"></div>
-  <div class="print-cover__bottombar"></div>
 </div>
 
 <!-- Cabeçalho de relatório — invisível na tela, só aparece em @media print
@@ -498,7 +502,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.26</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.27</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
