@@ -109,6 +109,8 @@
   .ms-panel label:hover { background: #f3f6f9; }
   .ms-panel input[type="checkbox"] { width: 15px; height: 15px; accent-color: #1a6b4a; flex: none; }
   .ms-panel .ms-vazio { padding: 10px; font-size: 12.5px; color: #a3b5c2; text-align: center; white-space: normal; }
+  .ms-panel .ms-todos { font-weight: 700; color: #1e5f8a; }
+  .ms-panel .ms-sep { height: 1px; background: #eef2f5; margin: 4px 2px 6px; }
 </style>
 </head>
 <body>
@@ -298,14 +300,23 @@
     const setSel = new Set(selecionados || []);
     const todos = [...new Set([...municipiosDisponiveis, ...setSel])].sort();
 
-    const corpoPanel = todos.length
+    const todosMarcados = todos.length > 0 && todos.every(m => setSel.has(m));
+    const itensPanel = todos.length
       ? todos.map(m => `
           <label>
-            <input type="checkbox" value="${escapeHtml(m)}" ${setSel.has(m) ? 'checked' : ''}>
+            <input type="checkbox" class="ms-item" value="${escapeHtml(m)}" ${setSel.has(m) ? 'checked' : ''}>
             ${escapeHtml(m)}${municipiosDisponiveis.includes(m) ? '' : ' (fora da aba Equipamentos)'}
           </label>
         `).join('')
       : `<div class="ms-vazio">${falhaFetch ? 'Falha ao carregar municípios — recarregue a página' : 'Nenhum município cadastrado'}</div>`;
+
+    // "Todos" fica separado dos municípios — marca/desmarca os demais de
+    // uma vez (útil sobretudo pra super_admin, que enxerga tudo mesmo, ou
+    // pra não clicar um por um numa lista grande).
+    const corpoPanel = todos.length
+      ? `<label class="ms-todos"><input type="checkbox" class="ms-todos-check" ${todosMarcados ? 'checked' : ''}> Todos</label>
+         <div class="ms-sep"></div>${itensPanel}`
+      : itensPanel;
 
     container.classList.add('ms');
     container.innerHTML = `
@@ -315,6 +326,8 @@
 
     const toggle = container.querySelector('.ms-toggle');
     const panel = container.querySelector('.ms-panel');
+    const checkTodos = panel.querySelector('.ms-todos-check');
+    const itensCheckbox = () => [...panel.querySelectorAll('.ms-item')];
 
     toggle.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -323,7 +336,20 @@
       if (vaiAbrir) { panel.hidden = false; container.classList.add('open'); }
     });
     panel.addEventListener('click', (e) => e.stopPropagation());
-    panel.addEventListener('change', () => atualizarLabelSeletor(container));
+
+    if (checkTodos) {
+      checkTodos.addEventListener('change', () => {
+        itensCheckbox().forEach(c => { c.checked = checkTodos.checked; });
+        atualizarLabelSeletor(container);
+      });
+    }
+
+    panel.addEventListener('change', (e) => {
+      if (e.target.classList.contains('ms-item') && checkTodos) {
+        checkTodos.checked = itensCheckbox().every(c => c.checked);
+      }
+      atualizarLabelSeletor(container);
+    });
 
     atualizarLabelSeletor(container);
   }
@@ -337,7 +363,9 @@
   }
 
   function lerSelecionados(container) {
-    return [...container.querySelectorAll('input[type="checkbox"]:checked')].map(c => c.value);
+    // .ms-item exclui o checkbox mestre "Todos" (esse não tem município
+    // nenhum como valor, só marca/desmarca os outros)
+    return [...container.querySelectorAll('.ms-item:checked')].map(c => c.value);
   }
 
   function fecharTodosSeletores() {
