@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.38] — 2026-09-14
+### Alterado
+- `dashboard.html`: título do cabeçalho impresso aumentado (20px → 28px).
+
+---
+
 ## [1.1.37] — 2026-09-14
 ### Alterado
 - `dashboard.html`: título "Relatório de Satisfação do Paciente" do cabeçalho impresso centralizado (era alinhado à esquerda).
