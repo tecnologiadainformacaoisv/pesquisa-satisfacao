@@ -78,10 +78,37 @@
   .btn-editar { background: #eaf2fa; color: #1e5f8a; }
   .btn-salvar { background: #1a6b4a; color: #fff; margin-right: 6px; }
   .btn-cancelar { background: #f3f6f9; color: #7f8c8d; }
-  .edicao-papel, .edicao-municipios {
+  .edicao-papel {
     padding: 6px 8px; border: 1px solid #d7e2ea; border-radius: 7px; font-size: 12.5px;
   }
-  .edicao-municipios { width: 100%; }
+
+  /* Seletor de municípios com checkbox — dropdown que abre ao clicar,
+     em vez de <select multiple> nativo (que esconde os itens de baixo
+     dentro de uma caixa curta e exige Ctrl+clique, pouco óbvio). */
+  .ms { position: relative; }
+  .ms-toggle {
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 9px 12px; border: 1px solid #d7e2ea; border-radius: 8px; background: #fff;
+    font-size: 13px; color: #16324a; cursor: pointer; text-align: left;
+  }
+  .ms-toggle:hover { border-color: #b9c9d6; }
+  .ms-toggle .ms-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ms-toggle .ms-caret { flex: none; font-size: 10px; color: #7f8c8d; transition: transform .15s; }
+  .ms.open .ms-toggle { border-color: #2980b9; }
+  .ms.open .ms-toggle .ms-caret { transform: rotate(180deg); }
+  .ms-panel {
+    position: absolute; top: calc(100% + 6px); left: 0; min-width: 260px; z-index: 30;
+    background: #fff; border: 1px solid #d7e2ea; border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(10,61,98,0.16);
+    max-height: 240px; overflow-y: auto; padding: 6px;
+  }
+  .ms-panel label {
+    display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 6px;
+    font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .ms-panel label:hover { background: #f3f6f9; }
+  .ms-panel input[type="checkbox"] { width: 15px; height: 15px; accent-color: #1a6b4a; flex: none; }
+  .ms-panel .ms-vazio { padding: 10px; font-size: 12.5px; color: #a3b5c2; text-align: center; white-space: normal; }
 </style>
 </head>
 <body>
@@ -115,14 +142,14 @@
     <div id="conteudoAdmin" style="display:none">
       <section>
         <h2>Convidar novo usuário</h2>
-        <div class="sub">O convite é enviado por e-mail; a pessoa define a própria senha (nunca vemos a senha de ninguém). Admin/Visualizador só veem os municípios selecionados abaixo (Ctrl+clique pra marcar mais de um).</div>
+        <div class="sub">O convite é enviado por e-mail; a pessoa define a própria senha (nunca vemos a senha de ninguém). Admin/Visualizador só veem os municípios marcados abaixo.</div>
         <form class="form-convite" id="formConvite">
           <input type="email" id="emailConvite" placeholder="e-mail@institutosaovicente.com.br" required>
           <select id="papelConvite">
             <option value="visualizador">Visualizador (só dashboard do município)</option>
             <option value="admin">Gestor (configura tablets + dashboard do município)</option>
           </select>
-          <select id="municipiosConvite" multiple size="4" style="flex:1; min-width:260px"></select>
+          <div id="municipiosConvite" style="flex:1; min-width:260px"></div>
           <button type="submit" id="btnConvidar">Convidar</button>
         </form>
         <div id="msgConvite" style="margin-top:10px;font-size:13px;"></div>
@@ -240,6 +267,7 @@
   let municipiosDisponiveis = []; // lista real, vinda da aba Equipamentos
 
   async function carregarMunicipiosDisponiveis() {
+    let falhaFetch = false;
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 20000); // mesmo padrão de dashboard.html
@@ -252,24 +280,74 @@
     } catch (err) {
       console.warn('[Admin] Falha ao buscar municípios da aba Equipamentos:', err.message);
       municipiosDisponiveis = [];
+      falhaFetch = true;
     }
 
-    const selConvite = document.getElementById('municipiosConvite');
-    selConvite.innerHTML = municipiosDisponiveis
-      .map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('')
-      || '<option disabled>Falha ao carregar municípios — recarregue a página</option>';
+    renderSeletorMunicipios(document.getElementById('municipiosConvite'), [], falhaFetch);
   }
 
-  // Une a lista real com o que o usuário já tinha gravado — sem isso, um
-  // município que a pessoa já tinha mas que não está mais ativo na aba
-  // Equipamentos (ou falhou o fetch) sumiria da tela e seria apagado do
-  // perfil dela ao salvar sem ninguém perceber.
-  function optionsMunicipios(selecionados) {
+  // -----------------------------------------------------------------------
+  // Seletor de municípios com checkbox (dropdown que abre ao clicar) —
+  // usado tanto no convite quanto na edição inline. Um só container por
+  // instância; a lista de checkboxes é a lista real vinda da aba
+  // Equipamentos UNIDA com o que já estava selecionado (pra um município
+  // que saiu da aba, ou uma falha de fetch, não apagar silenciosamente o
+  // que o usuário já tinha ao salvar).
+  // -----------------------------------------------------------------------
+  function renderSeletorMunicipios(container, selecionados, falhaFetch) {
     const setSel = new Set(selecionados || []);
     const todos = [...new Set([...municipiosDisponiveis, ...setSel])].sort();
-    return todos
-      .map(m => `<option value="${escapeHtml(m)}" ${setSel.has(m) ? 'selected' : ''}>${escapeHtml(m)}${municipiosDisponiveis.includes(m) ? '' : ' (não está mais na aba Equipamentos)'}</option>`).join('');
+
+    const corpoPanel = todos.length
+      ? todos.map(m => `
+          <label>
+            <input type="checkbox" value="${escapeHtml(m)}" ${setSel.has(m) ? 'checked' : ''}>
+            ${escapeHtml(m)}${municipiosDisponiveis.includes(m) ? '' : ' (fora da aba Equipamentos)'}
+          </label>
+        `).join('')
+      : `<div class="ms-vazio">${falhaFetch ? 'Falha ao carregar municípios — recarregue a página' : 'Nenhum município cadastrado'}</div>`;
+
+    container.classList.add('ms');
+    container.innerHTML = `
+      <button type="button" class="ms-toggle"><span class="ms-label"></span><span class="ms-caret">▾</span></button>
+      <div class="ms-panel" hidden>${corpoPanel}</div>
+    `;
+
+    const toggle = container.querySelector('.ms-toggle');
+    const panel = container.querySelector('.ms-panel');
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const vaiAbrir = panel.hidden;
+      fecharTodosSeletores();
+      if (vaiAbrir) { panel.hidden = false; container.classList.add('open'); }
+    });
+    panel.addEventListener('click', (e) => e.stopPropagation());
+    panel.addEventListener('change', () => atualizarLabelSeletor(container));
+
+    atualizarLabelSeletor(container);
   }
+
+  function atualizarLabelSeletor(container) {
+    const marcados = lerSelecionados(container);
+    const label = container.querySelector('.ms-label');
+    label.textContent = marcados.length === 0
+      ? 'Selecionar municípios'
+      : marcados.length <= 2 ? marcados.join(', ') : `${marcados.length} municípios selecionados`;
+  }
+
+  function lerSelecionados(container) {
+    return [...container.querySelectorAll('input[type="checkbox"]:checked')].map(c => c.value);
+  }
+
+  function fecharTodosSeletores() {
+    document.querySelectorAll('.ms.open').forEach(el => {
+      el.classList.remove('open');
+      const p = el.querySelector('.ms-panel');
+      if (p) p.hidden = true;
+    });
+  }
+  document.addEventListener('click', fecharTodosSeletores);
 
   let usuariosCache = []; // guarda os dados brutos pra reabrir o modo edição sem refazer a query
 
@@ -329,8 +407,8 @@
         <option value="admin" ${u.papel === 'admin' ? 'selected' : ''}>admin</option>
         <option value="super_admin" ${u.papel === 'super_admin' ? 'selected' : ''}>super_admin</option>
       </select>`;
-    linha.querySelector('.col-municipios').innerHTML =
-      `<select class="edicao-municipios" multiple size="4">${optionsMunicipios(u.municipios)}</select>`;
+    linha.querySelector('.col-municipios').innerHTML = '<div class="edicao-municipios"></div>';
+    renderSeletorMunicipios(linha.querySelector('.edicao-municipios'), u.municipios);
     linha.querySelector('td:last-child').innerHTML = `
       <button class="btn-salvar" data-salvar="${id}">Salvar</button>
       <button class="btn-cancelar" data-cancelar="${id}">Cancelar</button>`;
@@ -342,7 +420,7 @@
     if (!linha) return;
 
     const papel = linha.querySelector('.edicao-papel').value;
-    const municipios = [...linha.querySelector('.edicao-municipios').selectedOptions].map(o => o.value);
+    const municipios = lerSelecionados(linha.querySelector('.edicao-municipios'));
 
     if (papel !== 'super_admin' && municipios.length === 0) {
       msg.textContent = 'admin/visualizador precisa de pelo menos 1 município.';
@@ -443,7 +521,7 @@
 
     const email = document.getElementById('emailConvite').value;
     const papel = document.getElementById('papelConvite').value;
-    const municipios = [...document.getElementById('municipiosConvite').selectedOptions].map(o => o.value);
+    const municipios = lerSelecionados(document.getElementById('municipiosConvite'));
 
     if (municipios.length === 0) {
       msgConvite.textContent = 'Informe pelo menos 1 município.';
@@ -472,6 +550,9 @@
       msgConvite.textContent = `Convite enviado pra ${email} (${papel}).`;
       msgConvite.style.color = '#1a6b4a';
       document.getElementById('formConvite').reset();
+      // form.reset() não afeta o seletor de municípios (não é um <select>
+      // nativo, é um div montado à mão) — desmarca na mão.
+      renderSeletorMunicipios(document.getElementById('municipiosConvite'), []);
       await carregarUsuarios();
       await carregarLog();
     } catch (err) {
