@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.22] — 2026-09-14
+### Corrigido
+- `dashboard.html`: relatório impresso — a seção "Comentários" podia sair com uma página quase em branco (só o título) antes da lista de comentários aparecer, porque `.comments-section` tinha `break-inside: avoid` (a caixa inteira, com 200+ comentários às vezes, não cabia de uma vez e o navegador jogava tudo pra página seguinte). Removido de `.comments-section` — cada `.comment-item` individual continua protegido contra ser cortado ao meio.
+
+---
+
 ## [1.1.21] — 2026-09-14
 ### Alterado
 - `dashboard.html`: relatório impresso ("🖨 Imprimir Relatório") reformulado — antes era literalmente a tela do dashboard impressa (inclusive o próprio botão de imprimir aparecia no papel, bug real). Agora tem cabeçalho dedicado (logo ISV, título, base/período/município/unidade aplicados, total de respostas, data de geração), seções separadas por título ("Métricas gerais", "Gráficos", "Comentários" — esta começa em página nova), rodapé, e toda a navegação/filtros/botões somem do papel.
