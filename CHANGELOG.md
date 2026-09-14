@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.41] — 2026-09-14
+### Adicionado
+- `dashboard.html`: opções de Município/Unidade coloridas por contagem — verde quem tem resposta, cinza itálico quem está cadastrado mas ainda sem nenhuma.
+
+---
+
 ## [1.1.40] — 2026-09-14
 ### Adicionado
 - `dashboard.html`: dropdowns de Município e Unidade mostram a contagem de respostas entre parênteses (ex: "Caucaia (312)") — evita ter que clicar em cada um só pra descobrir se está vazio. Calculado a partir dos dados já carregados no cliente, sem chamada nova ao servidor. Ordem alfabética mantida.
