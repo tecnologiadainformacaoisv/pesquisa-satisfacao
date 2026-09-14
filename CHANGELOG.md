@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.32] — 2026-09-14
+### Revertido
+- `dashboard.html`: a reestruturação da v1.1.31 (timbrado como background de `#printConteudo` em vez de `<img>` fixed) saiu pior — imagem distorcida e texto do cabeçalho vazando na capa em todas as páginas. Revertido pra arquitetura da v1.1.30 (`<img>` fixed + capa mascarando com folga de 3mm), que estava correta na matemática (conferida pelo revisor), enquanto se investiga com mais cuidado antes de tentar de novo.
+
+---
+
 ## [1.1.30] — 2026-09-14
 ### Corrigido
 - `dashboard.html`: rodapé de contato do timbrado repetido (páginas de conteúdo) vazava numa frestinha por baixo da capa impressa. Capa ganhou 3mm de folga só na borda inferior (topo/laterais já cobriam exato) pra garantir cobertura total da página física.
