@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.24] — 2026-09-14
+### Corrigido
+- `dashboard.html`: relatório impresso — `padding-top`/`padding-bottom` do `body` (respiro entre o conteúdo real e a arte do timbrado) só se aplicava na 1ª e na última página; nas páginas do meio o conteúdo colava direto na borda/rodapé do timbrado. Corrigido com `box-decoration-break: clone`, que repete esse respiro em toda página.
+### Adicionado
+- `dashboard.html`: capa própria no relatório impresso (página 1, antes do conteúdo) — baseada no modelo `docs/Timbrado ISV.dotx` (logo, tagline "Inovar para cuidar, Gerir para transformar!", Título/Subtítulo). Título = município filtrado (ou "Rede ISV" se "Todos"); Subtítulo = período + unidade filtrada, ou contagem real de equipamentos de saúde daquele município (vinda da aba Equipamentos).
+
+---
+
 ## [1.1.23] — 2026-09-14
 ### Adicionado
 - `dashboard.html`: relatório impresso ganha o timbrado oficial do ISV (`assets/timbrado-isv.png`) como fundo de página inteira — cabeçalho azul/verde com logo, marca d'água central e rodapé com contato/CNPJ sangrando até a borda do papel (`@page margin: 0`, imagem fixada via `background-attachment: fixed` pra repetir em toda página). O cabeçalho de texto do relatório (título/período/filtros) passa a ficar dentro da área em branco do timbrado, sem duplicar a logo.
