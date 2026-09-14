@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.33">
+<meta name="app-version" content="1.1.34">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.33 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.34 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -325,47 +325,10 @@
     .page-header__subtitle { display: none; }
   }
 
-  /* Capa/cabeçalho/rodapé/títulos de seção — só existem visualmente no papel
+  /* Cabeçalho/rodapé/títulos de seção — só existem visualmente no papel
      (@media print abaixo torna visível); na tela ficam ocultos porque a
      página já tem seu próprio cabeçalho/navegação. */
-  #printTimbradoBg, #printCover, #printHeader, #printFooter, .print-section-title { display: none; }
-
-  /* Capa reproduzindo o modelo real (docs/Capa.dotx): logo pequena no canto
-     superior esquerdo, bloco de título alinhado à esquerda (não
-     centralizado), tagline como destaque verde (texto branco em fundo
-     verde), círculos decorativos azul/verde no rodapé. Os círculos vêm de
-     assets/capa-circulos.png — imagem recortada do PNG exportado pelo
-     usuário direto do Word (docs/fundo capa.png), já que no .dotx original
-     são formas vetoriais desenhadas na hora, sem arquivo de imagem
-     extraível junto do resto. */
-  #printCover {
-    display: none; flex-direction: column; align-items: flex-start;
-    break-after: page; position: relative; overflow: hidden;
-    background: #ffffff; /* opaco — cobre o timbrado repetido (#printTimbradoBg,
-      fixo por trás de tudo) só nesta página. Capa é um design próprio, sem o
-      cabeçalho/rodapé que se repete nas páginas de conteúdo. */
-  }
-  .print-cover__logo { width: 140px; height: auto; margin: 16mm 0 0 16mm; }
-  .print-cover__central {
-    margin: 26mm 0 0 16mm; max-width: 75%; position: relative; z-index: 1;
-  }
-  .print-cover__titulo {
-    font-size: 40px; font-weight: 800; color: #4a4a4a; line-height: 1.1;
-  }
-  .print-cover__subtitulo {
-    font-size: 15px; color: #7f8c8d; margin-top: 4px;
-  }
-  .print-cover__tagline {
-    display: inline-block; background: #55b262; color: #ffffff;
-    font-size: 13px; font-weight: 700; line-height: 1.5;
-    padding: 6px 14px; border-radius: 3px; margin-top: 18mm;
-  }
-  .print-cover__rodape {
-    font-size: 10.5px; color: #95a5a6; margin: auto 0 8mm 16mm; position: relative; z-index: 1;
-  }
-  .print-cover__circulos {
-    position: absolute; left: -14mm; bottom: -14mm; width: 150mm; height: auto; z-index: 0;
-  }
+  #printTimbradoBg, #printHeader, #printFooter, .print-section-title { display: none; }
 
   #printHeader { padding-bottom: 14px; margin-bottom: 18px; border-bottom: 2px solid #0a3d62; }
   .print-header__top { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
@@ -399,30 +362,27 @@
     #loginOverlay, header.page-header, .base-switch, .filters, #erroCarregamento { display: none !important; }
     #printHeader, #printFooter, .print-section-title { display: block; }
     .print-header__logo { display: none; } /* já vem no timbrado */
-    /* Técnica nova (v1.1.33) — evita de propósito qualquer margin negativo
-       ou cálculo em mm pra "cobrir"/"cancelar" alguma coisa (era isso que
-       vinha quebrando de formas diferentes a cada tentativa, sempre bem na
-       transição capa→página 2). Usa @page :first, recurso nativo de CSS
-       pra impressão: a página 1 (capa) tem margem própria ZERO; as demais
-       têm a margem real de 34mm/16mm/38mm — aplicada pelo NAVEGADOR em
-       cada página automaticamente, sem precisar de padding no body nem de
-       box-decoration-break. #printCover não precisa de margin nenhum:
-       como a página 1 já nasce com margem zero, o elemento começa exato
-       na borda física sozinho. */
-    @page { size: A4; margin: 34mm 16mm 38mm; }
-    @page :first { margin: 0; }
-    #printCover { display: flex; min-height: 297mm; }
-    .print-cover__central { padding: 0 16mm; }
 
-    /* Timbrado do ISV como fundo de página inteira — <img> própria com
-       position:fixed (não background do body: bug real de renderização no
-       Chrome quando combinado com background-attachment:fixed). O
-       elemento fixed cobre o papel físico inteiro independente da margem
-       de @page (fixed não respeita margem de página, só o conteúdo normal
-       respeita) — por isso a arte sangra até a borda em todas as páginas,
-       mesmo as que têm margem de 34mm/16mm/38mm pro conteúdo. */
+    /* Timbrado do ISV (assets/timbrado-isv.png) como fundo de página
+       inteira — #printTimbradoBg (tag <img> própria, ver <body>) com
+       position:fixed é a técnica confiável de repetir em TODA página
+       impressa. @page margin:0 deixa a arte encostar na borda física do
+       papel; o "respiro" pro conteúdo real não invadir a arte vem do
+       padding no body logo abaixo — valores estimados a partir da
+       imagem. -webkit-print-color-adjust acima já força a imagem a
+       imprimir. */
+    @page { size: A4; margin: 0; }
     #printTimbradoBg { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
-    body { background: none; } /* sem isso o cinza de fundo da tela (#f0f4f8) tingia as bordas por trás do timbrado */
+    body {
+      background: none;
+      padding: 34mm 16mm 38mm;
+      /* Sem isso, o padding-top/padding-bottom de um elemento que quebra em
+         várias páginas só é aplicado na 1ª e na última página — nas páginas
+         do meio o conteúdo vai até a borda física, colando no rodapé/topo
+         do timbrado. "clone" repete o padding em cada fragmento de página. */
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
     main { padding: 0; max-width: none; }
 
     /* Cores/fundos (badges, cards coloridos) somem na impressão por padrão
@@ -445,8 +405,11 @@
 <body>
 
 <!-- Timbrado do relatório impresso — <img> real com position:fixed (não
-     background do body), técnica confiável pra repetir em toda página
-     impressa no Chrome. Ver comentário completo no @media print. -->
+     background do body): a combinação background-attachment:fixed +
+     background-size percentual tem um bug real de renderização no Chrome
+     em impressão (aparece um padrão de "espinhos" em vez da imagem). Um
+     <img> de verdade é a técnica confiável de repetir algo em toda
+     página impressa. -->
 <img id="printTimbradoBg" src="assets/timbrado-isv.png" alt="">
 
 <!-- Login -->
@@ -460,23 +423,6 @@
     <button onclick="fazerLogin()" id="btnLogin">Entrar</button>
     <div class="login-error" id="loginError">E-mail ou senha incorretos.</div>
   </div>
-</div>
-
-<!-- Capa do relatório impresso — página própria, só em @media print (ver
-     montarCabecalhoImpressao()). Modelo: docs/Capa.dotx (logo pequena no
-     canto, título/subtítulo à esquerda, tagline em destaque verde, círculos
-     decorativos azul/verde no rodapé). Título = município filtrado (ou
-     "Rede ISV" se "Todos"); Subtítulo = mês/ano + quantos equipamentos de
-     saúde estão no relatório. -->
-<div id="printCover">
-  <img src="assets/Logo-isv.svg" alt="Instituto São Vicente" class="print-cover__logo">
-  <div class="print-cover__central">
-    <div class="print-cover__titulo" id="printCoverTitulo"></div>
-    <div class="print-cover__subtitulo" id="printCoverSubtitulo"></div>
-    <div class="print-cover__tagline">Inovar para cuidar,<br>Gerir para transformar!</div>
-  </div>
-  <img src="assets/capa-circulos.png" alt="" class="print-cover__circulos">
-  <div class="print-cover__rodape" id="printCoverRodape"></div>
 </div>
 
 <!-- Cabeçalho de relatório — invisível na tela, só aparece em @media print
@@ -496,7 +442,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.33</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.34</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -1313,21 +1259,6 @@
     else periodo = anoVal ? `Ano ${anoVal} (todos os meses)` : 'Total (todo o período)';
 
     document.getElementById('printSubtitulo').textContent = BASE_CONFIG[baseAtiva].nota;
-
-    // Capa: Título = município filtrado (ou "Rede ISV" pra "Todos");
-    // Subtítulo = período + quantos equipamentos de saúde estão cobertos
-    // (a própria unidade, se uma só foi escolhida; senão a contagem real
-    // vinda da aba Equipamentos, não um número chutado).
-    let qtdEquipamentos;
-    if (unidade) qtdEquipamentos = 1;
-    else {
-      qtdEquipamentos = equipamentos.filter(e => !municipio || e.municipio === municipio).length;
-    }
-    document.getElementById('printCoverTitulo').textContent = municipio || 'Rede ISV';
-    document.getElementById('printCoverSubtitulo').textContent =
-      `${periodo} · ${unidade || (qtdEquipamentos + ' equipamento' + (qtdEquipamentos !== 1 ? 's' : '') + ' de saúde')}`;
-    document.getElementById('printCoverRodape').textContent =
-      `${BASE_CONFIG[baseAtiva].nota} · Gerado em ${new Date().toLocaleString('pt-BR')}`;
 
     const itens = [
       ['Base', PRINT_NOME_BASE[baseAtiva] || baseAtiva],
