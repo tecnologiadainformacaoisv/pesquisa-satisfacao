@@ -40,6 +40,27 @@ function sanitizarTexto(v) {
   return /^[=+\-@]/.test(s) ? "'" + s : s;
 }
 
+// Todo endpoint responde JSON puro — centraliza o createTextOutput+setMimeType
+// repetido em cada return pra não divergir por engano entre eles.
+function jsonResponse_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Verifica se um ID já foi gravado nas últimas DEDUP_JANELA linhas da aba —
+// mesma lógica de dedup usada por doPost/doPostInterno/doPostColaborador,
+// extraída pra não repetir o cálculo de janela 3x. Ver comentário de
+// DEDUP_JANELA sobre por que só olha as linhas recentes.
+function idJaExiste_(sheet, id) {
+  if (sheet.getLastRow() <= 1) return false;
+  const totalLinhas = sheet.getLastRow() - 1;
+  const linhasParaChecar = Math.min(totalLinhas, DEDUP_JANELA);
+  const startRow = sheet.getLastRow() - linhasParaChecar + 1;
+  const idsExistentes = sheet.getRange(startRow, 1, linhasParaChecar, 1).getValues().flat();
+  return idsExistentes.includes(id);
+}
+
 function getOrCreateSheet() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   let   sheet = ss.getSheetByName(SHEET_NAME);
@@ -96,9 +117,7 @@ function dentroDoLimiteDeTaxa() {
 
 function doPost(e) {
   if (!dentroDoLimiteDeTaxa()) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: 'muitas requisições, tente novamente em instantes' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_({ status: 'error', message: 'muitas requisições, tente novamente em instantes' });
   }
 
   const lock = LockService.getScriptLock();
@@ -117,22 +136,14 @@ function doPost(e) {
 
     const sheet = getOrCreateSheet();
 
-    if (sheet.getLastRow() > 1) {
-      // Só checa as últimas DEDUP_JANELA linhas: uma duplicata legítima só pode
-      // vir de um reenvio recente (retry de minutos), nunca de meses atrás.
-      // Sem esse limite, o scan cresce com o tamanho da planilha e cada POST
-      // fica mais lento à medida que o histórico acumula — testado ao vivo:
-      // com ~700 linhas, 25 envios concorrentes já bastam pra um deles estourar
-      // os 30s do lock esperando os anteriores terminarem o scan.
-      const totalLinhas = sheet.getLastRow() - 1;
-      const linhasParaChecar = Math.min(totalLinhas, DEDUP_JANELA);
-      const startRow = sheet.getLastRow() - linhasParaChecar + 1;
-      const idsExistentes = sheet.getRange(startRow, 1, linhasParaChecar, 1).getValues().flat();
-      if (idsExistentes.includes(id)) {
-        return ContentService
-          .createTextOutput(JSON.stringify({ status: 'ok', duplicado: true }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+    // Só checa as últimas DEDUP_JANELA linhas: uma duplicata legítima só pode
+    // vir de um reenvio recente (retry de minutos), nunca de meses atrás.
+    // Sem esse limite, o scan cresce com o tamanho da planilha e cada POST
+    // fica mais lento à medida que o histórico acumula — testado ao vivo:
+    // com ~700 linhas, 25 envios concorrentes já bastam pra um deles estourar
+    // os 30s do lock esperando os anteriores terminarem o scan.
+    if (idJaExiste_(sheet, id)) {
+      return jsonResponse_({ status: 'ok', duplicado: true });
     }
 
     sheet.appendRow([
@@ -148,14 +159,10 @@ function doPost(e) {
       sanitizarTexto(data.comentario)
     ]);
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'ok' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_({ status: 'ok' });
 
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_({ status: 'error', message: err.message });
 
   } finally {
     lock.releaseLock();
@@ -170,16 +177,8 @@ function doPost(e) {
 function doPostInterno(data, id) {
   const sheet = getOrCreateSheetGenerico_(SHEET_INTERNOS, HEADERS_INTERNOS, '#0a3d62');
 
-  if (sheet.getLastRow() > 1) {
-    const totalLinhas = sheet.getLastRow() - 1;
-    const linhasParaChecar = Math.min(totalLinhas, DEDUP_JANELA);
-    const startRow = sheet.getLastRow() - linhasParaChecar + 1;
-    const idsExistentes = sheet.getRange(startRow, 1, linhasParaChecar, 1).getValues().flat();
-    if (idsExistentes.includes(id)) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ status: 'ok', duplicado: true }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
+  if (idJaExiste_(sheet, id)) {
+    return jsonResponse_({ status: 'ok', duplicado: true });
   }
 
   // Ordem = HEADERS_INTERNOS: ID, Timestamp, Municipio, Unidade, TipoUnidade,
@@ -200,9 +199,7 @@ function doPostInterno(data, id) {
     sanitizarTexto(data.comentario)
   ]);
 
-  return ContentService
-    .createTextOutput(JSON.stringify({ status: 'ok' }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse_({ status: 'ok' });
 }
 
 // Grava resposta de Colaborador (pesquisa-colaborador.html) em Respostas_Colaboradores.
@@ -213,16 +210,8 @@ function doPostInterno(data, id) {
 function doPostColaborador(data, id) {
   const sheet = getOrCreateSheetGenerico_(SHEET_COLABORADORES, HEADERS_COLABORADORES, '#1a6b4a');
 
-  if (sheet.getLastRow() > 1) {
-    const totalLinhas = sheet.getLastRow() - 1;
-    const linhasParaChecar = Math.min(totalLinhas, DEDUP_JANELA);
-    const startRow = sheet.getLastRow() - linhasParaChecar + 1;
-    const idsExistentes = sheet.getRange(startRow, 1, linhasParaChecar, 1).getValues().flat();
-    if (idsExistentes.includes(id)) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ status: 'ok', duplicado: true }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
+  if (idJaExiste_(sheet, id)) {
+    return jsonResponse_({ status: 'ok', duplicado: true });
   }
 
   // Ordem = HEADERS_COLABORADORES: ID, Timestamp, Municipio, Unidade, TipoUnidade,
@@ -246,9 +235,7 @@ function doPostColaborador(data, id) {
     sanitizarTexto(data.comentario)
   ]);
 
-  return ContentService
-    .createTextOutput(JSON.stringify({ status: 'ok' }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse_({ status: 'ok' });
 }
 
 function getOrCreateConfiguracaoSheet() {
@@ -279,15 +266,11 @@ function getConfiguracao() {
     });
   }
 
-  return ContentService
-    .createTextOutput(JSON.stringify(config))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse_(config);
 }
 
 function respostaNaoAutorizada() {
-  return ContentService
-    .createTextOutput(JSON.stringify({ status: 'error', message: 'não autorizado' }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse_({ status: 'error', message: 'não autorizado' });
 }
 
 function doGet(e) {
@@ -306,9 +289,7 @@ function doGet(e) {
     if (action === 'dadosColaboradores') return getDadosGenerico_(SHEET_COLABORADORES, HEADERS_COLABORADORES);
     return getDados();
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_({ status: 'error', message: err.message });
   }
 }
 
@@ -320,73 +301,15 @@ function cabecalhoValido(headers, esperado) {
 }
 
 function erroCabecalho(nomeAba) {
-  return ContentService
-    .createTextOutput(JSON.stringify({ status: 'error', message: `Cabeçalho da aba ${nomeAba} não confere com o esperado — confira se alguma célula foi editada.` }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse_({ status: 'error', message: `Cabeçalho da aba ${nomeAba} não confere com o esperado — confira se alguma célula foi editada.` });
 }
 
-function getDados() {
-  const sheet = getOrCreateSheet();
-
-  if (sheet.getLastRow() <= 1) {
-    return ContentService
-      .createTextOutput(JSON.stringify([]))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  const values  = sheet.getDataRange().getValues();
-  const headers = values[0];
-  if (!cabecalhoValido(headers, HEADERS)) return erroCabecalho(SHEET_NAME);
-
-  const rows    = values.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = row[i]; });
-    return obj;
-  });
-
-  return ContentService
-    .createTextOutput(JSON.stringify(rows))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function getDadosAntigos() {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_ANTIGAS);
-
-  if (!sheet || sheet.getLastRow() <= 1) {
-    return ContentService
-      .createTextOutput(JSON.stringify([]))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  const values  = sheet.getDataRange().getValues();
-  const headers = values[0];
-  if (!cabecalhoValido(headers, HEADERS_ANTIGAS)) return erroCabecalho(SHEET_ANTIGAS);
-
-  const rows    = values.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = row[i]; });
-    return obj;
-  });
-
-  return ContentService
-    .createTextOutput(JSON.stringify(rows))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-// Genérica pra Respostas_Internas/Respostas_Colaboradores — mesmo padrão de
-// getDadosAntigos, mas parametrizada por nome de aba/schema em vez de
-// duplicar a função pra cada uma. sheet/headers vêm de sincronizacaoLegado.js
-// (mesmo projeto Apps Script, mesmo escopo global).
-function getDadosGenerico_(nomeAba, headersEsperados) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(nomeAba);
-
-  if (!sheet || sheet.getLastRow() <= 1) {
-    return ContentService
-      .createTextOutput(JSON.stringify([]))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+// Converte a aba (values com header na linha 0) em array de objetos
+// {header: valor}, validando o cabeçalho antes. Usada por getDados,
+// getDadosAntigos e getDadosGenerico_ — cada uma só resolve qual sheet/schema
+// usar e delega a leitura/validação pra cá.
+function lerAbaComoJson_(sheet, nomeAba, headersEsperados) {
+  if (!sheet || sheet.getLastRow() <= 1) return jsonResponse_([]);
 
   const values  = sheet.getDataRange().getValues();
   const headers = values[0];
@@ -398,19 +321,31 @@ function getDadosGenerico_(nomeAba, headersEsperados) {
     return obj;
   });
 
-  return ContentService
-    .createTextOutput(JSON.stringify(rows))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse_(rows);
+}
+
+function getDados() {
+  return lerAbaComoJson_(getOrCreateSheet(), SHEET_NAME, HEADERS);
+}
+
+function getDadosAntigos() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  return lerAbaComoJson_(ss.getSheetByName(SHEET_ANTIGAS), SHEET_ANTIGAS, HEADERS_ANTIGAS);
+}
+
+// Genérica pra Respostas_Internas/Respostas_Colaboradores — mesmo padrão de
+// getDadosAntigos, mas parametrizada por nome de aba/schema em vez de
+// duplicar a função pra cada uma. headers vêm de sincronizacaoLegado.js
+// (mesmo projeto Apps Script, mesmo escopo global).
+function getDadosGenerico_(nomeAba, headersEsperados) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  return lerAbaComoJson_(ss.getSheetByName(nomeAba), nomeAba, headersEsperados);
 }
 
 function getEquipamentos() {
   const sheet = getOrCreateEquipamentosSheet();
 
-  if (sheet.getLastRow() <= 1) {
-    return ContentService
-      .createTextOutput(JSON.stringify([]))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  if (sheet.getLastRow() <= 1) return jsonResponse_([]);
 
   const values = sheet.getDataRange().getValues();
   const rows = values.slice(1)
@@ -420,7 +355,5 @@ function getEquipamentos() {
     })
     .map(r => ({ municipio: String(r[0]).trim(), unidade: String(r[1]).trim() }));
 
-  return ContentService
-    .createTextOutput(JSON.stringify(rows))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse_(rows);
 }
