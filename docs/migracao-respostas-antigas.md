@@ -11,7 +11,7 @@ Planilha "Pesquisa de satisfação dos usuários PACIENTES - Caucaia (respostas)
 (Google Forms), ID `1CMJ6MmdECcjRhSlogqlZ0yy14J2N5GG-wBsiEUfBX50`, aba
 "Respostas ao formulário 1". Proprietário: `mktinstitutosaovicente@gmail.com`.
 
-Colunas originais (8 perguntas, ver `docs/Comparativo-Pesquisa-Satisfacao.pdf`):
+Colunas originais (8 perguntas — PDF comparativo que documentava isso foi removido do repo após a migração já estar concluída):
 `Carimbo de data/hora, Unidade, Recepção (1-5), Enfermagem (1-5), Médico (1-5),
 Serviço Social (1-5, opcional), Higiene/Limpeza (1-5), Satisfação geral (0-10),
 Sugestões/críticas (texto)`.

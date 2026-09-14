@@ -90,12 +90,17 @@ projeto-pesquisa-satisfacao/
 │   └── instituto.css       ← estilos base do ISV
 ├── appscript/              ← backend Google Apps Script
 │   ├── codigo.js           ← Apps Script (doGet, doPost, endpoints)
+│   ├── sincronizacaoLegado.js ← constantes/funções de Internas/Colaboradores usadas por codigo.js
 │   ├── appsscript.json
 │   └── deploy.ps1
 └── docs/                   ← documentos e referências
-    ├── Comparativo-Pesquisa-Satisfacao.pdf
-    └── codigo-apps-script-LEGADO.gs   ← versão antiga do GAS (referência/instruções)
+    ├── codigo-apps-script-LEGADO.gs   ← versão antiga do GAS (referência/instruções)
+    └── appscript-legado/   ← scripts de migração "rode 1x" já executados (arquivados)
 ```
+
+> Nota: a árvore acima é ilustrativa, não exaustiva — há outros arquivos de produção
+> (`pesquisa-interno.html`, `pesquisa-colaborador.html`, `supabase/`, etc.) não listados aqui.
+> Ver `README.md`/`git ls-files` pro inventário completo.
 
 > ⚠️ `index.html`, `pesquisa.html`, `dashboard.html`, `sw.js`, manifests e `.clasp.json`
 > **permanecem na raiz**: escopo do Service Worker (`/pesquisa-satisfacao/`), GitHub Pages e
