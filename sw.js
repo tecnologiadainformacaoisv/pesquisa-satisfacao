@@ -1,4 +1,4 @@
-const APP_VERSION = '1.1.27';
+const APP_VERSION = '1.1.28';
 const CACHE_NAME = `pesquisa-satisfacao-${APP_VERSION}`;
 
 const URLS = [

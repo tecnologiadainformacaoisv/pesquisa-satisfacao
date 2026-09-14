@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.27">
+<meta name="app-version" content="1.1.28">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.27 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.28 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -330,37 +330,51 @@
      página já tem seu próprio cabeçalho/navegação. */
   #printTimbradoBg, #printCover, #printHeader, #printFooter, .print-section-title { display: none; }
 
+  /* Capa reproduzindo o modelo real (docs/Capa.dotx, conferido via print
+     enviado pelo usuário): logo pequena no canto superior esquerdo, bloco
+     de título alinhado à esquerda (não centralizado), tagline como destaque
+     verde (texto branco em fundo verde), círculos decorativos azul/verde no
+     rodapé da página. Os círculos são só CSS (border-radius em divs
+     posicionadas), não dá pra extrair como imagem do .dotx porque no Word
+     original são formas vetoriais desenhadas na hora, não arquivos de
+     imagem — por isso as tentativas anteriores (baseadas só nos PNGs
+     extraídos do arquivo) não pegaram esse elemento. */
   #printCover {
-    display: none; flex-direction: column; align-items: center; text-align: center;
-    break-after: page;
+    display: none; flex-direction: column; align-items: flex-start;
+    break-after: page; position: relative; overflow: hidden;
     background: #ffffff; /* opaco — cobre o timbrado repetido (#printTimbradoBg,
       fixo por trás de tudo) só nesta página. Capa é um design próprio, sem o
       cabeçalho/rodapé que se repete nas páginas de conteúdo. */
   }
-  .print-cover__logo { width: min(340px, 70%); height: auto; margin-top: 28mm; }
-  .print-cover__tagline {
-    font-style: italic; font-size: 13px; color: #0a3d62; margin-top: 10px; font-weight: 600;
-  }
+  .print-cover__logo { width: 140px; height: auto; margin: 16mm 0 0 16mm; }
   .print-cover__central {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  /* Faixa verde de destaque atrás do título — do modelo (docs/Capa.dotx):
-     não é uma barra de página inteira (isso seria "cabeçalho"), é só um
-     realce curto atrás do texto, do tamanho do próprio título. */
-  .print-cover__titulo-wrap { position: relative; display: inline-block; padding: 4mm 8mm; }
-  .print-cover__titulo-wrap::before {
-    content: ''; position: absolute; inset: 0; background: #55b262; opacity: 0.15;
-    border-radius: 4px; z-index: -1;
+    margin: 26mm 0 0 16mm; max-width: 75%; position: relative; z-index: 1;
   }
   .print-cover__titulo {
-    font-size: 34px; font-weight: 900; color: #0a3d62; line-height: 1.15; max-width: 90%;
+    font-size: 40px; font-weight: 800; color: #4a4a4a; line-height: 1.1;
   }
   .print-cover__subtitulo {
-    font-size: 16px; color: #55b262; font-weight: 700; margin-top: 14px;
+    font-size: 15px; color: #7f8c8d; margin-top: 4px;
+  }
+  .print-cover__tagline {
+    display: inline-block; background: #55b262; color: #ffffff;
+    font-size: 13px; font-weight: 700; line-height: 1.5;
+    padding: 6px 14px; border-radius: 3px; margin-top: 18mm;
   }
   .print-cover__rodape {
-    font-size: 11px; color: #95a5a6; margin-bottom: 12mm;
+    font-size: 10.5px; color: #95a5a6; margin: auto 0 8mm 16mm; position: relative; z-index: 1;
   }
+  /* Círculos decorativos — 4 formas (2 azuis + 2 verdes) em padrão tipo
+     "xadrez" no canto inferior esquerdo, sangrando pra fora da página nas
+     bordas esquerda/inferior, igual ao modelo. */
+  .print-cover__circulos {
+    position: absolute; left: -22mm; bottom: -26mm; width: 160mm; height: 160mm; z-index: 0;
+  }
+  .print-cover__circulo { position: absolute; border-radius: 50%; }
+  .print-cover__circulo--azul-1 { width: 92mm; height: 92mm; left: 0;    top: 0;    background: #7c93c4; }
+  .print-cover__circulo--verde-1 { width: 96mm; height: 96mm; left: 66mm; top: -8mm; background: #8fcf9f; z-index: 1; }
+  .print-cover__circulo--verde-2 { width: 56mm; height: 56mm; left: 8mm;  top: 78mm; background: #8fcf9f; }
+  .print-cover__circulo--azul-2  { width: 78mm; height: 78mm; left: 62mm; top: 58mm; background: #7c93c4; }
 
   #printHeader { padding-bottom: 14px; margin-bottom: 18px; border-bottom: 2px solid #0a3d62; }
   .print-header__top { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
@@ -469,18 +483,23 @@
 </div>
 
 <!-- Capa do relatório impresso — página própria, só em @media print (ver
-     montarCabecalhoImpressao()). Modelo: docs/Timbrado ISV.dotx (capa com
-     placeholders "Título"/"Subtítulo ou Descrição" + tagline do ISV). Título
-     = município filtrado (ou "Rede ISV" se "Todos"); Subtítulo = mês/ano +
-     quantos equipamentos de saúde estão no relatório. -->
+     montarCabecalhoImpressao()). Modelo: docs/Capa.dotx (logo pequena no
+     canto, título/subtítulo à esquerda, tagline em destaque verde, círculos
+     decorativos azul/verde no rodapé). Título = município filtrado (ou
+     "Rede ISV" se "Todos"); Subtítulo = mês/ano + quantos equipamentos de
+     saúde estão no relatório. -->
 <div id="printCover">
   <img src="assets/Logo-isv.svg" alt="Instituto São Vicente" class="print-cover__logo">
-  <div class="print-cover__tagline">Inovar para cuidar, Gerir para transformar!</div>
   <div class="print-cover__central">
-    <div class="print-cover__titulo-wrap">
-      <div class="print-cover__titulo" id="printCoverTitulo"></div>
-    </div>
+    <div class="print-cover__titulo" id="printCoverTitulo"></div>
     <div class="print-cover__subtitulo" id="printCoverSubtitulo"></div>
+    <div class="print-cover__tagline">Inovar para cuidar,<br>Gerir para transformar!</div>
+  </div>
+  <div class="print-cover__circulos">
+    <div class="print-cover__circulo print-cover__circulo--azul-1"></div>
+    <div class="print-cover__circulo print-cover__circulo--verde-1"></div>
+    <div class="print-cover__circulo print-cover__circulo--verde-2"></div>
+    <div class="print-cover__circulo print-cover__circulo--azul-2"></div>
   </div>
   <div class="print-cover__rodape" id="printCoverRodape"></div>
 </div>
@@ -502,7 +521,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.27</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.28</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">

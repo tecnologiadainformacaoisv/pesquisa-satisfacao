@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.28] — 2026-09-14
+### Alterado
+- `dashboard.html`: capa do relatório impresso reconstruída a partir de um print real do modelo Word (`docs/Capa.dotx`) — logo pequena no canto superior esquerdo, bloco de título/subtítulo alinhado à esquerda (não mais centralizado), tagline como pílula verde com texto branco, e 4 círculos decorativos azul/verde (só CSS, o modelo original usa formas vetoriais do Word que não aparecem como arquivo de imagem extraível) sangrando pelas bordas esquerda/inferior da página.
+
+---
+
 ## [1.1.27] — 2026-09-14
 ### Alterado
 - `dashboard.html`: capa do relatório impresso — as barras de acento azul/verde no topo e rodapé (adicionadas na v1.1.26) ainda pareciam um "cabeçalho/rodapé" pro usuário. Removidas; no lugar, um realce verde suave só atrás do texto do título (baseado no modelo real `docs/Capa.dotx`, que usa faixas coloridas do tamanho do texto, não barras de página inteira).
