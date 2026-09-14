@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.30">
+<meta name="app-version" content="1.1.31">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.30 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.31 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -328,7 +328,7 @@
   /* Capa/cabeçalho/rodapé/títulos de seção — só existem visualmente no papel
      (@media print abaixo torna visível); na tela ficam ocultos porque a
      página já tem seu próprio cabeçalho/navegação. */
-  #printTimbradoBg, #printCover, #printHeader, #printFooter, .print-section-title { display: none; }
+  #printCover, #printHeader, #printFooter, .print-section-title { display: none; }
 
   /* Capa reproduzindo o modelo real (docs/Capa.dotx): logo pequena no canto
      superior esquerdo, bloco de título alinhado à esquerda (não
@@ -341,9 +341,9 @@
   #printCover {
     display: none; flex-direction: column; align-items: flex-start;
     break-after: page; position: relative; overflow: hidden;
-    background: #ffffff; /* opaco — cobre o timbrado repetido (#printTimbradoBg,
-      fixo por trás de tudo) só nesta página. Capa é um design próprio, sem o
-      cabeçalho/rodapé que se repete nas páginas de conteúdo. */
+    background: #ffffff; /* capa é um design próprio, sem o timbrado repetido
+      das páginas de conteúdo (que só existe dentro de #printConteudo, ver
+      @media print — não corre o risco de "vazar" aqui, estruturalmente). */
   }
   .print-cover__logo { width: 140px; height: auto; margin: 16mm 0 0 16mm; }
   .print-cover__central {
@@ -399,42 +399,36 @@
     #loginOverlay, header.page-header, .base-switch, .filters, #erroCarregamento { display: none !important; }
     #printHeader, #printFooter, .print-section-title { display: block; }
     .print-header__logo { display: none; } /* já vem no timbrado */
-    /* Capa é full-bleed: escapa do padding do body (34mm 16mm 38mm, ver
-       abaixo) com margin negativa igual, pra cobrir a página física
-       inteira com fundo branco próprio — sem isso sobrariam tiras do
-       timbrado (#printTimbradoBg) visíveis nas bordas ao redor da capa.
-       break-after:page (já definido fora do @media print) empurra o
-       resto do relatório pra página 2. */
-    /* margin-top/left/right ficam exatos (cancelam o padding do body,
-       34mm/16mm — topo/laterais já batiam certo). Só o rodapé ganha folga
-       (-38mm→-40mm, min-height 297mm→300mm): uma frestinha vazava o
-       timbrado repetido (#printTimbradoBg) por baixo da capa, mostrando o
-       rodapé de contato que é das páginas de CONTEÚDO, não da capa. */
-    #printCover { display: flex; margin: -34mm -16mm -40mm; min-height: 300mm; }
+    /* Capa (#printCover) é a única coisa na página 1 — sem padding/margin
+       nenhum pra cancelar, porque o timbrado repetido não existe mais no
+       body (ver #printConteudo abaixo). Cobre a página física inteira
+       "de graça", sem nenhuma matemática de margin negativo. */
+    @page { size: A4; margin: 0; }
+    #printCover { display: flex; min-height: 297mm; }
     .print-cover__central { padding: 0 16mm; }
 
-    /* Timbrado do ISV (docs/Timbrado ISV.png → assets/timbrado-isv.png) como
-       fundo de página inteira — ver #printTimbradoBg (tag <img> própria,
-       não background do body: a combinação background-attachment:fixed +
-       background-size percentual tem um bug real de renderização no Chrome
-       em impressão, aparece como um padrão de "espinhos"/interferência em
-       vez da imagem — só o valor imagem nunca chega a imprimir direito.
-       Um <img> de verdade com position:fixed é a técnica confiável de
-       repetir algo em toda página impressa). @page margin:0 deixa a arte
-       encostar na borda física do papel (a barra azul/verde do timbrado é
-       sangrada até a borda); o "respiro" pro conteúdo real não invadir a
-       arte (barra do topo, marca d'água, rodapé de contato) vem do padding
-       no body logo abaixo — os valores foram estimados a partir da imagem,
-       ajustar se a impressão real vier desalinhada. */
-    @page { size: A4; margin: 0; }
-    #printTimbradoBg { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
-    body {
-      background: none; /* sem isso o cinza de fundo da tela (#f0f4f8) tingia as bordas por trás do timbrado */
+    /* #printConteudo envolve TUDO que vem depois da capa (cabeçalho de
+       texto + métricas/gráficos/comentários + rodapé) — o timbrado
+       (assets/timbrado-isv.png) é o background DELE, não do body nem de
+       uma <img> fixed solta. Isso resolve de vez o problema estrutural que
+       vinha dando volta (capa precisando "cobrir"/mascarar um timbrado que
+       tecnicamente existia por trás dela o tempo todo, position:fixed no
+       viewport inteiro): o timbrado agora só existe dentro de um elemento
+       que começa DEPOIS da capa no HTML — não tem como vazar pra página 1
+       porque ele literalmente não está lá.
+       box-decoration-break:clone repete tanto o padding (respiro pro
+       conteúdo) quanto o background (o timbrado em si) em cada página
+       fragmentada — mesma técnica, duas propriedades. Histórico: uma
+       tentativa anterior usava background-attachment:fixed na tag <body>
+       inteira, que tem bug de renderização real no Chrome ("espinhos" em
+       vez da imagem) — isso NÃO se aplica aqui: não é mais fixed, é um
+       background normal que quebra em fragmentos de página via clone. */
+    #printConteudo {
+      background-image: url('assets/timbrado-isv.png');
+      background-repeat: no-repeat;
+      background-position: top center;
+      background-size: 100% 100%;
       padding: 34mm 16mm 38mm;
-      /* Sem isso, o padding-top/padding-bottom de um elemento que quebra em
-         várias páginas só é aplicado na 1ª e na última página — nas páginas
-         do meio o conteúdo vai até a borda física, colando no rodapé/topo
-         do timbrado. "clone" repete o padding em cada fragmento de página. */
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
     }
@@ -458,11 +452,6 @@
 </style>
 </head>
 <body>
-
-<!-- Timbrado do relatório impresso — <img> real com position:fixed (não
-     background do body), técnica confiável pra repetir em toda página
-     impressa no Chrome. Ver comentário completo no @media print. -->
-<img id="printTimbradoBg" src="assets/timbrado-isv.png" alt="">
 
 <!-- Login -->
 <div id="loginOverlay">
@@ -494,6 +483,13 @@
   <div class="print-cover__rodape" id="printCoverRodape"></div>
 </div>
 
+<!-- Envolve cabeçalho de relatório + main (métricas/gráficos/comentários) —
+     só existe como agrupador visual na impressão (ver #printConteudo no
+     @media print): o timbrado de fundo das páginas de conteúdo é o
+     background DESTA div, pra nunca poder aparecer na capa (que fica fora
+     dela, antes, no HTML). -->
+<div id="printConteudo">
+
 <!-- Cabeçalho de relatório — invisível na tela, só aparece em @media print
      (ver montarCabecalhoImpressao()). Substitui a barra de navegação normal
      por algo que faz sentido num papel: logo, título, filtros aplicados e
@@ -511,7 +507,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.30</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.31</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -641,6 +637,7 @@
     Instituto São Vicente — Pesquisa de Satisfação · Relatório de uso interno, gerado automaticamente pelo dashboard.
   </div>
 </main>
+</div><!-- /#printConteudo -->
 
 <script>
   // Cole aqui a URL gerada ao publicar o Apps Script como aplicativo da Web

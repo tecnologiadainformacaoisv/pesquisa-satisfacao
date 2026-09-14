@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.31] — 2026-09-14
+### Alterado
+- `dashboard.html`: reestruturação da impressão pra eliminar de vez a classe de bug "timbrado vazando atrás da capa" (5 tentativas anteriores, v1.1.25-v1.1.30, todas remendos em cima da mesma causa raiz). O timbrado deixou de ser uma `<img>` `position:fixed` cobrindo o viewport inteiro (por isso aparecia atrás de QUALQUER página, inclusive a capa) — agora é o `background-image` de um novo `<div id="printConteudo">` que envolve só o conteúdo de depois da capa. Estruturalmente, o timbrado não tem mais como aparecer na capa: ele não existe no HTML antes dela.
+
+---
+
 ## [1.1.30] — 2026-09-14
 ### Corrigido
 - `dashboard.html`: rodapé de contato do timbrado repetido (páginas de conteúdo) vazava numa frestinha por baixo da capa impressa. Capa ganhou 3mm de folga só na borda inferior (topo/laterais já cobriam exato) pra garantir cobertura total da página física.
