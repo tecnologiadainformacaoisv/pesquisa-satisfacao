@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.40] — 2026-09-14
+### Adicionado
+- `dashboard.html`: dropdowns de Município e Unidade mostram a contagem de respostas entre parênteses (ex: "Caucaia (312)") — evita ter que clicar em cada um só pra descobrir se está vazio. Calculado a partir dos dados já carregados no cliente, sem chamada nova ao servidor. Ordem alfabética mantida.
+
+---
+
 ## [1.1.39] — 2026-09-14
 ### Alterado
 - `dashboard.html`: barra de informações do relatório impresso — total de respostas ganha rótulo "Total de respostas:" (antes aparecia solto, sem negrito, junto dos outros campos rotulados: Base/Período/Município/Unidade).

@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.39">
+<meta name="app-version" content="1.1.40">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.39 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.40 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -462,7 +462,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.39</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.40</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -875,18 +875,12 @@
     todosDados = dados || [];
 
     const selMun = document.getElementById('filtroMunicipio');
-    selMun.innerHTML = '<option value="">Todos</option>';
-    municipiosDisponiveis().forEach(m => {
-      const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
-    });
+    preencherSelectComContagem(selMun, municipiosDisponiveis(), contagemPorMunicipio(), 'Todos');
     if ([...selMun.options].some(o => o.value === savedMun)) selMun.value = savedMun;
 
     const municipioAtual = selMun.value;
     const selUni = document.getElementById('filtroUnidade');
-    selUni.innerHTML = '<option value="">Todas</option>';
-    unidadesDisponiveis(municipioAtual).forEach(u => {
-      const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
-    });
+    preencherSelectComContagem(selUni, unidadesDisponiveis(municipioAtual), contagemPorUnidade(municipioAtual), 'Todas');
     if ([...selUni.options].some(o => o.value === savedUni)) selUni.value = savedUni;
 
     atualizarDiasDisponiveis();
@@ -1083,6 +1077,36 @@
   // cadastrada aparece no filtro mesmo antes da primeira resposta chegar.
   // Na base antiga isso não se aplica: ela é histórico fechado, então as opções
   // vêm só dos próprios dados (unidade nova nunca teve resposta no Forms).
+  // Quantas respostas (da base/filtros de data atuais — todosDados já vem
+  // filtrado só pela base ativa, não por mês/dia/ano) cada município/unidade
+  // tem — pra mostrar no próprio texto da opção do <select> e a pessoa não
+  // precisar clicar em cada um só pra descobrir se está vazio.
+  function contagemPorMunicipio() {
+    const mapa = {};
+    todosDados.forEach(d => { if (d.municipio) mapa[d.municipio] = (mapa[d.municipio] || 0) + 1; });
+    return mapa;
+  }
+
+  function contagemPorUnidade(municipio) {
+    const mapa = {};
+    todosDados
+      .filter(d => !municipio || d.municipio === municipio)
+      .forEach(d => { if (d.unidade) mapa[d.unidade] = (mapa[d.unidade] || 0) + 1; });
+    return mapa;
+  }
+
+  // Preenche um <select> de município/unidade com uma option "Todos"/"Todas"
+  // fixa + uma por nome, mostrando a contagem de respostas entre parênteses.
+  function preencherSelectComContagem(select, nomes, contagens, textoPlaceholder) {
+    select.innerHTML = `<option value="">${textoPlaceholder}</option>`;
+    nomes.forEach(nome => {
+      const o = document.createElement('option');
+      o.value = nome;
+      o.textContent = `${nome} (${contagens[nome] || 0})`;
+      select.appendChild(o);
+    });
+  }
+
   function municipiosDisponiveis() {
     const dosEquipamentos = baseAtiva !== 'antiga' ? equipamentos.map(e => e.municipio) : [];
     return [...new Set([
@@ -1151,18 +1175,12 @@
 
     // Município
     const selMun = document.getElementById('filtroMunicipio');
-    selMun.innerHTML = '<option value="">Todos</option>';
-    municipiosDisponiveis().forEach(m => {
-      const o = document.createElement('option'); o.value = m; o.textContent = m; selMun.appendChild(o);
-    });
+    preencherSelectComContagem(selMun, municipiosDisponiveis(), contagemPorMunicipio(), 'Todos');
     restaurarOuPadrao(selMun, pref.municipio);
 
     // Unidade — calculada a partir do município já restaurado acima
     const selUni = document.getElementById('filtroUnidade');
-    selUni.innerHTML = '<option value="">Todas</option>';
-    unidadesDisponiveis(selMun.value).forEach(u => {
-      const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
-    });
+    preencherSelectComContagem(selUni, unidadesDisponiveis(selMun.value), contagemPorUnidade(selMun.value), 'Todas');
     restaurarOuPadrao(selUni, pref.unidade);
   }
 
@@ -1203,10 +1221,7 @@
     const municipio = document.getElementById('filtroMunicipio').value;
     const selUni = document.getElementById('filtroUnidade');
 
-    selUni.innerHTML = '<option value="">Todas</option>';
-    unidadesDisponiveis(municipio).forEach(u => {
-      const o = document.createElement('option'); o.value = u; o.textContent = u; selUni.appendChild(o);
-    });
+    preencherSelectComContagem(selUni, unidadesDisponiveis(municipio), contagemPorUnidade(municipio), 'Todas');
     atualizar();
   }
 
