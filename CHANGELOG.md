@@ -5,9 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.29] — 2026-09-14
+### Alterado
+- `dashboard.html`: os 4 círculos decorativos da capa (reconstruídos em CSS na v1.1.28, aproximação visual imprecisa) viraram uma única imagem real (`assets/capa-circulos.png`), recortada de um PNG exportado pelo próprio usuário direto do Word — fica pixel-fiel ao modelo em vez de aproximado.
+
+---
+
 ## [1.1.28] — 2026-09-14
 ### Alterado
-- `dashboard.html`: capa do relatório impresso reconstruída a partir de um print real do modelo Word (`docs/Capa.dotx`) — logo pequena no canto superior esquerdo, bloco de título/subtítulo alinhado à esquerda (não mais centralizado), tagline como pílula verde com texto branco, e 4 círculos decorativos azul/verde (só CSS, o modelo original usa formas vetoriais do Word que não aparecem como arquivo de imagem extraível) sangrando pelas bordas esquerda/inferior da página.
+- `dashboard.html`: capa do relatório impresso reconstruída a partir de um print real do modelo Word (`docs/Capa.dotx`) — logo pequena no canto superior esquerdo, bloco de título/subtítulo alinhado à esquerda (não mais centralizado), tagline como pílula verde com texto branco, e 4 círculos decorativos azul/verde (tentativa em CSS puro, substituída na v1.1.29 por uma imagem real) sangrando pelas bordas esquerda/inferior da página.
 
 ---
 
