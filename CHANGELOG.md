@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.23] — 2026-09-14
+### Adicionado
+- `dashboard.html`: relatório impresso ganha o timbrado oficial do ISV (`assets/timbrado-isv.png`) como fundo de página inteira — cabeçalho azul/verde com logo, marca d'água central e rodapé com contato/CNPJ sangrando até a borda do papel (`@page margin: 0`, imagem fixada via `background-attachment: fixed` pra repetir em toda página). O cabeçalho de texto do relatório (título/período/filtros) passa a ficar dentro da área em branco do timbrado, sem duplicar a logo.
+
+---
+
 ## [1.1.22] — 2026-09-14
 ### Corrigido
 - `dashboard.html`: relatório impresso — a seção "Comentários" podia sair com uma página quase em branco (só o título) antes da lista de comentários aparecer, porque `.comments-section` tinha `break-inside: avoid` (a caixa inteira, com 200+ comentários às vezes, não cabia de uma vez e o navegador jogava tudo pra página seguinte). Removido de `.comments-section` — cada `.comment-item` individual continua protegido contra ser cortado ao meio.
