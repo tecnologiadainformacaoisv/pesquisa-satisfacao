@@ -528,21 +528,43 @@
     });
   }
 
-  // DIAGNÓSTICO TEMPORÁRIO (2026-09-14) — investigando "Falha ao carregar
-  // dados do servidor" intermitente sem erro correspondente nos logs da
-  // Edge Function. Hipótese: o Google às vezes devolve uma página HTML de
-  // erro (Drive) no lugar do JSON esperado, o que quebra o JSON.parse aqui
-  // no cliente sem gerar exceção nenhuma do lado da Edge Function — por
-  // isso não aparece em log nenhum. Loga o corpo bruto quando o parse falha
-  // pra confirmar. Remover depois de confirmado/mitigado.
+  // Diagnóstico + retry confirmados em produção (2026-09-14): a chamada
+  // dashboard → Edge Function → Apps Script às vezes falha sozinha (timeout
+  // "frio", ou a borda do Supabase devolve uma página HTML de bot-check em
+  // vez do JSON — visto em ?action=dados algumas vezes, inclusive no
+  // auto-refresh automático, sem nenhuma concorrência envolvida). Uma
+  // segunda tentativa logo em seguida resolve na prática, então: 1 retry
+  // automático em QUALQUER falha (timeout, HTTP não-ok, corpo não-JSON)
+  // antes de desistir e cair no fallback local.
   async function parseRespostaJson_(resp) {
     const texto = await resp.text();
     try {
       return JSON.parse(texto);
     } catch (err) {
-      console.error('[Dashboard][diagnóstico] resposta não era JSON válido. status=' + resp.status + ' corpo (primeiros 300 chars):', texto.slice(0, 300));
+      console.warn('[Dashboard] resposta não era JSON válido. status=' + resp.status + ' corpo (primeiros 300 chars):', texto.slice(0, 300));
       throw new Error('Resposta do servidor não é JSON válido (status ' + resp.status + ')');
     }
+  }
+
+  async function buscarLinhasComRetry_(action, timeoutMs) {
+    let ultimoErro;
+    for (let tentativa = 1; tentativa <= 2; tentativa++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        // cache-buster novo a cada tentativa: o Apps Script serve GET por
+        // trás de um cache do Google, não pode reaproveitar o mesmo _=.
+        const resp = await fetchProxy(`action=${action}&_=${Date.now()}`, controller.signal);
+        clearTimeout(timeout);
+        const linhas = await parseRespostaJson_(resp);
+        if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
+        return linhas;
+      } catch (err) {
+        ultimoErro = err;
+        if (tentativa === 1) continue; // tenta mais uma vez antes de desistir
+      }
+    }
+    throw ultimoErro;
   }
 
   let charts = {};
@@ -768,21 +790,7 @@
   async function carregarDados() {
     if (SCRIPT_URL !== 'COLE_SUA_URL_AQUI') {
       try {
-        const controller = new AbortController();
-        // 20s — igual às demais bases (dadosAntigos: 30s, genérico: 20s); 12s
-        // era curto demais pra cadeia dashboard → Edge Function → Apps Script
-        // e causava falso "falha ao carregar" mesmo quando o servidor
-        // respondia normal, só um pouco depois do cliente já ter desistido.
-        const timeout = setTimeout(() => controller.abort(), 20000);
-
-        // cache-buster: o Apps Script serve GET por trás de um cache do Google e
-        // pode devolver resposta antiga sem isso
-        const resp = await fetchProxy('action=dados&_=' + Date.now(), controller.signal);
-        clearTimeout(timeout);
-
-        const linhas = await parseRespostaJson_(resp);
-
-        if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
+        const linhas = await buscarLinhasComRetry_('dados', 20000);
 
         marcarErroCarregamento(false);
         return linhas.map(r => ({
@@ -811,12 +819,7 @@
   async function carregarDadosAntigos() {
     if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000); // base grande (~20k linhas)
-      const resp = await fetchProxy('action=dadosAntigos&_=' + Date.now(), controller.signal);
-      clearTimeout(timeout);
-      const linhas = await parseRespostaJson_(resp);
-      if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
+      const linhas = await buscarLinhasComRetry_('dadosAntigos', 30000); // base grande (~20k linhas)
 
       marcarErroCarregamento(false);
       return linhas.map(r => ({
@@ -845,12 +848,7 @@
   async function carregarDadosGenerico_(action, mapeador) {
     if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
-      const resp = await fetchProxy('action=' + action + '&_=' + Date.now(), controller.signal);
-      clearTimeout(timeout);
-      const linhas = await parseRespostaJson_(resp);
-      if (!Array.isArray(linhas)) throw new Error((linhas && linhas.message) || 'Resposta inesperada do servidor');
+      const linhas = await buscarLinhasComRetry_(action, 20000);
       marcarErroCarregamento(false);
       return linhas.map(mapeador);
     } catch (err) {
@@ -954,12 +952,7 @@
   async function carregarEquipamentos() {
     if (SCRIPT_URL === 'COLE_SUA_URL_AQUI') return [];
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000); // ver comentário em carregarDados()
-      const resp = await fetchProxy('action=config&_=' + Date.now(), controller.signal);
-      clearTimeout(timeout);
-      const lista = await parseRespostaJson_(resp);
-      return Array.isArray(lista) ? lista : [];
+      return await buscarLinhasComRetry_('config', 20000);
     } catch (err) {
       console.warn('[Dashboard] Falha ao buscar equipamentos:', err.message);
       return [];
