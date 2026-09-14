@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.21] — 2026-09-14
+### Alterado
+- `dashboard.html`: relatório impresso ("🖨 Imprimir Relatório") reformulado — antes era literalmente a tela do dashboard impressa (inclusive o próprio botão de imprimir aparecia no papel, bug real). Agora tem cabeçalho dedicado (logo ISV, título, base/período/município/unidade aplicados, total de respostas, data de geração), seções separadas por título ("Métricas gerais", "Gráficos", "Comentários" — esta começa em página nova), rodapé, e toda a navegação/filtros/botões somem do papel.
+- `dashboard.html` / `supabase/functions/dashboard-proxy`: mitigação de falha intermitente ao carregar dados (404 com página de challenge da Cloudflare) — retry automático 1x em qualquer falha, cache-buster movido do navegador pra dentro da Edge Function, auto-refresh de 30s pra 60s, `Cache-Control: no-store`.
+- `supabase/admin.html`: campo de município no convite/edição de usuário trocado de texto livre pra um seletor com checkbox (evita erro de digitação); edição inline de usuário existente (papel/municípios) adicionada — antes só dava pra convidar/listar.
+- `appscript/codigo.js`: consolidado (426 → 359 linhas) extraindo padrões repetidos (`jsonResponse_`, `idJaExiste_`, `lerAbaComoJson_`), sem mudança de comportamento.
+
+---
+
 ## [1.1.20] — 2026-09-09
 ### Alterado
 - `dashboard.html`: login trocado de senha única compartilhada pra Supabase Auth (e-mail + senha individual, convite feito por admin). Adiciona botão "Sair". Sessão persiste via supabase-js (localStorage próprio, refresh token) em vez da lógica manual anterior.

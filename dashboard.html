@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.20">
+<meta name="app-version" content="1.1.21">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.20 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.21 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -325,22 +325,52 @@
     .page-header__subtitle { display: none; }
   }
 
+  /* Cabeçalho/rodapé/títulos de seção — só existem visualmente no papel
+     (@media print abaixo torna visível); na tela ficam ocultos porque a
+     página já tem seu próprio cabeçalho/navegação. */
+  #printHeader, #printFooter, .print-section-title { display: none; }
+
+  #printHeader { padding-bottom: 14px; margin-bottom: 18px; border-bottom: 2px solid #0a3d62; }
+  .print-header__top { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
+  .print-header__logo { height: 48px; width: auto; }
+  .print-header__titles h1 { font-size: 20px; color: #0a3d62; font-weight: 800; }
+  .print-header__subtitle { font-size: 12.5px; color: #7f8c8d; margin-top: 2px; }
+  .print-header__meta {
+    display: flex; flex-wrap: wrap; gap: 4px 18px;
+    font-size: 12px; color: #2c3e50;
+  }
+  .print-header__meta strong { color: #0a3d62; }
+
+  .print-section-title {
+    font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px;
+    color: #0a3d62; margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #dce6f0;
+  }
+  .print-section-title--comments { break-before: page; padding-top: 4px; }
+
+  #printFooter {
+    margin-top: 26px; padding-top: 10px; border-top: 1px solid #dce6f0;
+    font-size: 10.5px; color: #95a5a6; text-align: center;
+  }
+
   /* Print styles */
   @media print {
-    #loginOverlay, header .btn-outline, .btn-green { display: none !important; }
-    .base-switch__buttons { display: none !important; }
+    /* Tudo que é interface de navegação/interação some — o relatório
+       impresso não é "a tela", é um documento à parte (#printHeader). */
+    #loginOverlay, header.page-header, .base-switch, .filters, #erroCarregamento { display: none !important; }
+    #printHeader, #printFooter, .print-section-title { display: block; }
+
     body { background: white; }
-    .chart-card, .metric-card, .comments-section, .filters, .base-switch { box-shadow: none; border: 1px solid #dce6f0; }
+    main { padding: 0; max-width: none; }
+
+    /* Cores/fundos (badges, cards coloridos) somem na impressão por padrão
+       em vários navegadores a menos que isto seja forçado. */
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .chart-card, .metric-card, .comments-section { box-shadow: none; border: 1px solid #dce6f0; break-inside: avoid; }
     .charts-grid { grid-template-columns: 1fr 1fr; }
-    /* Mostra o valor selecionado de cada filtro como texto (em vez de sumir
-       ou aparecer com aparência de dropdown) — sem isso o relatório impresso
-       não dizia quais filtros geraram os números mostrados. */
-    .filters select {
-      display: inline-block !important;
-      -webkit-appearance: none; appearance: none;
-      border: none; background: transparent; padding: 2px 0;
-      color: #2c3e50; font-weight: 700; cursor: default;
-    }
+    .comment-item { break-inside: avoid; }
+
+    @page { margin: 16mm 14mm; }
   }
 </style>
 </head>
@@ -359,9 +389,24 @@
   </div>
 </div>
 
+<!-- Cabeçalho de relatório — invisível na tela, só aparece em @media print
+     (ver montarCabecalhoImpressao()). Substitui a barra de navegação normal
+     por algo que faz sentido num papel: logo, título, filtros aplicados e
+     quando foi gerado, sem nenhum botão/menu. -->
+<div id="printHeader">
+  <div class="print-header__top">
+    <img src="assets/Logo-isv.svg" alt="" class="print-header__logo">
+    <div class="print-header__titles">
+      <h1>Relatório de Satisfação do Paciente</h1>
+      <div class="print-header__subtitle" id="printSubtitulo"></div>
+    </div>
+  </div>
+  <div class="print-header__meta" id="printMeta"></div>
+</div>
+
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.20</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.21</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -422,9 +467,11 @@
     </div>
   </div>
 
+  <div class="print-section-title">Métricas gerais</div>
   <!-- Cards de métricas — conteúdo gerado por renderCardsGrid(), varia por base -->
   <div class="cards-grid" id="cardsGrid"></div>
 
+  <div class="print-section-title">Gráficos</div>
   <!-- NPS Detalhado — só existe em bases com NPS (todas exceto Colaborador) -->
   <div class="card-panel chart-card nps-only" id="npsSection" style="margin-bottom:20px">
     <div class="chart-title">Net Promoter Score (NPS)</div>
@@ -478,10 +525,15 @@
     </div>
   </div>
 
+  <div class="print-section-title print-section-title--comments">Comentários</div>
   <!-- Comentários -->
   <div class="card-panel comments-section">
     <h3>💬 Comentários <span id="commentEntidade"></span> <span id="commentCount" style="font-weight:400;color:#95a5a6"></span></h3>
     <div id="commentsList"></div>
+  </div>
+
+  <div id="printFooter">
+    Instituto São Vicente — Pesquisa de Satisfação · Relatório de uso interno, gerado automaticamente pelo dashboard.
   </div>
 </main>
 
@@ -1144,6 +1196,48 @@
     renderizarGraficos(dadosParaTendencia);
     renderizarComentarios();
   }
+
+  // Preenche o cabeçalho do relatório impresso (#printHeader, só visível em
+  // @media print) com os filtros realmente aplicados na tela no momento —
+  // sem isso o papel não diz quais números geraram aquele relatório.
+  // Ligado no evento 'beforeprint' (dispara tanto pelo botão "Imprimir
+  // Relatório" quanto por Ctrl+P), então cobre os dois casos.
+  const PRINT_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                        'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const PRINT_NOME_BASE = {
+    nova: 'Pesquisa Nova (tablets)', antiga: 'Pesquisa Antiga (Google Forms)',
+    interna: 'Paciente Interno', colaborador: 'Colaborador',
+  };
+
+  function montarCabecalhoImpressao() {
+    const mesVal = document.getElementById('filtroMes').value;
+    const anoVal = document.getElementById('filtroAno').value;
+    const dia = document.getElementById('filtroDia').value;
+    const municipio = document.getElementById('filtroMunicipio').value;
+    const unidade = document.getElementById('filtroUnidade').value;
+    const nomeMes = mesVal ? PRINT_MESES[parseInt(mesVal) - 1] : null;
+
+    let periodo;
+    if (dia && nomeMes) periodo = `${dia} de ${nomeMes}${anoVal ? '/' + anoVal : ''}`;
+    else if (nomeMes) periodo = `${nomeMes}${anoVal ? '/' + anoVal : ' (todos os anos)'}`;
+    else periodo = anoVal ? `Ano ${anoVal} (todos os meses)` : 'Total (todo o período)';
+
+    document.getElementById('printSubtitulo').textContent = BASE_CONFIG[baseAtiva].nota;
+
+    const itens = [
+      ['Base', PRINT_NOME_BASE[baseAtiva] || baseAtiva],
+      ['Período', periodo],
+      ['Município', municipio || 'Todos'],
+      ['Unidade', unidade || 'Todas'],
+      [null, dadosFiltrados.length + ' resposta' + (dadosFiltrados.length !== 1 ? 's' : '')],
+      [null, 'Gerado em ' + new Date().toLocaleString('pt-BR')],
+    ];
+    document.getElementById('printMeta').innerHTML = itens.map(([label, valor]) => {
+      const texto = String(valor).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<span>${label ? `<strong>${label}:</strong> ` : ''}${texto}</span>`;
+    }).join('');
+  }
+  window.addEventListener('beforeprint', montarCabecalhoImpressao);
 
   function media(campo) {
     const vals = dadosFiltrados.map(d => d[campo]).filter(v => v !== null && v !== undefined);
