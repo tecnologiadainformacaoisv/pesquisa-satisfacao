@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.43] — 2026-09-14
+### Alterado
+- `dashboard.html`: contagem de respostas nos dropdowns (Mês, Dia, Município, Unidade) — Mês e Dia ganham contagem pela primeira vez; e em todos os 4, a contagem só aparece enquanto o dropdown está aberto (ex: "Setembro (312)") — assim que fecha/seleciona, volta a mostrar só o nome puro, sem "(N)" grudado no valor selecionado. Cor (verde/cinza) de Município/Unidade continua sempre visível.
+
+---
+
 ## [1.1.42] — 2026-09-14
 ### Alterado
 - `dashboard.html`: filtro Ano — texto "Total (todos os anos)" encurtado pra "(Total)". Filtro Unidade mais largo (200px → 260px, só ele) — nomes longos de unidade (ex: "Anexo Cacimba Velha de Cima (CSF Tangente)") cortavam.

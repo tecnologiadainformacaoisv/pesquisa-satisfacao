@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.42">
+<meta name="app-version" content="1.1.43">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.42 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.43 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -468,7 +468,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.42</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.43</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -791,6 +791,62 @@
   document.getElementById('filtroDia').addEventListener('change', atualizar);
   document.getElementById('filtroMunicipio').addEventListener('change', municipioChanged);
   document.getElementById('filtroUnidade').addEventListener('change', atualizar);
+
+  // Contagem só aparece enquanto o <select> está ABERTO (mousedown/focus) —
+  // ao fechar (change/blur), volta a mostrar só o nome puro, sem "(N)"
+  // grudado no valor selecionado. `obterContagens` é chamado na hora de
+  // abrir, então sempre reflete o filtro atual (ex: Dia depende de Mês/Ano
+  // já escolhidos naquele momento).
+  function ativarContagemAoAbrir(select, obterContagens) {
+    const expandir = () => {
+      const contagens = obterContagens();
+      [...select.options].forEach(o => {
+        if (!o.value) return; // "Todos"/"(Total)"/"Todos os meses" — sem contagem
+        if (!o.dataset.label) o.dataset.label = o.textContent;
+        o.textContent = `${o.dataset.label} (${contagens[o.value] || 0})`;
+      });
+    };
+    const recolher = () => {
+      [...select.options].forEach(o => { if (o.dataset.label) o.textContent = o.dataset.label; });
+    };
+    select.addEventListener('mousedown', expandir);
+    select.addEventListener('focus', expandir); // abrir via teclado, sem mouse
+    select.addEventListener('change', recolher);
+    select.addEventListener('blur', recolher);
+  }
+
+  function contagemPorMes() {
+    const mapa = {};
+    todosDados.forEach(d => {
+      const m = new Date(d.timestamp).getMonth() + 1;
+      mapa[m] = (mapa[m] || 0) + 1;
+    });
+    return mapa;
+  }
+
+  function contagemPorDia() {
+    const mesVal = document.getElementById('filtroMes').value;
+    const anoVal = document.getElementById('filtroAno').value;
+    const mes = mesVal ? parseInt(mesVal) : null;
+    const ano = anoVal ? parseInt(anoVal) : null;
+    const mapa = {};
+    todosDados
+      .filter(d => {
+        const dt = new Date(d.timestamp);
+        return (mes === null || dt.getMonth() + 1 === mes) && (ano === null || dt.getFullYear() === ano);
+      })
+      .forEach(d => {
+        const dia = new Date(d.timestamp).getDate();
+        mapa[dia] = (mapa[dia] || 0) + 1;
+      });
+    return mapa;
+  }
+
+  ativarContagemAoAbrir(document.getElementById('filtroMes'), contagemPorMes);
+  ativarContagemAoAbrir(document.getElementById('filtroDia'), contagemPorDia);
+  ativarContagemAoAbrir(document.getElementById('filtroMunicipio'), contagemPorMunicipio);
+  ativarContagemAoAbrir(document.getElementById('filtroUnidade'),
+    () => contagemPorUnidade(document.getElementById('filtroMunicipio').value));
   document.getElementById('btnRefresh').addEventListener('click', recarregarDados);
 
   async function fazerLogin() {
@@ -1103,13 +1159,16 @@
 
   // Preenche um <select> de município/unidade com uma option "Todos"/"Todas"
   // fixa + uma por nome, mostrando a contagem de respostas entre parênteses.
+  // Texto fica só o nome (sem contagem) — a contagem aparece só enquanto o
+  // <select> está aberto, via ativarContagemAoAbrir(). A cor continua fixa
+  // (não incomoda no valor selecionado do jeito que o texto "(N)" incomodava).
   function preencherSelectComContagem(select, nomes, contagens, textoPlaceholder) {
     select.innerHTML = `<option value="">${textoPlaceholder}</option>`;
     nomes.forEach(nome => {
       const contagem = contagens[nome] || 0;
       const o = document.createElement('option');
       o.value = nome;
-      o.textContent = `${nome} (${contagem})`;
+      o.textContent = nome;
       // Cor por option — suportado pelo Chrome/Edge/Firefox (não por todo
       // navegador, mas cobre o uso real da equipe). Verde = tem resposta,
       // cinza = cadastrado mas ainda sem nenhuma.
