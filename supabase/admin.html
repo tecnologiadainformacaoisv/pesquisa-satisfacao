@@ -72,6 +72,16 @@
   .badge.ok { background: #eafaf1; color: #1a6b4a; }
   .vazio { text-align: center; color: #a3b5c2; padding: 20px; font-size: 13px; }
   .acesso-negado { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+  .btn-editar, .btn-salvar, .btn-cancelar {
+    padding: 5px 12px; border: none; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .btn-editar { background: #eaf2fa; color: #1e5f8a; }
+  .btn-salvar { background: #1a6b4a; color: #fff; margin-right: 6px; }
+  .btn-cancelar { background: #f3f6f9; color: #7f8c8d; }
+  .edicao-papel, .edicao-municipios {
+    padding: 6px 8px; border: 1px solid #d7e2ea; border-radius: 7px; font-size: 12.5px;
+  }
+  .edicao-municipios { width: 100%; }
 </style>
 </head>
 <body>
@@ -120,13 +130,14 @@
 
       <section>
         <h2>Usuários</h2>
-        <div class="sub">Todos os perfis cadastrados no sistema.</div>
+        <div class="sub">Todos os perfis cadastrados no sistema. Clique em "Editar" pra mudar papel/municípios de alguém já convidado.</div>
         <table>
           <thead>
-            <tr><th>Nome</th><th>Papel</th><th>Municípios</th><th>Criado em</th></tr>
+            <tr><th>Nome</th><th>Papel</th><th>Municípios</th><th>Criado em</th><th></th></tr>
           </thead>
           <tbody id="tabelaUsuarios"></tbody>
         </table>
+        <div id="msgEdicao" style="margin-top:10px;font-size:13px;"></div>
       </section>
 
       <section>
@@ -191,9 +202,12 @@
   // Painel — só carrega dados se o papel for 'admin' (RLS também barra no
   // banco, isto aqui é só pra UI não ficar em branco travada)
   // ---------------------------------------------------------------------
+  let meuId = null; // id do super_admin logado — usado só pra avisar de autorebaixamento
+
   async function abrirPainel() {
     const { data: sessao } = await supabaseClient.auth.getSession();
     if (!sessao.session) return;
+    meuId = sessao.session.user.id;
 
     const { data: perfil, error } = await supabaseClient
       .from('perfis')
@@ -215,26 +229,120 @@
     await carregarLog();
   }
 
+  let usuariosCache = []; // guarda os dados brutos pra reabrir o modo edição sem refazer a query
+
   async function carregarUsuarios() {
     const { data, error } = await supabaseClient
       .from('perfis')
-      .select('nome, papel, municipios, criado_em')
+      .select('id, nome, papel, municipios, criado_em')
       .order('criado_em', { ascending: false });
 
     const corpo = document.getElementById('tabelaUsuarios');
     if (error || !data || data.length === 0) {
-      corpo.innerHTML = '<tr><td colspan="4" class="vazio">Nenhum usuário encontrado.</td></tr>';
+      corpo.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum usuário encontrado.</td></tr>';
+      usuariosCache = [];
       return;
     }
 
-    corpo.innerHTML = data.map(u => `
-      <tr>
+    usuariosCache = data;
+    renderizarTabelaUsuarios();
+  }
+
+  function renderizarTabelaUsuarios() {
+    const corpo = document.getElementById('tabelaUsuarios');
+    corpo.innerHTML = usuariosCache.map(u => `
+      <tr data-id="${u.id}">
         <td>${escapeHtml(u.nome || '—')}</td>
-        <td><span class="badge ${u.papel}">${u.papel}</span></td>
-        <td>${escapeHtml((u.municipios || []).join(', ') || (u.papel === 'super_admin' ? 'todos' : '—'))}</td>
+        <td class="col-papel"><span class="badge ${u.papel}">${u.papel}</span></td>
+        <td class="col-municipios">${escapeHtml((u.municipios || []).join(', ') || (u.papel === 'super_admin' ? 'todos' : '—'))}</td>
         <td>${formatarData(u.criado_em)}</td>
+        <td><button class="btn-editar" data-editar="${u.id}">Editar</button></td>
       </tr>
     `).join('');
+  }
+
+  // Edição inline: troca as células de papel/municípios da linha por
+  // <select>/<input> preenchidos com o valor atual, com Salvar/Cancelar.
+  // Delegado no tbody (as linhas são recriadas a cada carregarUsuarios()).
+  document.getElementById('tabelaUsuarios').addEventListener('click', (e) => {
+    const btnEditar = e.target.closest('[data-editar]');
+    if (btnEditar) return abrirEdicaoLinha(btnEditar.dataset.editar);
+
+    const btnCancelar = e.target.closest('[data-cancelar]');
+    if (btnCancelar) return renderizarTabelaUsuarios();
+
+    const btnSalvar = e.target.closest('[data-salvar]');
+    if (btnSalvar) return salvarEdicaoLinha(btnSalvar.dataset.salvar);
+  });
+
+  function abrirEdicaoLinha(id) {
+    const u = usuariosCache.find(x => x.id === id);
+    if (!u) return;
+    const linha = document.querySelector(`tr[data-id="${id}"]`);
+    if (!linha) return;
+
+    linha.querySelector('.col-papel').innerHTML = `
+      <select class="edicao-papel">
+        <option value="visualizador" ${u.papel === 'visualizador' ? 'selected' : ''}>visualizador</option>
+        <option value="admin" ${u.papel === 'admin' ? 'selected' : ''}>admin</option>
+        <option value="super_admin" ${u.papel === 'super_admin' ? 'selected' : ''}>super_admin</option>
+      </select>`;
+    linha.querySelector('.col-municipios').innerHTML =
+      `<input type="text" class="edicao-municipios" value="${escapeHtml((u.municipios || []).join(', '))}" placeholder="ex.: Caucaia">`;
+    linha.querySelector('td:last-child').innerHTML = `
+      <button class="btn-salvar" data-salvar="${id}">Salvar</button>
+      <button class="btn-cancelar" data-cancelar="${id}">Cancelar</button>`;
+  }
+
+  async function salvarEdicaoLinha(id) {
+    const linha = document.querySelector(`tr[data-id="${id}"]`);
+    const msg = document.getElementById('msgEdicao');
+    if (!linha) return;
+
+    const papel = linha.querySelector('.edicao-papel').value;
+    const municipios = linha.querySelector('.edicao-municipios').value
+      .split(',').map(m => m.trim()).filter(Boolean);
+
+    if (papel !== 'super_admin' && municipios.length === 0) {
+      msg.textContent = 'admin/visualizador precisa de pelo menos 1 município.';
+      msg.style.color = '#c0392b';
+      return;
+    }
+
+    // super_admin não precisa de escopo (vê tudo) — grava municipios vazio
+    // igual ao resto do sistema já trata (ver schema.sql, coluna municipios).
+    const municipiosGravar = papel === 'super_admin' ? [] : municipios;
+
+    if (papel !== 'super_admin') {
+      const atual = usuariosCache.find(x => x.id === id);
+      if (atual && atual.papel === 'super_admin') {
+        const aviso = id === meuId
+          ? 'Isso tira o SEU PRÓPRIO papel de super_admin. Depois disso você não consegue mais abrir este painel pra desfazer — alguém com outra conta super_admin precisaria reverter. Confirma mesmo assim?'
+          : 'Isso tira o papel de super_admin dessa pessoa. Confirma?';
+        if (!confirm(aviso)) return;
+      }
+    }
+
+    msg.textContent = 'Salvando...';
+    msg.style.color = '';
+
+    // RLS ("super_admin gerencia perfis", schema.sql) já garante que só
+    // quem está logado como super_admin consegue de fato alterar outro
+    // perfil — esta chamada é direta do navegador, sem Edge Function.
+    const { error } = await supabaseClient
+      .from('perfis')
+      .update({ papel, municipios: municipiosGravar })
+      .eq('id', id);
+
+    if (error) {
+      msg.textContent = 'Falha ao salvar: ' + error.message;
+      msg.style.color = '#c0392b';
+      return;
+    }
+
+    msg.textContent = 'Atualizado.';
+    msg.style.color = '#1a6b4a';
+    await carregarUsuarios();
   }
 
   async function carregarLog() {
