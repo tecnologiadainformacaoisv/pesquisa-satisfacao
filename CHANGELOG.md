@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.37] — 2026-09-14
+### Alterado
+- `dashboard.html`: título "Relatório de Satisfação do Paciente" do cabeçalho impresso centralizado (era alinhado à esquerda).
+
+---
+
 ## [1.1.36] — 2026-09-14
 ### Alterado
 - `dashboard.html`: relatório impresso — título "Gráficos" removido (linha divisória continua), a pedido do usuário. Cards de "Métricas gerais" mais compactos (padding/fonte menores só na impressão), pra sobrar espaço do card de NPS subir pra mesma página em vez de começar sozinho na seguinte.
