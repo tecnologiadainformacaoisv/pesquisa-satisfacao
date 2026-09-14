@@ -545,7 +545,7 @@
     try {
       return JSON.parse(texto);
     } catch (err) {
-      console.warn('[Dashboard] resposta não era JSON válido. status=' + resp.status + ' corpo (primeiros 300 chars):', texto.slice(0, 300));
+      console.warn('[Dashboard] resposta não era JSON válido. status=' + resp.status);
       throw new Error('Resposta do servidor não é JSON válido (status ' + resp.status + ')');
     }
   }
