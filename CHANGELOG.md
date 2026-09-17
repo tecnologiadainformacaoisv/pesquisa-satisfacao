@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.45] — 2026-09-17
+### Alterado
+- `index.html`: título do card "Pesquisa — Escritório Central" encurtado para "Pesquisa — Escritório" — quebrava em 2 linhas (único dos 4 cards), desalinhando a simetria com os demais.
+
+---
+
 ## [1.1.44] — 2026-09-17
 ### Adicionado
 - Novo formulário `pesquisa-escritorio.html` (Escritório Central) — pesquisa de clima organizacional (identificação opcional + 8 blocos Likert 1-5: ambiente físico, liderança, comunicação interna, reconhecimento, remuneração, equilíbrio vida-trabalho, propósito, satisfação geral + NPS + 3 perguntas abertas), portado de mockup estático fornecido pelo usuário. Sem overlay de configuração de unidade — pesquisa não é vinculada a município/unidade de saúde. Backend: novo tipo `escritorio` em `doPost`/`doGet` do Apps Script, gravando na nova aba `Respostas_Escritorio`.
