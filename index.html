@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.45">
+<meta name="app-version" content="1.1.46">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="assets/logo-192.png">
 <link rel="apple-touch-icon" href="assets/logo-192.png">
@@ -163,6 +163,36 @@
     text-align: center;
     pointer-events: none;
   }
+
+  /* Dashboard é o único item ímpar do grid de 2 colunas — em vez de ficar
+     sozinho, grudado à esquerda, na última linha, ocupa a largura toda e
+     vira um banner horizontal (ícone | texto | botão), maior e melhor
+     encaixado do que um card quadrado igual aos outros. */
+  .card-dashboard {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    padding: 30px 40px;
+    gap: 28px;
+  }
+  .card-dashboard .card-icon { margin-bottom: 0; flex-shrink: 0; }
+  .card-dashboard__body { flex: 1; min-width: 0; }
+  .card-dashboard__body .badge-auth { margin-bottom: 8px; }
+  .card-dashboard__body .card-title { margin-bottom: 6px; }
+  .card-dashboard__body .card-desc { margin-bottom: 0; }
+  .card-dashboard .card-btn { width: auto; flex-shrink: 0; padding: 14px 32px; }
+
+  @media (max-width: 560px) {
+    .card-dashboard {
+      flex-direction: column;
+      text-align: center;
+      padding: 36px 32px;
+    }
+    .card-dashboard .card-icon { margin-bottom: 20px; }
+    .card-dashboard__body { text-align: center; margin-bottom: 28px; }
+    .card-dashboard .card-btn { width: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -205,15 +235,17 @@
 
   <a class="card card-dashboard" href="dashboard.html">
     <div class="card-icon">📊</div>
-    <div class="badge-auth">🔒 Área administrativa</div>
-    <div class="card-title">Dashboard de Resultados</div>
-    <div class="card-desc">Visualize métricas, gráficos e comentários consolidados das pesquisas realizadas.</div>
+    <div class="card-dashboard__body">
+      <div class="badge-auth">🔒 Área administrativa</div>
+      <div class="card-title">Dashboard de Resultados</div>
+      <div class="card-desc">Visualize métricas, gráficos e comentários consolidados das pesquisas realizadas.</div>
+    </div>
     <span class="card-btn">Acessar Dashboard →</span>
   </a>
 
 </div>
 
-<div class="footer">Instituto São Vicente · Pesquisa de Satisfação · v1.1.45</div>
+<div class="footer">Instituto São Vicente · Pesquisa de Satisfação · v1.1.46</div>
 
 <script>
   if ('serviceWorker' in navigator) {

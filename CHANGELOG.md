@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.46] — 2026-09-17
+### Alterado
+- `index.html`: card do Dashboard (5º item, ímpar no grid de 2 colunas) ficava sozinho grudado à esquerda na última linha. Agora ocupa a largura toda (`grid-column: 1 / -1`) e vira um banner horizontal (ícone | texto | botão) — centralizado, maior, melhor encaixado no grid. Em telas estreitas (≤560px) volta ao layout em coluna, igual aos outros cards.
+
+---
+
 ## [1.1.45] — 2026-09-17
 ### Alterado
 - `index.html`: título do card "Pesquisa — Escritório Central" encurtado para "Pesquisa — Escritório" — quebrava em 2 linhas (único dos 4 cards), desalinhando a simetria com os demais.
