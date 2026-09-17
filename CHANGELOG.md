@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.44] — 2026-09-17
+### Adicionado
+- Novo formulário `pesquisa-escritorio.html` (Escritório Central) — pesquisa de clima organizacional (identificação opcional + 8 blocos Likert 1-5: ambiente físico, liderança, comunicação interna, reconhecimento, remuneração, equilíbrio vida-trabalho, propósito, satisfação geral + NPS + 3 perguntas abertas), portado de mockup estático fornecido pelo usuário. Sem overlay de configuração de unidade — pesquisa não é vinculada a município/unidade de saúde. Backend: novo tipo `escritorio` em `doPost`/`doGet` do Apps Script, gravando na nova aba `Respostas_Escritorio`.
+- `sw.js`: `pesquisa-escritorio.html` adicionado ao App Shell; `APP_VERSION` bumpada.
+
+---
+
 ## [1.1.43] — 2026-09-14
 ### Alterado
 - `dashboard.html`: contagem de respostas nos dropdowns (Mês, Dia, Município, Unidade) — Mês e Dia ganham contagem pela primeira vez; e em todos os 4, a contagem só aparece enquanto o dropdown está aberto (ex: "Setembro (312)") — assim que fecha/seleciona, volta a mostrar só o nome puro, sem "(N)" grudado no valor selecionado. Cor (verde/cinza) de Município/Unidade continua sempre visível.

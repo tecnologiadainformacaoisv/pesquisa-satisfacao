@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1c3a5e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="assets/logo-192.png">
+<link rel="apple-touch-icon" href="assets/logo-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pesquisa - Escritório Central">
+<meta name="app-version" content="1.1.44">
+<link rel="stylesheet" href="css/instituto.css">
+<title>Pesquisa de Satisfação — Escritório Central</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #1c3a5e 0%, #2c4f7c 55%, #c9a24b 130%);
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px 28px;
+    touch-action: manipulation;
+  }
+
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 44px;
+    width: min(680px, 95vw);
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    position: relative;
+    scrollbar-width: none;
+  }
+  .card::-webkit-scrollbar { display: none; }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #1c3a5e, #2c4f7c, #c9a24b);
+  }
+
+  .logo-area {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .logo-isv { height: 60px; width: auto; max-width: 200px; object-fit: contain; justify-self: start; }
+  .logo-icon { font-size: 28px; display: block; margin-bottom: 3px; }
+  .hospital-name {
+    font-size: 17px; color: #1c3a5e; font-weight: 700; letter-spacing: 0.5px;
+    text-align: right; line-height: 1.3;
+  }
+
+  .progress-bar { background: #eef1f5; border-radius: 99px; height: 8px; margin-bottom: 32px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, #1c3a5e, #c9a24b); height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+
+  .step { display: none; }
+  .step.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .question-label { font-size: 13px; font-weight: 600; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .question-text { font-size: 21px; font-weight: 700; color: #2c3e50; line-height: 1.35; margin-bottom: 28px; }
+
+  /* Stars */
+  .stars { display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; }
+  .star-btn { font-size: 48px; cursor: pointer; transition: transform 0.15s, filter 0.15s; background: none; border: none; line-height: 1; filter: grayscale(1) opacity(0.4); }
+  .star-btn:hover { transform: scale(1.15); }
+  .star-btn.lit { filter: drop-shadow(0 0 6px rgba(201,162,75,0.6)); }
+  .star-labels { display: flex; justify-content: space-between; font-size: 13px; color: #95a5a6; margin-bottom: 28px; }
+
+  /* Escolha (identificação) */
+  .choice-options { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+  .choice-btn {
+    border: 2px solid #dce6f0; border-radius: 14px; padding: 13px 18px;
+    font-size: 15px; font-weight: 600; color: #2c3e50; background: white;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .choice-btn:hover { border-color: #c9a24b; }
+  .choice-btn.selected { background: #1c3a5e; border-color: transparent; color: white; }
+
+  /* NPS */
+  .nps-grid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
+  .nps-btn {
+    width: 42px; height: 42px; border-radius: 10px; border: 2px solid #dce6f0;
+    background: white; font-size: 15px; font-weight: 700; color: #2c3e50;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .nps-btn:hover { border-color: #c9a24b; background: #fbf6ea; transform: scale(1.08); }
+  .nps-btn.selected { color: white; border-color: transparent; transform: scale(1.12); background: #1c3a5e; }
+  .nps-labels { display: flex; justify-content: space-between; font-size: 13px; color: #95a5a6; margin-bottom: 28px; }
+
+  /* Textarea */
+  textarea {
+    width: 100%; min-height: 90px; border: 2px solid #dce6f0;
+    border-radius: 14px; padding: 14px 16px; font-size: 16px;
+    font-family: inherit; color: #2c3e50; resize: none; outline: none;
+    transition: border-color 0.2s; margin-bottom: 20px;
+  }
+  textarea:focus { border-color: #c9a24b; }
+  textarea::placeholder { color: #bdc3c7; }
+  .open-label { font-size: 14px; font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block; }
+
+  /* Buttons */
+  .btn-next {
+    display: block; width: 100%; padding: 18px; border-radius: 14px; border: none;
+    background: linear-gradient(135deg, #1c3a5e, #2c4f7c); color: white;
+    font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(28,58,94,0.4); }
+  .btn-next:active { transform: translateY(0); }
+  .btn-next:disabled { background: #bdc3c7; cursor: default; transform: none; box-shadow: none; }
+
+  .btn-skip {
+    display: block; width: 100%; margin-top: 12px; padding: 14px; border-radius: 14px;
+    border: 2px solid #dce6f0; background: white; color: #7f8c8d;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-skip:hover { border-color: #95a5a6; color: #2c3e50; }
+
+  .btn-back {
+    display: block; width: 100%; margin-top: 12px; padding: 14px; border-radius: 14px;
+    border: 2px solid #dce6f0; background: white; color: #7f8c8d;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: #95a5a6; color: #2c3e50; }
+
+  @keyframes wave {
+    0%, 60%, 100% { transform: rotate(0deg);  }
+    10%           { transform: rotate(14deg); }
+    20%           { transform: rotate(-8deg); }
+    30%           { transform: rotate(14deg); }
+    40%           { transform: rotate(-4deg); }
+    50%           { transform: rotate(10deg); }
+  }
+
+  /* Welcome */
+  .welcome-icon { font-size: 72px; text-align: center; margin-bottom: 20px; display: block; animation: wave 3s ease-in-out infinite; transform-origin: 70% 70%; }
+  .welcome-title { font-size: 27px; font-weight: 800; color: #1c3a5e; text-align: center; margin-bottom: 12px; }
+  .welcome-sub { font-size: 15px; color: #7f8c8d; text-align: center; line-height: 1.6; margin-bottom: 24px; }
+
+  .tipo-badge {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: #fbf3e0; color: #8a6d1f; border-radius: 99px;
+    padding: 6px 16px; font-size: 13px; font-weight: 600;
+    margin: 0 auto 14px; width: fit-content;
+  }
+  .time-badge {
+    display: flex; align-items: center; gap: 6px; justify-content: center;
+    background: #eaf0f8; color: #1c3a5e; border-radius: 99px;
+    padding: 6px 14px; font-size: 14px; font-weight: 600;
+    margin: 0 auto 32px; width: fit-content;
+  }
+
+  /* Thank you */
+  .thanks-icon { font-size: 80px; text-align: center; margin-bottom: 20px; animation: pop 0.5s ease; }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  .thanks-title { font-size: 28px; font-weight: 800; color: #27ae60; text-align: center; margin-bottom: 12px; }
+  .thanks-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.6; margin-bottom: 12px; }
+  .countdown { font-size: 48px; font-weight: 800; color: #1c3a5e; text-align: center; margin: 20px 0; }
+
+  /* Offline feedback */
+  #offline-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+    background: #d97706; color: white; text-align: center;
+    padding: 10px 16px; font-size: 14px; font-weight: 600;
+    display: none;
+  }
+  #queue-info {
+    position: fixed; bottom: 16px; left: 20px;
+    background: rgba(28,58,94,0.88); color: white;
+    border-radius: 99px; padding: 7px 14px;
+    font-size: 13px; font-weight: 600;
+    display: none; z-index: 50;
+  }
+  #sync-toast {
+    position: fixed; bottom: 52px; left: 20px;
+    background: rgba(28,58,94,0.92); color: white;
+    border-radius: 12px; padding: 10px 16px;
+    font-size: 13px; font-weight: 600;
+    display: none; z-index: 51;
+    max-width: min(300px, 85vw);
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 20px 18px; }
+    .logo-area { margin-bottom: 14px; }
+    .logo-isv { height: 36px; max-width: 120px; }
+    .hospital-name { font-size: 12px; }
+    .progress-bar { margin-bottom: 18px; }
+    .welcome-icon { font-size: 48px; margin-bottom: 10px; }
+    .welcome-title { font-size: 21px; margin-bottom: 8px; }
+    .welcome-sub { font-size: 14px; margin-bottom: 14px; }
+    .time-badge { margin-bottom: 18px; }
+    .question-text { font-size: 17px; margin-bottom: 20px; }
+    .star-btn { font-size: 36px; }
+    .stars { gap: 8px; }
+    .btn-next { padding: 14px; font-size: 16px; }
+    .btn-skip, .btn-back { padding: 11px; font-size: 15px; margin-top: 8px; }
+    .nps-btn { width: 36px; height: 36px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="offline-banner">📵 Sem conexão — respostas salvas localmente e enviadas ao reconectar</div>
+<div id="queue-info"></div>
+<div id="sync-toast"></div>
+
+<!-- Formulário -->
+<div class="card">
+  <div class="logo-area">
+    <img class="logo-isv" src="assets/Logo-isv.svg" alt="Instituto São Vicente">
+    <div class="hospital-name"><span class="logo-icon">🏢</span>PESQUISA<br>ESCRITÓRIO CENTRAL</div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <!-- STEP 0: Welcome -->
+  <div class="step active" id="step-0">
+    <div class="welcome-icon">👋</div>
+    <div class="welcome-title">Sua opinião importa!</div>
+    <div class="welcome-sub">
+      As respostas são confidenciais e analisadas de forma agregada. Não há respostas certas ou erradas — queremos sua percepção sincera.
+    </div>
+    <div class="tipo-badge">🏢 Escritório Central</div>
+    <div class="time-badge">⏱ 8–10 minutos</div>
+    <button class="btn-next" onclick="nextStep()">Iniciar Pesquisa</button>
+  </div>
+
+  <!-- STEP 1: Quiz dinâmico (identificação, blocos Likert, NPS) -->
+  <div class="step" id="step-1">
+    <div class="question-label" id="quizLabel"></div>
+    <div class="question-text" id="quizTexto"></div>
+    <div id="quizControl"></div>
+    <button class="btn-next" id="btnQuizNext" onclick="nextQuiz()" disabled>Continuar</button>
+    <button class="btn-skip" onclick="skipQuiz()">Prefiro não responder</button>
+    <button class="btn-back" onclick="prevQuiz()">← Voltar</button>
+  </div>
+
+  <!-- STEP 2: Perguntas abertas -->
+  <div class="step" id="step-2">
+    <div class="question-label">Perguntas abertas (opcional)</div>
+    <div class="question-text">Para fechar, conte um pouco mais.</div>
+    <label class="open-label">O que você mais valoriza em trabalhar no ISV?</label>
+    <textarea id="valorizaISV" placeholder="Escreva aqui..."></textarea>
+    <label class="open-label">O que poderia melhorar no dia a dia do escritório central?</label>
+    <textarea id="melhorias" placeholder="Escreva aqui..."></textarea>
+    <label class="open-label">Alguma sugestão para a gestão do instituto?</label>
+    <textarea id="sugestaoGestao" placeholder="Escreva aqui..."></textarea>
+    <button class="btn-next" onclick="salvarResposta()">Enviar Pesquisa</button>
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+  </div>
+
+  <!-- STEP 3: Obrigado -->
+  <div class="step" id="step-3">
+    <div class="thanks-icon">✅</div>
+    <div class="thanks-title">Muito obrigado!</div>
+    <div class="thanks-sub">Sua avaliação foi registrada com sucesso.<br>Seu feedback nos ajuda a melhorar cada dia mais.</div>
+    <div class="countdown" id="countdown">5</div>
+    <div style="text-align:center;color:#95a5a6;font-size:14px;">segundos para nova pesquisa</div>
+  </div>
+</div>
+
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.55);pointer-events:none;">Instituto São Vicente · Pesquisa Escritório Central · v1.1.44</div>
+
+<iframe id="form_target" name="form_target" style="display:none"></iframe>
+
+<script>
+  const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwK--quEUwdbc2tvEBiC3UfazOcX0pu9wWGep-0oM3T-s0yZaJ2PYAs9-jv7UpN6Y9O3Q/exec';
+  const STORAGE_KEY = 'pesquisa_escritorio_satisfacao_v1';
+  const QUEUE_KEY   = 'pesquisa_escritorio_form_queue';
+
+  let currentStep = 0;
+
+  // ── Perguntas do quiz (identificação opcional + blocos Likert + NPS) ───────
+  // Ordem dos ids de estrela/nps bate exatamente com HEADERS_ESCRITORIO em
+  // appscript/codigo.js — não reordenar sem atualizar os dois.
+  const QUESTIONS = [
+    { id: 'departamento', tipo: 'escolha', categoria: 'Identificação (opcional)', texto: 'Departamento/setor', opcoes: ['Controladoria', 'Prestação de Contas', 'Departamento Pessoal', 'Financeiro', 'Núcleo de Educação Permanente', 'Diretoria/Superintendência', 'Outro'] },
+    { id: 'tempoAtuacao', tipo: 'escolha', categoria: 'Identificação (opcional)', texto: 'Tempo de atuação no ISV', opcoes: ['Menos de 6 meses', '6 meses a 1 ano', '1 a 3 anos', 'Mais de 3 anos'] },
+    { id: 'cargo', tipo: 'escolha', categoria: 'Identificação (opcional)', texto: 'Cargo/nível', opcoes: ['Operacional/assistente', 'Analista/coordenador', 'Gerência/diretoria'] },
+
+    { id: 'ambienteFisico', tipo: 'estrela', categoria: 'Ambiente de trabalho e infraestrutura', texto: 'O espaço físico do escritório é adequado para realizar meu trabalho.' },
+    { id: 'equipamentosSistemas', tipo: 'estrela', categoria: 'Ambiente de trabalho e infraestrutura', texto: 'Tenho os equipamentos e sistemas necessários para desempenhar minhas funções.' },
+    { id: 'ambienteOrganizado', tipo: 'estrela', categoria: 'Ambiente de trabalho e infraestrutura', texto: 'O ambiente de trabalho é organizado e seguro.' },
+
+    { id: 'liderancaClareza', tipo: 'estrela', categoria: 'Liderança e gestão', texto: 'Minha liderança direta comunica expectativas com clareza.' },
+    { id: 'feedbackConstrutivo', tipo: 'estrela', categoria: 'Liderança e gestão', texto: 'Recebo feedback construtivo sobre meu desempenho.' },
+    { id: 'confiancaGestao', tipo: 'estrela', categoria: 'Liderança e gestão', texto: 'Confio nas decisões tomadas pela gestão do ISV.' },
+    { id: 'segurancaPsicologica', tipo: 'estrela', categoria: 'Liderança e gestão', texto: 'Sinto que posso expor minhas opiniões e preocupações sem receio.' },
+
+    { id: 'informacoesClaras', tipo: 'estrela', categoria: 'Comunicação interna', texto: 'As informações institucionais chegam até mim de forma clara e no tempo certo.' },
+    { id: 'integracaoUnidades', tipo: 'estrela', categoria: 'Comunicação interna', texto: 'Existe boa integração entre o escritório central e as unidades geridas.' },
+    { id: 'saberRecorrer', tipo: 'estrela', categoria: 'Comunicação interna', texto: 'Sei a quem recorrer quando tenho dúvidas sobre processos internos.' },
+
+    { id: 'reconhecimentoTrabalho', tipo: 'estrela', categoria: 'Reconhecimento e desenvolvimento profissional', texto: 'Meu trabalho é reconhecido quando bem executado.' },
+    { id: 'oportunidadesCrescimento', tipo: 'estrela', categoria: 'Reconhecimento e desenvolvimento profissional', texto: 'Tenho oportunidades de crescimento e capacitação no ISV.' },
+    { id: 'perspectivaCarreira', tipo: 'estrela', categoria: 'Reconhecimento e desenvolvimento profissional', texto: 'Vejo perspectiva de carreira dentro da instituição.' },
+
+    { id: 'remuneracaoCompativel', tipo: 'estrela', categoria: 'Remuneração e benefícios', texto: 'Considero minha remuneração compatível com minhas funções.' },
+    { id: 'satisfacaoBeneficios', tipo: 'estrela', categoria: 'Remuneração e benefícios', texto: 'Estou satisfeito(a) com os benefícios oferecidos.' },
+
+    { id: 'equilibrioVidaTrabalho', tipo: 'estrela', categoria: 'Equilíbrio vida-trabalho', texto: 'Consigo equilibrar minha carga de trabalho com minha vida pessoal.' },
+    { id: 'volumeTrabalho', tipo: 'estrela', categoria: 'Equilíbrio vida-trabalho', texto: 'O volume de trabalho é compatível com o tempo disponível.' },
+
+    { id: 'contribuicaoMissao', tipo: 'estrela', categoria: 'Propósito e alinhamento institucional', texto: 'Entendo como meu trabalho contribui para a missão do ISV.' },
+    { id: 'orgulhoISV', tipo: 'estrela', categoria: 'Propósito e alinhamento institucional', texto: 'Sinto orgulho de fazer parte do ISV.' },
+    { id: 'recomendariaISV', tipo: 'estrela', categoria: 'Propósito e alinhamento institucional', texto: 'Recomendaria o ISV como um bom lugar para trabalhar.' },
+
+    { id: 'satisfacaoGeral', tipo: 'estrela', categoria: 'Satisfação geral', texto: 'De forma geral, estou satisfeito(a) em trabalhar no escritório central do ISV.' },
+    { id: 'nps', tipo: 'nps', categoria: 'Satisfação geral', texto: 'Em uma escala de 0 a 10, o quanto você recomendaria o ISV como lugar para trabalhar?' }
+  ];
+
+  let quizIndex = 0;
+
+  const respostas = { departamento: '', tempoAtuacao: '', cargo: '', nps: null };
+  QUESTIONS.forEach(q => { if (q.tipo === 'estrela') respostas[q.id] = null; });
+
+  // ── Quiz dinâmico ────────────────────────────────────────────────────────────
+  function renderQuiz(idx) {
+    const q = QUESTIONS[idx];
+    document.getElementById('quizLabel').textContent = q.categoria + ' · Pergunta ' + (idx + 1) + ' de ' + QUESTIONS.length;
+    document.getElementById('quizTexto').textContent = q.texto;
+
+    const control = document.getElementById('quizControl');
+    control.innerHTML = '';
+    const btnNext = document.getElementById('btnQuizNext');
+    const valorAtual = respostas[q.id];
+
+    if (q.tipo === 'escolha') {
+      const wrap = document.createElement('div');
+      wrap.className = 'choice-options';
+      q.opcoes.forEach(op => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'choice-btn' + (valorAtual === op ? ' selected' : '');
+        btn.textContent = op;
+        btn.onclick = () => selecionarEscolha(op);
+        wrap.appendChild(btn);
+      });
+      control.appendChild(wrap);
+    } else if (q.tipo === 'estrela') {
+      const stars = document.createElement('div');
+      stars.className = 'stars';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'star-btn' + (valorAtual != null && i <= valorAtual ? ' lit' : '');
+        btn.dataset.v = i;
+        btn.textContent = '⭐';
+        btn.onclick = () => selecionarEstrela(i);
+        stars.appendChild(btn);
+      }
+      control.appendChild(stars);
+      const labels = document.createElement('div');
+      labels.className = 'star-labels';
+      labels.innerHTML = '<span>Discordo totalmente</span><span>Concordo totalmente</span>';
+      control.appendChild(labels);
+    } else if (q.tipo === 'nps') {
+      const grid = document.createElement('div');
+      grid.className = 'nps-grid';
+      for (let i = 0; i <= 10; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'nps-btn' + (valorAtual === i ? ' selected' : '');
+        btn.textContent = i;
+        btn.onclick = () => selecionarNps(i);
+        grid.appendChild(btn);
+      }
+      control.appendChild(grid);
+      const labels = document.createElement('div');
+      labels.className = 'nps-labels';
+      labels.innerHTML = '<span>Muito improvável</span><span>Muito provável</span>';
+      control.appendChild(labels);
+    }
+
+    btnNext.disabled = (valorAtual === null || valorAtual === '');
+  }
+
+  function selecionarEscolha(op) {
+    const q = QUESTIONS[quizIndex];
+    respostas[q.id] = op;
+    renderQuiz(quizIndex);
+  }
+  function selecionarEstrela(v) {
+    const q = QUESTIONS[quizIndex];
+    respostas[q.id] = v;
+    renderQuiz(quizIndex);
+  }
+  function selecionarNps(v) {
+    respostas.nps = v;
+    renderQuiz(quizIndex);
+  }
+
+  function nextQuiz() {
+    if (quizIndex < QUESTIONS.length - 1) {
+      quizIndex++;
+      renderQuiz(quizIndex);
+      atualizarProgresso();
+    } else {
+      currentStep = 2;
+      showStep(2);
+    }
+  }
+
+  function skipQuiz() {
+    const q = QUESTIONS[quizIndex];
+    respostas[q.id] = (q.tipo === 'escolha') ? '' : null;
+    nextQuiz();
+  }
+
+  function prevQuiz() {
+    if (quizIndex > 0) {
+      quizIndex--;
+      renderQuiz(quizIndex);
+      atualizarProgresso();
+    } else {
+      currentStep = 0;
+      showStep(0);
+    }
+  }
+
+  function atualizarProgresso() {
+    const pct = 8 + Math.round((quizIndex / QUESTIONS.length) * 80);
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  function nextStep() {
+    currentStep = 1;
+    quizIndex = 0;
+    renderQuiz(0);
+    showStep(1);
+  }
+
+  function prevStep() {
+    currentStep = 1;
+    quizIndex = QUESTIONS.length - 1;
+    renderQuiz(quizIndex);
+    showStep(1);
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+    if (n === 0) document.getElementById('progressFill').style.width = '0%';
+    if (n === 1) atualizarProgresso();
+    if (n === 2) document.getElementById('progressFill').style.width = '92%';
+    if (n === 3) document.getElementById('progressFill').style.width = '100%';
+  }
+
+  // ── Offline queue ───────────────────────────────────────────────────────────
+  function getQueue() {
+    try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch(e) { return []; }
+  }
+  function refreshQueueInfo() {
+    const q = getQueue();
+    const info = document.getElementById('queue-info');
+    if (!info) return;
+    if (q.length > 0) {
+      info.textContent = '📦 ' + q.length + ' pendente' + (q.length > 1 ? 's' : '');
+      info.style.display = 'block';
+    } else {
+      info.style.display = 'none';
+    }
+  }
+
+  function saveQueue(q) {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    refreshQueueInfo();
+  }
+
+  let _toastTimer = null;
+  function showSyncToast(msg) {
+    const el = document.getElementById('sync-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { el.style.display = 'none'; }, 4000);
+  }
+
+  function updateOnlineStatus() {
+    const banner = document.getElementById('offline-banner');
+    if (banner) banner.style.display = navigator.onLine ? 'none' : 'block';
+    if (navigator.onLine) {
+      const q = getQueue();
+      if (q.length > 0) {
+        showSyncToast('🔄 Conexão restaurada! Sincronizando ' + q.length + ' resposta' + (q.length > 1 ? 's' : '') + '...');
+        setTimeout(trySyncQueue, 1200);
+      }
+    }
+  }
+
+  async function postDataComIframe(data, iframeId) {
+    return new Promise((resolve) => {
+      try {
+        const anterior = document.getElementById(iframeId);
+        if (anterior && iframeId !== 'form_target') anterior.remove();
+
+        let iframe;
+        if (iframeId === 'form_target') {
+          iframe = document.getElementById('form_target');
+        } else {
+          iframe = document.createElement('iframe');
+          iframe.name = iframeId; iframe.id = iframeId;
+          iframe.style.display = 'none';
+          document.body.appendChild(iframe);
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST'; form.action = SCRIPT_URL;
+        form.target = iframeId; form.style.display = 'none';
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = 'payload';
+        inp.value = JSON.stringify(data);
+        form.appendChild(inp);
+        document.body.appendChild(form);
+
+        const onLoad = () => {
+          iframe.removeEventListener('load', onLoad);
+          try { document.body.removeChild(form); } catch(e) {}
+          if (iframeId !== 'form_target') { try { document.body.removeChild(iframe); } catch(e) {} }
+          resolve(true);
+        };
+        iframe.addEventListener('load', onLoad);
+        setTimeout(() => {
+          iframe.removeEventListener('load', onLoad);
+          try { document.body.removeChild(form); } catch(e) {}
+          if (iframeId !== 'form_target') { try { document.body.removeChild(iframe); } catch(e) {} }
+          resolve(false);
+        }, 20000);
+        form.submit();
+      } catch(e) { console.error('[POST] Erro:', e.message); resolve(false); }
+    });
+  }
+
+  async function postDataFetch(data, iframeIdFallback) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    try {
+      const resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: new URLSearchParams({ payload: JSON.stringify(data) }),
+        signal: controller.signal
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const json = await resp.json();
+      if (json && json.status === 'error') {
+        console.warn('[POST fetch] servidor retornou erro:', json.message);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('[POST fetch] falhou, tentando iframe como fallback:', e.message);
+      return postDataComIframe(data, iframeIdFallback || 'form_target');
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  function postData(data) { return postDataFetch(data, 'form_target'); }
+
+  let _syncEmAndamento = false;
+  async function trySyncQueue() {
+    if (_syncEmAndamento) return;
+    const q = getQueue();
+    if (q.length === 0) return;
+    _syncEmAndamento = true;
+    try {
+      const idsEnviados = new Set();
+      for (let i = 0; i < q.length; i++) {
+        showSyncToast('🔄 Sincronizando ' + (i + 1) + ' de ' + q.length + '...');
+        const ok = await postDataFetch(q[i], 'pesquisa_escritorio_sync_' + Date.now() + '_' + i);
+        if (ok) idsEnviados.add(q[i].id);
+        if (i < q.length - 1) await new Promise(r => setTimeout(r, 800));
+      }
+      const atual = getQueue();
+      const remaining = atual.filter(item => !idsEnviados.has(item.id));
+      saveQueue(remaining);
+      if (idsEnviados.size > 0 && remaining.length === 0) {
+        showSyncToast('✅ ' + idsEnviados.size + ' resposta' + (idsEnviados.size > 1 ? 's' : '') + ' enviada' + (idsEnviados.size > 1 ? 's' : '') + ' com sucesso!');
+      } else if (remaining.length > 0) {
+        showSyncToast('⚠ ' + remaining.length + ' resposta' + (remaining.length > 1 ? 's' : '') + ' ainda pendente' + (remaining.length > 1 ? 's' : '') + '.');
+      }
+    } finally {
+      _syncEmAndamento = false;
+    }
+  }
+
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+
+  // ── Envio ───────────────────────────────────────────────────────────────────
+  async function salvarResposta() {
+    const entrada = {
+      id:        Date.now(),
+      timestamp: new Date().toISOString(),
+      tipo:      'escritorio',
+      departamento:  respostas.departamento || '',
+      tempoAtuacao:  respostas.tempoAtuacao || '',
+      cargo:         respostas.cargo || '',
+      nps:           respostas.nps,
+      valorizaISV:    document.getElementById('valorizaISV').value.trim(),
+      melhorias:      document.getElementById('melhorias').value.trim(),
+      sugestaoGestao: document.getElementById('sugestaoGestao').value.trim()
+    };
+    QUESTIONS.forEach(q => { if (q.tipo === 'estrela') entrada[q.id] = respostas[q.id]; });
+
+    const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    local.push(entrada);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
+
+    currentStep = 3;
+    showStep(3);
+    iniciarContagem();
+
+    (async () => {
+      try {
+        if (!navigator.onLine) {
+          const q = getQueue(); q.push(entrada); saveQueue(q);
+        } else {
+          const ok = await postData(entrada);
+          if (!ok) { const q = getQueue(); q.push(entrada); saveQueue(q); }
+        }
+      } catch(e) {
+        const q = getQueue(); q.push(entrada); saveQueue(q);
+      }
+    })();
+  }
+
+  function iniciarContagem() {
+    let n = 5;
+    document.getElementById('countdown').textContent = n;
+    const timer = setInterval(() => {
+      n--;
+      document.getElementById('countdown').textContent = n;
+      if (n <= 0) { clearInterval(timer); resetar(); }
+    }, 1000);
+  }
+
+  function resetar() {
+    if (swUpdatePendente) { window.location.reload(); return; }
+
+    respostas.departamento = ''; respostas.tempoAtuacao = ''; respostas.cargo = ''; respostas.nps = null;
+    QUESTIONS.forEach(q => { if (q.tipo === 'estrela') respostas[q.id] = null; });
+    document.getElementById('valorizaISV').value = '';
+    document.getElementById('melhorias').value = '';
+    document.getElementById('sugestaoGestao').value = '';
+    currentStep = 0;
+    quizIndex = 0;
+    showStep(0);
+  }
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  refreshQueueInfo();
+  updateOnlineStatus();
+
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().catch(() => {});
+  }
+
+  setInterval(() => {
+    if (navigator.onLine && getQueue().length > 0) trySyncQueue();
+  }, 5 * 60 * 1000);
+
+  let swUpdatePendente = false;
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/pesquisa-satisfacao/sw.js', { scope: '/pesquisa-satisfacao/' })
+      .then(reg => setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000))
+      .catch(err => console.warn('[SW] Falha no registro:', err));
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (currentStep === 0) window.location.reload();
+      else swUpdatePendente = true;
+    });
+  }
+</script>
+</body>
+</html>

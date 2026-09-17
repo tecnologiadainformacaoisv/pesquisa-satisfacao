@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.43">
+<meta name="app-version" content="1.1.44">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.43 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.44 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -96,6 +96,10 @@
   body.tem-nps #npsSection, body.tem-nps .nps-only { display: block; }
   .chart-card.nps-only { display: none; }
   body.tem-nps .chart-card.nps-only { display: block; }
+
+  /* Município/Unidade não existem na base Escritório Central (não é
+     vinculada a unidade de saúde) — filtro escondido via JS */
+  body.sem-geografia .filtro-geografia { display: none; }
 
   .filters {
     padding: 16px 24px;
@@ -468,7 +472,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.43</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.44</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -500,6 +504,10 @@
         👷 Colaborador
         <span class="base-btn__sub">Ambiente de trabalho</span>
       </button>
+      <button class="base-btn" id="btnBaseEscritorio" onclick="trocarBase('escritorio')">
+        🏢 Escritório Central
+        <span class="base-btn__sub">Clima organizacional</span>
+      </button>
     </div>
     <div class="base-switch__note" id="baseNote"></div>
   </div>
@@ -513,12 +521,12 @@
       <select id="filtroDia"><option value="">Todos</option></select>
       <label>Ano:</label>
       <select id="filtroAno"></select>
-      <label>Município:</label>
-      <select id="filtroMunicipio">
+      <label class="filtro-geografia">Município:</label>
+      <select id="filtroMunicipio" class="filtro-geografia">
         <option value="">Todos</option>
       </select>
-      <label>Unidade:</label>
-      <select id="filtroUnidade">
+      <label class="filtro-geografia">Unidade:</label>
+      <select id="filtroUnidade" class="filtro-geografia">
         <option value="">Todas</option>
       </select>
     </div>
@@ -757,12 +765,51 @@
       entidade: 'Colaboradores',
       csvHeader: 'Data,Hora,Unidade,Instalacoes,Higiene,Seguranca,MeiosTrabalho,ConfortoBemEstar,ReconhecimentoLideres,ReconhecimentoColegas,Alimentacao,Comentario',
       csvCampos: d => [d.instalacoes, d.higiene, d.seguranca, d.meiosTrabalho, d.confortoBemEstar, d.reconhecimentoLideres, d.reconhecimentoColegas, d.alimentacao]
+    },
+    escritorio: {
+      temNPS: true,
+      semGeografia: true, // não vinculada a município/unidade de saúde
+      categorias: [
+        { campo: 'ambienteFisico',           label: 'Ambiente Físico',          cor: '#8e44ad' },
+        { campo: 'equipamentosSistemas',      label: 'Equip./Sistemas',          cor: '#2980b9' },
+        { campo: 'ambienteOrganizado',        label: 'Ambiente Organizado',      cor: '#16a085' },
+        { campo: 'liderancaClareza',          label: 'Clareza da Liderança',     cor: '#c0392b' },
+        { campo: 'feedbackConstrutivo',       label: 'Feedback Construtivo',     cor: '#d35400' },
+        { campo: 'confiancaGestao',           label: 'Confiança na Gestão',      cor: '#f39c12' },
+        { campo: 'segurancaPsicologica',      label: 'Segurança Psicológica',    cor: '#e67e22' },
+        { campo: 'informacoesClaras',         label: 'Informações Claras',       cor: '#27ae60' },
+        { campo: 'integracaoUnidades',        label: 'Integração c/ Unidades',   cor: '#1abc9c' },
+        { campo: 'saberRecorrer',             label: 'Saber a Quem Recorrer',    cor: '#2c3e50' },
+        { campo: 'reconhecimentoTrabalho',    label: 'Reconhecimento',           cor: '#8e44ad' },
+        { campo: 'oportunidadesCrescimento',  label: 'Oportunidades',            cor: '#2980b9' },
+        { campo: 'perspectivaCarreira',       label: 'Perspectiva de Carreira',  cor: '#16a085' },
+        { campo: 'remuneracaoCompativel',     label: 'Remuneração',              cor: '#c0392b' },
+        { campo: 'satisfacaoBeneficios',      label: 'Benefícios',               cor: '#d35400' },
+        { campo: 'equilibrioVidaTrabalho',    label: 'Equilíbrio Vida-Trabalho', cor: '#f39c12' },
+        { campo: 'volumeTrabalho',            label: 'Volume de Trabalho',       cor: '#e67e22' },
+        { campo: 'contribuicaoMissao',        label: 'Contribuição p/ Missão',   cor: '#27ae60' },
+        { campo: 'orgulhoISV',                label: 'Orgulho do ISV',           cor: '#1abc9c' },
+        { campo: 'recomendariaISV',           label: 'Recomendaria o ISV',       cor: '#2c3e50' },
+        { campo: 'satisfacaoGeral',           label: 'Satisfação Geral',         cor: '#1e5f8a' }
+      ],
+      nota: 'Escritório Central — clima organizacional (escala 1-5). Não é vinculada a município/unidade de saúde.',
+      entidade: 'Colaboradores',
+      csvHeader: 'Data,Hora,Unidade,Departamento,TempoAtuacao,Cargo,NPS,' +
+        'AmbienteFisico,EquipamentosSistemas,AmbienteOrganizado,LiderancaClareza,FeedbackConstrutivo,ConfiancaGestao,SegurancaPsicologica,' +
+        'InformacoesClaras,IntegracaoUnidades,SaberRecorrer,ReconhecimentoTrabalho,OportunidadesCrescimento,PerspectivaCarreira,' +
+        'RemuneracaoCompativel,SatisfacaoBeneficios,EquilibrioVidaTrabalho,VolumeTrabalho,ContribuicaoMissao,OrgulhoISV,RecomendariaISV,SatisfacaoGeral,Comentario',
+      csvCampos: d => [
+        '"' + (d.departamento || '') + '"', '"' + (d.tempoAtuacao || '') + '"', '"' + (d.cargo || '') + '"', d.nps,
+        d.ambienteFisico, d.equipamentosSistemas, d.ambienteOrganizado, d.liderancaClareza, d.feedbackConstrutivo, d.confiancaGestao, d.segurancaPsicologica,
+        d.informacoesClaras, d.integracaoUnidades, d.saberRecorrer, d.reconhecimentoTrabalho, d.oportunidadesCrescimento, d.perspectivaCarreira,
+        d.remuneracaoCompativel, d.satisfacaoBeneficios, d.equilibrioVidaTrabalho, d.volumeTrabalho, d.contribuicaoMissao, d.orgulhoISV, d.recomendariaISV, d.satisfacaoGeral
+      ]
     }
   };
 
   let baseAtiva = 'nova';
   // Cache por base — evita recarregar do Sheets toda troca de aba
-  const dadosCache = { nova: null, antiga: null, interna: null, colaborador: null };
+  const dadosCache = { nova: null, antiga: null, interna: null, colaborador: null, escritorio: null };
 
   // Versão exibida no cabeçalho e no título da aba — lida do <meta app-version>,
   // que é a fonte única de verdade (evita badge dessincronizado da versão real)
@@ -919,7 +966,8 @@
     nova: carregarDados,
     antiga: carregarDadosAntigos,
     interna: carregarDadosInterna,
-    colaborador: carregarDadosColaborador
+    colaborador: carregarDadosColaborador,
+    escritorio: carregarDadosEscritorio
   };
 
   // --- AUTO-REFRESH ---
@@ -1070,6 +1118,49 @@
     }));
   }
 
+  // Escritório Central — aba Respostas_Escritorio. Sem Município/Unidade
+  // (não é vinculada a unidade de saúde). Tem 3 perguntas abertas em vez de
+  // 1 — combinadas num único `comentario` rotulado pra reaproveitar a lista
+  // de comentários e o CSV genéricos sem precisar de UI dedicada.
+  function carregarDadosEscritorio() {
+    return carregarDadosGenerico_('dadosEscritorio', r => {
+      const partes = [];
+      if (r.ValorizaISV)    partes.push('O que mais valoriza: ' + r.ValorizaISV);
+      if (r.Melhorias)      partes.push('O que poderia melhorar: ' + r.Melhorias);
+      if (r.SugestaoGestao) partes.push('Sugestão para a gestão: ' + r.SugestaoGestao);
+      return {
+        id:                        r.ID,
+        timestamp:                 r.Timestamp,
+        departamento:              r.Departamento              || '',
+        tempoAtuacao:              r.TempoAtuacao              || '',
+        cargo:                     r.Cargo                     || '',
+        ambienteFisico:            r.AmbienteFisico            !== '' ? Number(r.AmbienteFisico)            : null,
+        equipamentosSistemas:      r.EquipamentosSistemas      !== '' ? Number(r.EquipamentosSistemas)      : null,
+        ambienteOrganizado:        r.AmbienteOrganizado        !== '' ? Number(r.AmbienteOrganizado)        : null,
+        liderancaClareza:          r.LiderancaClareza          !== '' ? Number(r.LiderancaClareza)          : null,
+        feedbackConstrutivo:       r.FeedbackConstrutivo       !== '' ? Number(r.FeedbackConstrutivo)       : null,
+        confiancaGestao:           r.ConfiancaGestao           !== '' ? Number(r.ConfiancaGestao)           : null,
+        segurancaPsicologica:      r.SegurancaPsicologica      !== '' ? Number(r.SegurancaPsicologica)      : null,
+        informacoesClaras:         r.InformacoesClaras         !== '' ? Number(r.InformacoesClaras)         : null,
+        integracaoUnidades:        r.IntegracaoUnidades        !== '' ? Number(r.IntegracaoUnidades)        : null,
+        saberRecorrer:             r.SaberRecorrer             !== '' ? Number(r.SaberRecorrer)             : null,
+        reconhecimentoTrabalho:    r.ReconhecimentoTrabalho    !== '' ? Number(r.ReconhecimentoTrabalho)    : null,
+        oportunidadesCrescimento:  r.OportunidadesCrescimento  !== '' ? Number(r.OportunidadesCrescimento)  : null,
+        perspectivaCarreira:       r.PerspectivaCarreira       !== '' ? Number(r.PerspectivaCarreira)       : null,
+        remuneracaoCompativel:     r.RemuneracaoCompativel     !== '' ? Number(r.RemuneracaoCompativel)     : null,
+        satisfacaoBeneficios:      r.SatisfacaoBeneficios      !== '' ? Number(r.SatisfacaoBeneficios)      : null,
+        equilibrioVidaTrabalho:    r.EquilibrioVidaTrabalho    !== '' ? Number(r.EquilibrioVidaTrabalho)    : null,
+        volumeTrabalho:            r.VolumeTrabalho            !== '' ? Number(r.VolumeTrabalho)            : null,
+        contribuicaoMissao:        r.ContribuicaoMissao        !== '' ? Number(r.ContribuicaoMissao)        : null,
+        orgulhoISV:                r.OrgulhoISV                !== '' ? Number(r.OrgulhoISV)                : null,
+        recomendariaISV:           r.RecomendariaISV           !== '' ? Number(r.RecomendariaISV)           : null,
+        satisfacaoGeral:           r.SatisfacaoGeral           !== '' ? Number(r.SatisfacaoGeral)           : null,
+        nps:                       r.NPS                       !== '' ? Number(r.NPS)                       : null,
+        comentario: partes.join(' | ')
+      };
+    });
+  }
+
   // Token de geração: se o usuário clicar nos dois botões em sequência rápida,
   // a resposta da troca mais antiga (que pode terminar de carregar DEPOIS da
   // mais nova, já que a base antiga demora mais) é descartada em vez de
@@ -1091,12 +1182,22 @@
       unidade:   document.getElementById('filtroUnidade').value
     };
 
+    // Base sem geografia (ex: Escritório Central): não faz sentido restaurar
+    // um Município/Unidade escolhido na base anterior — o filtro escondido
+    // (ver CSS .sem-geografia) ficaria "preso" num valor que não existe nos
+    // dados dessa base e zeraria os resultados silenciosamente.
+    if (BASE_CONFIG[base].semGeografia) {
+      preferir.municipio = '';
+      preferir.unidade = '';
+    }
+
     baseAtiva = base;
 
     document.getElementById('btnBaseNova').classList.toggle('active', base === 'nova');
     document.getElementById('btnBaseAntiga').classList.toggle('active', base === 'antiga');
     document.getElementById('btnBaseInterna').classList.toggle('active', base === 'interna');
     document.getElementById('btnBaseColaborador').classList.toggle('active', base === 'colaborador');
+    document.getElementById('btnBaseEscritorio').classList.toggle('active', base === 'escritorio');
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
 
@@ -1119,6 +1220,7 @@
 
   function atualizarNotaBase() {
     document.body.classList.toggle('tem-nps', BASE_CONFIG[baseAtiva].temNPS);
+    document.body.classList.toggle('sem-geografia', !!BASE_CONFIG[baseAtiva].semGeografia);
     const nota = document.getElementById('baseNote');
     if (!nota) return;
     nota.textContent = BASE_CONFIG[baseAtiva].nota;
@@ -1179,6 +1281,7 @@
   }
 
   function municipiosDisponiveis() {
+    if (BASE_CONFIG[baseAtiva].semGeografia) return [];
     const dosEquipamentos = baseAtiva !== 'antiga' ? equipamentos.map(e => e.municipio) : [];
     return [...new Set([
       ...todosDados.map(d => d.municipio),
@@ -1187,6 +1290,7 @@
   }
 
   function unidadesDisponiveis(municipio) {
+    if (BASE_CONFIG[baseAtiva].semGeografia) return [];
     const dosEquipamentos = baseAtiva !== 'antiga'
       ? equipamentos.filter(e => !municipio || e.municipio === municipio).map(e => e.unidade)
       : [];
@@ -1348,7 +1452,7 @@
                         'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const PRINT_NOME_BASE = {
     nova: 'Pesquisa Nova (tablets)', antiga: 'Pesquisa Antiga (Google Forms)',
-    interna: 'Paciente Interno', colaborador: 'Colaborador',
+    interna: 'Paciente Interno', colaborador: 'Colaborador', escritorio: 'Escritório Central',
   };
 
   function montarCabecalhoImpressao() {

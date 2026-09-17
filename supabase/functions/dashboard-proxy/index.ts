@@ -55,6 +55,12 @@ const CORS_HEADERS = {
 
 // Ações que devolvem lista de linhas com município (pra filtrar por
 // escopo) — "configuracao" devolve um objeto {senha:...}, não filtra.
+// "dadosEscritorio" fica DE FORA de propósito: a aba Respostas_Escritorio
+// não tem coluna Municipio (pesquisa de clima do escritório central, não
+// vinculada a unidade de saúde) — se entrasse aqui, o filtro abaixo
+// zeraria os resultados pra todo mundo que não é super_admin (município da
+// linha sempre undefined, nunca bate no escopo de ninguém). Cai no branch
+// "sem filtro": visível a qualquer usuário autenticado do dashboard.
 const ACOES_COM_LINHAS = new Set(['dados', 'dadosAntigos', 'dadosInternos', 'dadosColaboradores', 'config']);
 
 // Normaliza pra comparar município tolerando acento/caixa — mesma lição

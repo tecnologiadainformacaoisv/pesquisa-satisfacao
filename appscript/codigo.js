@@ -9,6 +9,23 @@ const HEADERS         = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Rece
 const HEADERS_ANTIGAS = ['ID', 'Timestamp', 'Municipio', 'Unidade', 'NPS', 'Recepcao', 'Enfermagem', 'Atendimento', 'ServicoSocial', 'Limpeza', 'Comentario'];
 const HEADERS_CONFIG  = ['Municipio', 'Unidade', 'Ativo'];
 const HEADERS_CFG     = ['Chave', 'Valor'];
+
+// Pesquisa de clima do Escritório Central (pesquisa-escritorio.html) — não é
+// pesquisa de paciente/unidade de saúde, por isso Municipio/Unidade não se
+// aplicam; Departamento/TempoAtuacao/Cargo substituem a identificação.
+const SHEET_ESCRITORIO  = 'Respostas_Escritorio';
+const HEADERS_ESCRITORIO = [
+  'ID', 'Timestamp', 'Departamento', 'TempoAtuacao', 'Cargo',
+  'AmbienteFisico', 'EquipamentosSistemas', 'AmbienteOrganizado',
+  'LiderancaClareza', 'FeedbackConstrutivo', 'ConfiancaGestao', 'SegurancaPsicologica',
+  'InformacoesClaras', 'IntegracaoUnidades', 'SaberRecorrer',
+  'ReconhecimentoTrabalho', 'OportunidadesCrescimento', 'PerspectivaCarreira',
+  'RemuneracaoCompativel', 'SatisfacaoBeneficios',
+  'EquilibrioVidaTrabalho', 'VolumeTrabalho',
+  'ContribuicaoMissao', 'OrgulhoISV', 'RecomendariaISV',
+  'SatisfacaoGeral', 'NPS',
+  'ValorizaISV', 'Melhorias', 'SugestaoGestao'
+];
 const DEDUP_JANELA    = 2000; // linhas mais recentes verificadas no dedup do doPost
 // POSTs aceitos por janela. Generoso de propósito: o cliente (pesquisa.html)
 // não consegue distinguir uma resposta de erro do doPost de uma de sucesso
@@ -133,6 +150,7 @@ function doPost(e) {
     // nenhuma mudança.
     if (data.tipo === 'interno')     return doPostInterno(data, id);
     if (data.tipo === 'colaborador') return doPostColaborador(data, id);
+    if (data.tipo === 'escritorio')  return doPostEscritorio(data, id);
 
     const sheet = getOrCreateSheet();
 
@@ -238,6 +256,55 @@ function doPostColaborador(data, id) {
   return jsonResponse_({ status: 'ok' });
 }
 
+// Grava resposta do Escritório Central (pesquisa-escritorio.html) em
+// Respostas_Escritorio. Chamada de dentro do lock já adquirido por doPost —
+// não adquire lock próprio. Reaproveita getOrCreateSheetGenerico_, que vive
+// em sincronizacaoLegado.js (mesmo projeto Apps Script, mesmo escopo
+// global) — se esse arquivo for removido do projeto, isso quebra também.
+function doPostEscritorio(data, id) {
+  const sheet = getOrCreateSheetGenerico_(SHEET_ESCRITORIO, HEADERS_ESCRITORIO, '#8a6d1f');
+
+  if (idJaExiste_(sheet, id)) {
+    return jsonResponse_({ status: 'ok', duplicado: true });
+  }
+
+  // Ordem = HEADERS_ESCRITORIO.
+  sheet.appendRow([
+    id,
+    data.timestamp || new Date().toISOString(),
+    data.departamento    || '',
+    data.tempoAtuacao    || '',
+    data.cargo            || '',
+    data.ambienteFisico          != null ? data.ambienteFisico          : '',
+    data.equipamentosSistemas    != null ? data.equipamentosSistemas    : '',
+    data.ambienteOrganizado      != null ? data.ambienteOrganizado      : '',
+    data.liderancaClareza        != null ? data.liderancaClareza        : '',
+    data.feedbackConstrutivo     != null ? data.feedbackConstrutivo     : '',
+    data.confiancaGestao         != null ? data.confiancaGestao         : '',
+    data.segurancaPsicologica    != null ? data.segurancaPsicologica    : '',
+    data.informacoesClaras       != null ? data.informacoesClaras       : '',
+    data.integracaoUnidades      != null ? data.integracaoUnidades      : '',
+    data.saberRecorrer           != null ? data.saberRecorrer           : '',
+    data.reconhecimentoTrabalho  != null ? data.reconhecimentoTrabalho  : '',
+    data.oportunidadesCrescimento != null ? data.oportunidadesCrescimento : '',
+    data.perspectivaCarreira     != null ? data.perspectivaCarreira     : '',
+    data.remuneracaoCompativel   != null ? data.remuneracaoCompativel   : '',
+    data.satisfacaoBeneficios    != null ? data.satisfacaoBeneficios    : '',
+    data.equilibrioVidaTrabalho  != null ? data.equilibrioVidaTrabalho  : '',
+    data.volumeTrabalho          != null ? data.volumeTrabalho          : '',
+    data.contribuicaoMissao      != null ? data.contribuicaoMissao      : '',
+    data.orgulhoISV              != null ? data.orgulhoISV              : '',
+    data.recomendariaISV         != null ? data.recomendariaISV         : '',
+    data.satisfacaoGeral         != null ? data.satisfacaoGeral         : '',
+    data.nps                     != null ? data.nps                     : '',
+    sanitizarTexto(data.valorizaISV),
+    sanitizarTexto(data.melhorias),
+    sanitizarTexto(data.sugestaoGestao)
+  ]);
+
+  return jsonResponse_({ status: 'ok' });
+}
+
 function getOrCreateConfiguracaoSheet() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   let   sheet = ss.getSheetByName(SHEET_CFG);
@@ -287,6 +354,7 @@ function doGet(e) {
     if (action === 'dadosAntigos')       return getDadosAntigos();
     if (action === 'dadosInternos')      return getDadosGenerico_(SHEET_INTERNOS, HEADERS_INTERNOS);
     if (action === 'dadosColaboradores') return getDadosGenerico_(SHEET_COLABORADORES, HEADERS_COLABORADORES);
+    if (action === 'dadosEscritorio')    return getDadosGenerico_(SHEET_ESCRITORIO, HEADERS_ESCRITORIO);
     return getDados();
   } catch (err) {
     return jsonResponse_({ status: 'error', message: err.message });
