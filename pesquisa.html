@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.48">
+<meta name="app-version" content="1.1.49">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -493,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.48</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.49</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -505,7 +505,15 @@
   const EQUIP_KEY   = 'pesquisa_equipamentos_cache';
 
   const MUNICIPIO_LOGOS = {
-    'Caucaia': 'assets/municipios/caucaia.png'
+    'Caucaia': 'assets/municipios/caucaia.png',
+    'Maracanaú': 'assets/municipios/maracanau.jpeg'
+  };
+  // Logo por unidade específica (chave "Município|Unidade") — tem prioridade
+  // sobre MUNICIPIO_LOGOS. Usado quando o brasão é da própria unidade (ex:
+  // CAPS), não da prefeitura — não faria sentido aparecer em outras
+  // unidades do mesmo município.
+  const UNIDADE_LOGOS = {
+    'Tabuleiro do Norte|Ana Rita Bezerra Maia Moreira': 'assets/municipios/caps-tabuleiro-ana-rita.jpeg'
   };
   let SENHA_CONFIG = 'hospital123'; // fallback — substituído pela planilha ao carregar
 
@@ -559,7 +567,7 @@
       badge.className = 'unit-badge';
       btnIniciar.disabled = false;
       btnIniciar.textContent = 'Iniciar Pesquisa';
-      const logoSrc = MUNICIPIO_LOGOS[cfg.municipio];
+      const logoSrc = UNIDADE_LOGOS[cfg.municipio + '|' + cfg.unidade] || MUNICIPIO_LOGOS[cfg.municipio];
       if (logoSrc) {
         logoMun.src = logoSrc;
         logoMun.alt = cfg.municipio;

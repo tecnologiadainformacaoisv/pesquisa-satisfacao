@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.49] — 2026-10-14
+### Adicionado
+- `pesquisa.html`: logo institucional mostrado quando a unidade é configurada — agora suporta logo por UNIDADE específica (`UNIDADE_LOGOS`, tem prioridade sobre o logo genérico de município), além do logo por município já existente (`MUNICIPIO_LOGOS`). Adicionados: logo "Prefeitura de Maracanaú" (município) e brasão do CAPS de Tabuleiro do Norte (só pra essa unidade — não deveria aparecer nas demais unidades do município).
+
+---
+
 ## [1.1.48] — 2026-10-14
 ### Adicionado
 - `pesquisa.html`: acesso direto via QR code pra unidades sem tablet físico (ex: 4 UBS de Lavras da Mangabeira) — URL com `?municipio=X&unidade=Y` pula o overlay de configuração direto pro formulário, no celular do próprio paciente. Município/unidade são validados contra a aba Equipamentos real antes de aceitar (evita virar "município fantasma" se o link tiver erro de digitação); não grava no `localStorage` (não deve "lembrar" o scan de um paciente pro próximo que usar o mesmo aparelho).
