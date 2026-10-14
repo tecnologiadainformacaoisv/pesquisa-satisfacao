@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.52] — 2026-10-14
+### Corrigido
+- `dashboard.html`: botão "Gerar QR Code" invisível — usava `.btn-outline` (texto branco em fundo transparente, feita pro cabeçalho escuro) dentro de um card de fundo branco, ficando texto branco sobre branco. Trocado pra `.btn--primary` (fundo colorido, visível).
+
+---
+
 ## [1.1.51] — 2026-10-14
 ### Corrigido
 - `dashboard.html`: dropdown de Município do gerador de QR code nunca aparecia populado — faltava a função que preenchia as opções (só existia a cascata de Unidade). Corrigido com `popularQrMunicipio()`, chamada no carregamento inicial e em todo refresh.
