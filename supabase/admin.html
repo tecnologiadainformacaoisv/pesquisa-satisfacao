@@ -170,6 +170,21 @@
       </section>
 
       <section>
+        <h2>Gerar QR code</h2>
+        <div class="sub">Pra unidades sem tablet físico — o paciente escaneia e cai direto no formulário, pelo próprio celular, sem passar pela tela de configuração. Escolha o município e a unidade (lista real, vinda da aba Equipamentos).</div>
+        <div class="form-convite" style="margin-bottom:14px;">
+          <select id="qrMunicipio" style="min-width:220px"><option value="">Selecione o município...</option></select>
+          <select id="qrUnidade" style="min-width:260px" disabled><option value="">Selecione a unidade...</option></select>
+          <button type="button" id="btnGerarQr" disabled>Gerar QR Code</button>
+        </div>
+        <div id="qrResultado" style="display:none">
+          <canvas id="qrCanvas"></canvas>
+          <div style="margin-top:10px;font-size:12.5px;color:#7f8c8d;word-break:break-all;" id="qrUrlTexto"></div>
+          <button type="button" id="btnBaixarQr" style="margin-top:10px;background:#1a6b4a;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">⬇ Baixar PNG</button>
+        </div>
+      </section>
+
+      <section>
         <h2>Log de auditoria</h2>
         <div class="sub">Últimas 50 ações registradas — login, convite, configuração de tablet.</div>
         <table>
@@ -184,6 +199,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
   if (!window.supabase) {
     document.body.innerHTML = '<p style="padding:40px;text-align:center">Falha ao carregar biblioteca de autenticação. Recarregue a página.</p>';
@@ -264,6 +280,7 @@
     await carregarMunicipiosDisponiveis();
     await carregarUsuarios();
     await carregarLog();
+    await carregarEquipamentosParaQr();
   }
 
   let municipiosDisponiveis = []; // lista real, vinda da aba Equipamentos
@@ -589,6 +606,85 @@
     } finally {
       btnConvidar.disabled = false;
     }
+  });
+
+  // ---------------------------------------------------------------------
+  // Gerador de QR code — pra unidades sem tablet físico. O paciente
+  // escaneia e cai direto no formulário (pesquisa.html?municipio=X&
+  // unidade=Y), sem passar pela tela de configuração — ver
+  // aplicarConfigDaUrlSeHouver() em pesquisa.html (v1.1.48). Lista de
+  // município/unidade é a mesma aba Equipamentos real, fetch separado do
+  // carregarMunicipiosDisponiveis() (aquele só guarda nomes de município,
+  // esse precisa do par município+unidade completo).
+  // ---------------------------------------------------------------------
+  let equipamentosParaQr = [];
+
+  async function carregarEquipamentosParaQr() {
+    const selMun = document.getElementById('qrMunicipio');
+    try {
+      const resp = await fetch(`${SCRIPT_URL}?action=config&_=${Date.now()}`);
+      const lista = await resp.json();
+      equipamentosParaQr = Array.isArray(lista) ? lista : [];
+    } catch (err) {
+      console.warn('[Admin] Falha ao buscar equipamentos pro gerador de QR:', err.message);
+      equipamentosParaQr = [];
+    }
+
+    const municipios = [...new Set(equipamentosParaQr.map(e => e.municipio).filter(Boolean))].sort();
+    selMun.innerHTML = '<option value="">Selecione o município...</option>' +
+      municipios.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+  }
+
+  document.getElementById('qrMunicipio').addEventListener('change', () => {
+    const municipio = document.getElementById('qrMunicipio').value;
+    const selUni = document.getElementById('qrUnidade');
+    const unidades = equipamentosParaQr
+      .filter(e => e.municipio === municipio)
+      .map(e => e.unidade).filter(Boolean).sort();
+
+    selUni.innerHTML = '<option value="">Selecione a unidade...</option>' +
+      unidades.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+    selUni.disabled = !municipio;
+    document.getElementById('btnGerarQr').disabled = true;
+    document.getElementById('qrResultado').style.display = 'none';
+  });
+
+  document.getElementById('qrUnidade').addEventListener('change', () => {
+    document.getElementById('btnGerarQr').disabled = !document.getElementById('qrUnidade').value;
+    document.getElementById('qrResultado').style.display = 'none';
+  });
+
+  document.getElementById('btnGerarQr').addEventListener('click', () => {
+    const municipio = document.getElementById('qrMunicipio').value;
+    const unidade = document.getElementById('qrUnidade').value;
+    if (!municipio || !unidade) return;
+
+    // Relativo à própria página (supabase/admin.html) — funciona em
+    // qualquer domínio/caminho onde o site estiver publicado, não só no
+    // GitHub Pages atual.
+    const urlPesquisa = new URL('../pesquisa.html', location.href);
+    urlPesquisa.searchParams.set('municipio', municipio);
+    urlPesquisa.searchParams.set('unidade', unidade);
+    const url = urlPesquisa.toString();
+
+    const canvas = document.getElementById('qrCanvas');
+    QRCode.toCanvas(canvas, url, { width: 320, margin: 2 }, (err) => {
+      if (err) { console.warn('[Admin] Falha ao gerar QR:', err); return; }
+      document.getElementById('qrUrlTexto').textContent = url;
+      document.getElementById('qrResultado').style.display = 'block';
+    });
+  });
+
+  document.getElementById('btnBaixarQr').addEventListener('click', () => {
+    const municipio = document.getElementById('qrMunicipio').value;
+    const unidade = document.getElementById('qrUnidade').value;
+    const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const canvas = document.getElementById('qrCanvas');
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = `qr-${slug(municipio)}-${slug(unidade)}.png`;
+    a.click();
   });
 
   // ---------------------------------------------------------------------
