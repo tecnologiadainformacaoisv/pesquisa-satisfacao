@@ -10,10 +10,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.49">
+<meta name="app-version" content="1.1.50">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.49 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.50 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -370,7 +371,7 @@
   @media print {
     /* Tudo que é interface de navegação/interação some — o relatório
        impresso não é "a tela", é um documento à parte (#printHeader). */
-    #loginOverlay, header.page-header, .base-switch, .filters, #erroCarregamento { display: none !important; }
+    #loginOverlay, header.page-header, .base-switch, .filters, #erroCarregamento, #qrToolSection { display: none !important; }
     #printHeader, #printFooter, .print-section-title { display: block; }
     .print-header__logo { display: none; } /* já vem no timbrado */
 
@@ -472,7 +473,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.49</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.50</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -534,6 +535,28 @@
       <div class="total-badge" id="totalBadge">0 respostas</div>
       <span id="ultimaAtualizacao" style="font-size:12px;color:#95a5a6"></span>
       <span id="erroCarregamento" style="display:none;font-size:12px;font-weight:700;color:#7f8c8d;background:#eef1f4;border-radius:99px;padding:3px 10px;">🔄 Atualizando</span>
+    </div>
+  </div>
+
+  <!-- Gerador de QR code — só admin/super_admin (ver carregarPapelUsuario()).
+       Pra unidades sem tablet físico: o paciente escaneia e cai direto no
+       formulário pelo próprio celular (?municipio=X&unidade=Y, ver
+       aplicarConfigDaUrlSeHouver() em pesquisa.html, v1.1.48+). Município
+       não é travado pelo escopo do usuário — gestor/qualidade pode gerar
+       QR de qualquer unidade da rede, não só do(s) próprio(s) município(s)
+       (decisão explícita, diferente do resto do dashboard). -->
+  <div class="card-panel" id="qrToolSection" style="display:none; margin-bottom:24px;">
+    <div class="chart-title">📱 Gerar QR code — acesso direto sem tablet</div>
+    <div class="chart-sub">Unidade sem tablet físico: o paciente escaneia pelo celular e cai direto no formulário, sem passar pela tela de configuração.</div>
+    <div class="filters-row" style="margin-top:10px;">
+      <select id="qrMunicipio"><option value="">Selecione o município...</option></select>
+      <select id="qrUnidade" disabled><option value="">Selecione a unidade...</option></select>
+      <button type="button" id="btnGerarQr" class="btn btn-outline" disabled>Gerar QR Code</button>
+    </div>
+    <div id="qrResultado" style="display:none; margin-top:14px;">
+      <img id="qrImagem" alt="QR Code" style="max-width:260px;display:block;border:1px solid #dce6f0;border-radius:8px;">
+      <div style="margin-top:10px;font-size:12.5px;color:#7f8c8d;word-break:break-all;" id="qrUrlTexto"></div>
+      <button type="button" id="btnBaixarQr" class="btn btn-green" style="margin-top:10px;">⬇ Baixar PNG</button>
     </div>
   </div>
 
@@ -702,6 +725,7 @@
   let dadosFiltrados = [];
   let todosDados = [];
   let equipamentos = []; // aba Equipamentos — fonte de verdade de município/unidade ativos
+  let papelUsuario = null; // 'super_admin' | 'admin' | 'visualizador' — ver carregarPapelUsuario()
 
   // Config por base: categorias de estrela, se tem NPS, texto de nota, schema
   // de export CSV. As bases NÃO se misturam entre si — cada formulário tem
@@ -896,6 +920,66 @@
     () => contagemPorUnidade(document.getElementById('filtroMunicipio').value));
   document.getElementById('btnRefresh').addEventListener('click', recarregarDados);
 
+  // --- Gerador de QR code (admin/super_admin — ver carregarPapelUsuario) ---
+  // Reaproveita `equipamentos` (já carregado pros filtros de Município/
+  // Unidade) em vez de um fetch próprio — mesma fonte, sem duplicar chamada
+  // ao Apps Script. Município aqui NÃO é travado pelo escopo do usuário —
+  // decisão explícita: o analista de qualidade/gestor contata unidades de
+  // qualquer município, não só o(s) vinculado(s) ao próprio perfil.
+  document.getElementById('qrMunicipio').addEventListener('change', () => {
+    const municipio = document.getElementById('qrMunicipio').value;
+    const selUni = document.getElementById('qrUnidade');
+    const unidades = equipamentos
+      .filter(e => e.municipio === municipio)
+      .map(e => e.unidade).filter(Boolean).sort();
+
+    selUni.innerHTML = '<option value="">Selecione a unidade...</option>' +
+      unidades.map(u => `<option value="${u.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}">${u.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</option>`).join('');
+    selUni.disabled = !municipio;
+    document.getElementById('btnGerarQr').disabled = true;
+    document.getElementById('qrResultado').style.display = 'none';
+  });
+
+  document.getElementById('qrUnidade').addEventListener('change', () => {
+    document.getElementById('btnGerarQr').disabled = !document.getElementById('qrUnidade').value;
+    document.getElementById('qrResultado').style.display = 'none';
+  });
+
+  document.getElementById('btnGerarQr').addEventListener('click', () => {
+    const municipio = document.getElementById('qrMunicipio').value;
+    const unidade = document.getElementById('qrUnidade').value;
+    if (!municipio || !unidade) return;
+
+    // Relativo à própria página (dashboard.html, na raiz do site) — bate
+    // com pesquisa.html, que também está na raiz.
+    const urlPesquisa = new URL('pesquisa.html', location.href);
+    urlPesquisa.searchParams.set('municipio', municipio);
+    urlPesquisa.searchParams.set('unidade', unidade);
+    const url = urlPesquisa.toString();
+
+    try {
+      const qr = qrcode(0, 'M'); // 0 = tamanho detectado automaticamente; M = correção de erro média
+      qr.addData(url);
+      qr.make();
+      document.getElementById('qrImagem').src = qr.createDataURL(8, 2);
+      document.getElementById('qrUrlTexto').textContent = url;
+      document.getElementById('qrResultado').style.display = 'block';
+    } catch (err) {
+      console.warn('[Dashboard] Falha ao gerar QR:', err);
+    }
+  });
+
+  document.getElementById('btnBaixarQr').addEventListener('click', () => {
+    const municipio = document.getElementById('qrMunicipio').value;
+    const unidade = document.getElementById('qrUnidade').value;
+    const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const a = document.createElement('a');
+    a.href = document.getElementById('qrImagem').src;
+    a.download = `qr-${slug(municipio)}-${slug(unidade)}.png`;
+    a.click();
+  });
+
   async function fazerLogin() {
     if (!supabaseAuth) {
       document.getElementById('loginError').textContent = 'Falha ao carregar autenticação. Recarregue a página.';
@@ -938,6 +1022,27 @@
     location.reload();
   }
 
+  // Lê o papel do usuário logado direto da tabela perfis (RLS já garante
+  // que cada um só lê o próprio registro) — usado pra mostrar/esconder
+  // ferramentas que não fazem sentido pra 'visualizador' (ex: gerador de
+  // QR code). Falha silenciosa: sem papel reconhecido, trata como
+  // 'visualizador' (mais restritivo), nunca abre ferramenta de configuração
+  // por engano.
+  async function carregarPapelUsuario() {
+    try {
+      const { data: sessao } = await supabaseAuth.auth.getSession();
+      if (!sessao.session) return;
+      const { data: perfil } = await supabaseAuth
+        .from('perfis').select('papel').eq('id', sessao.session.user.id).single();
+      papelUsuario = perfil ? perfil.papel : null;
+    } catch (err) {
+      console.warn('[Dashboard] Falha ao buscar papel do usuário:', err.message);
+      papelUsuario = null;
+    }
+    document.getElementById('qrToolSection').style.display =
+      (papelUsuario === 'admin' || papelUsuario === 'super_admin') ? 'block' : 'none';
+  }
+
   // --- INIT ---
   async function iniciar() {
     const now = new Date();
@@ -945,7 +1050,7 @@
       'Relatório gerado em ' + now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     document.getElementById('totalBadge').textContent = 'Carregando...';
-    [dadosCache.nova, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos()]);
+    [dadosCache.nova, equipamentos] = await Promise.all([carregarDados(), carregarEquipamentos(), carregarPapelUsuario()]);
     todosDados = dadosCache.nova;
     atualizarNotaBase();
     popularFiltros(todosDados);

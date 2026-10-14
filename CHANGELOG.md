@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.50] — 2026-10-14
+### Alterado
+- Gerador de QR code (unidades sem tablet físico) movido de `supabase/admin.html` (só super_admin/TI) pra `dashboard.html`, visível também pra papel `admin` — quem contata as unidades no dia a dia (analista de qualidade) não precisa de acesso de TI só pra gerar um link/QR. Sem trava por município do perfil (gera de qualquer unidade da rede, de propósito). Escondido do relatório impresso.
+
+---
+
 ## [1.1.49] — 2026-10-14
 ### Adicionado
 - `pesquisa.html`: logo institucional mostrado quando a unidade é configurada — agora suporta logo por UNIDADE específica (`UNIDADE_LOGOS`, tem prioridade sobre o logo genérico de município), além do logo por município já existente (`MUNICIPIO_LOGOS`). Adicionados: logo "Prefeitura de Maracanaú" (município) e brasão do CAPS de Tabuleiro do Norte (só pra essa unidade — não deveria aparecer nas demais unidades do município).
