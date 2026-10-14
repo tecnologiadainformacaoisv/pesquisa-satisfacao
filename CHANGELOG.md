@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.51] — 2026-10-14
+### Corrigido
+- `dashboard.html`: dropdown de Município do gerador de QR code nunca aparecia populado — faltava a função que preenchia as opções (só existia a cascata de Unidade). Corrigido com `popularQrMunicipio()`, chamada no carregamento inicial e em todo refresh.
+
+---
+
 ## [1.1.50] — 2026-10-14
 ### Alterado
 - Gerador de QR code (unidades sem tablet físico) movido de `supabase/admin.html` (só super_admin/TI) pra `dashboard.html`, visível também pra papel `admin` — quem contata as unidades no dia a dia (analista de qualidade) não precisa de acesso de TI só pra gerar um link/QR. Sem trava por município do perfil (gera de qualquer unidade da rede, de propósito). Escondido do relatório impresso.

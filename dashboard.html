@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.50">
+<meta name="app-version" content="1.1.51">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.50 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.51 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -473,7 +473,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.50</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.51</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -926,6 +926,23 @@
   // ao Apps Script. Município aqui NÃO é travado pelo escopo do usuário —
   // decisão explícita: o analista de qualidade/gestor contata unidades de
   // qualquer município, não só o(s) vinculado(s) ao próprio perfil.
+  function popularQrMunicipio() {
+    const sel = document.getElementById('qrMunicipio');
+    const atual = sel.value;
+    const municipios = [...new Set(equipamentos.map(e => e.municipio).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">Selecione o município...</option>' +
+      municipios.map(m => `<option value="${m.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}">${m.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</option>`).join('');
+    if (municipios.includes(atual)) {
+      sel.value = atual;
+    } else {
+      // município sumiu/não tinha seleção — reseta a cascata de unidade junto
+      document.getElementById('qrUnidade').innerHTML = '<option value="">Selecione a unidade...</option>';
+      document.getElementById('qrUnidade').disabled = true;
+      document.getElementById('btnGerarQr').disabled = true;
+      document.getElementById('qrResultado').style.display = 'none';
+    }
+  }
+
   document.getElementById('qrMunicipio').addEventListener('change', () => {
     const municipio = document.getElementById('qrMunicipio').value;
     const selUni = document.getElementById('qrUnidade');
@@ -1054,6 +1071,7 @@
     todosDados = dadosCache.nova;
     atualizarNotaBase();
     popularFiltros(todosDados);
+    popularQrMunicipio(); // equipamentos já carregado pelo Promise.all acima
     atualizar();
 
     document.getElementById('ultimaAtualizacao').textContent =
@@ -1099,6 +1117,7 @@
     if ([...selUni.options].some(o => o.value === savedUni)) selUni.value = savedUni;
 
     atualizarDiasDisponiveis();
+    popularQrMunicipio(); // equipamentos acabou de ser recarregado acima
     atualizar();
 
     document.getElementById('ultimaAtualizacao').textContent =
