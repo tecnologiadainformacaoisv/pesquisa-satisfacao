@@ -178,7 +178,7 @@
           <button type="button" id="btnGerarQr" disabled>Gerar QR Code</button>
         </div>
         <div id="qrResultado" style="display:none">
-          <canvas id="qrCanvas"></canvas>
+          <img id="qrImagem" alt="QR Code" style="max-width:320px;display:block;border:1px solid #dce6f0;border-radius:8px;">
           <div style="margin-top:10px;font-size:12.5px;color:#7f8c8d;word-break:break-all;" id="qrUrlTexto"></div>
           <button type="button" id="btnBaixarQr" style="margin-top:10px;background:#1a6b4a;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">⬇ Baixar PNG</button>
         </div>
@@ -199,7 +199,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
   if (!window.supabase) {
     document.body.innerHTML = '<p style="padding:40px;text-align:center">Falha ao carregar biblioteca de autenticação. Recarregue a página.</p>';
@@ -667,12 +667,20 @@
     urlPesquisa.searchParams.set('unidade', unidade);
     const url = urlPesquisa.toString();
 
-    const canvas = document.getElementById('qrCanvas');
-    QRCode.toCanvas(canvas, url, { width: 320, margin: 2 }, (err) => {
-      if (err) { console.warn('[Admin] Falha ao gerar QR:', err); return; }
+    try {
+      // 0 = tamanho da matriz detectado automaticamente a partir do
+      // tamanho da URL; 'M' = correção de erro média (padrão razoável
+      // pra impressão — aguenta sujeira/dobra leve sem precisar de uma
+      // matriz maior).
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      document.getElementById('qrImagem').src = qr.createDataURL(8, 2); // 8px por módulo, margem de 2 módulos
       document.getElementById('qrUrlTexto').textContent = url;
       document.getElementById('qrResultado').style.display = 'block';
-    });
+    } catch (err) {
+      console.warn('[Admin] Falha ao gerar QR:', err);
+    }
   });
 
   document.getElementById('btnBaixarQr').addEventListener('click', () => {
@@ -680,9 +688,8 @@
     const unidade = document.getElementById('qrUnidade').value;
     const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
       .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const canvas = document.getElementById('qrCanvas');
     const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
+    a.href = document.getElementById('qrImagem').src;
     a.download = `qr-${slug(municipio)}-${slug(unidade)}.png`;
     a.click();
   });
