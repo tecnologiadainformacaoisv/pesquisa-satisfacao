@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.47">
+<meta name="app-version" content="1.1.48">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -493,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.47</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.48</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -515,8 +515,37 @@
   const PROGRESS = { 0: 0, 1: 0, 2: 20, 3: 40, 4: 60, 5: 80, 6: 100, 7: 100, 8: 100 };
 
   // ── Configuração do tablet ──────────────────────────────────────────────────
+  // Acesso direto por QR code (unidades sem tablet físico): a URL pode trazer
+  // ?municipio=...&unidade=..., validados contra a aba Equipamentos antes de
+  // aceitar (ver aplicarConfigDaUrlSeHouver). Fica só em memória — não grava
+  // no localStorage, porque é o celular do próprio paciente, não deve
+  // "lembrar" o scan de um paciente pro próximo que usar o mesmo aparelho.
+  let configDaUrlValidada = null;
+
   function getConfig() {
+    if (configDaUrlValidada) return configDaUrlValidada;
     try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}'); } catch(e) { return {}; }
+  }
+
+  async function aplicarConfigDaUrlSeHouver() {
+    const params = new URLSearchParams(location.search);
+    const municipio = params.get('municipio');
+    const unidade = params.get('unidade');
+    if (!municipio || !unidade) return;
+
+    try {
+      const resp = await fetch(SCRIPT_URL + '?action=config');
+      const equipamentos = await resp.json();
+      const existe = Array.isArray(equipamentos) &&
+        equipamentos.some(e => e.municipio === municipio && e.unidade === unidade);
+      if (existe) {
+        configDaUrlValidada = { municipio, unidade };
+        aplicarConfig();
+      }
+      // Município/unidade na URL mas não encontrados na aba Equipamentos
+      // (link com erro de digitação, ou unidade desativada) — ignora
+      // silenciosamente e cai no fluxo normal (overlay de configuração).
+    } catch (e) {}
   }
 
   function aplicarConfig() {
@@ -649,6 +678,11 @@
     const municipio = document.getElementById('configMunicipio').value;
     const unidade   = document.getElementById('configUnidade').value;
     if (!municipio || !unidade) return;
+    // Se essa sessão tinha vindo validada por QR code, um salvamento manual
+    // pelo overlay de admin tem que assumir o controle — senão getConfig()
+    // continuaria devolvendo o valor antigo da URL (configDaUrlValidada tem
+    // prioridade), ignorando o que acabou de ser salvo no localStorage.
+    configDaUrlValidada = null;
     localStorage.setItem(CONFIG_KEY, JSON.stringify({ municipio, unidade }));
     aplicarConfig();
     fecharConfig();
@@ -944,6 +978,7 @@
   // ── Init ────────────────────────────────────────────────────────────────────
   buildStars();
   aplicarConfig();
+  aplicarConfigDaUrlSeHouver(); // assíncrono — se validar, chama aplicarConfig() de novo
 
   // Busca senha da planilha imediatamente (antes de qualquer interação)
   const configSenhaPromise = fetch(SCRIPT_URL + '?action=configuracao')

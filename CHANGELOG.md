@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.48] — 2026-10-14
+### Adicionado
+- `pesquisa.html`: acesso direto via QR code pra unidades sem tablet físico (ex: 4 UBS de Lavras da Mangabeira) — URL com `?municipio=X&unidade=Y` pula o overlay de configuração direto pro formulário, no celular do próprio paciente. Município/unidade são validados contra a aba Equipamentos real antes de aceitar (evita virar "município fantasma" se o link tiver erro de digitação); não grava no `localStorage` (não deve "lembrar" o scan de um paciente pro próximo que usar o mesmo aparelho).
+
+---
+
 ## [1.1.46] — 2026-09-17
 ### Alterado
 - `index.html`: card do Dashboard (5º item, ímpar no grid de 2 colunas) ficava sozinho grudado à esquerda na última linha. Agora ocupa a largura toda (`grid-column: 1 / -1`) e vira um banner horizontal (ícone | texto | botão) — centralizado, maior, melhor encaixado no grid. Em telas estreitas (≤560px) volta ao layout em coluna, igual aos outros cards.
