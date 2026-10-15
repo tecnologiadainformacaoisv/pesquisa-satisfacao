@@ -5,6 +5,13 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.53] — 2026-10-15
+### Adicionado
+- `pesquisa.html`: logos oficiais de mais 10 municípios em `MUNICIPIO_LOGOS` (baixados dos sites oficiais das prefeituras) — Forquilha, Guaraciaba do Norte, Iguatu, Lavras da Mangabeira, Massapé, Orós, Pacatuba, Pedra Branca, Tabuleiro do Norte, Várzea Alegre. Aparecem no header do formulário quando o tablet/QR code está configurado pra esses municípios.
+- `sw.js`: adicionados ao cache os logos de município que faltavam (incluindo `maracanau.jpeg` e `caps-tabuleiro-ana-rita.jpeg`, da v1.1.49, que nunca tinham sido cacheados).
+
+---
+
 ## [1.1.52] — 2026-10-14
 ### Corrigido
 - `dashboard.html`: botão "Gerar QR Code" invisível — usava `.btn-outline` (texto branco em fundo transparente, feita pro cabeçalho escuro) dentro de um card de fundo branco, ficando texto branco sobre branco. Trocado pra `.btn--primary` (fundo colorido, visível).

@@ -1,4 +1,4 @@
-const APP_VERSION = '1.1.52';
+const APP_VERSION = '1.1.53';
 const CACHE_NAME = `pesquisa-satisfacao-${APP_VERSION}`;
 
 const URLS = [
@@ -18,6 +18,18 @@ const URLS = [
   '/pesquisa-satisfacao/assets/Logo-isv.svg',
   '/pesquisa-satisfacao/assets/timbrado-isv.png',
   '/pesquisa-satisfacao/assets/municipios/caucaia.png',
+  '/pesquisa-satisfacao/assets/municipios/maracanau.jpeg',
+  '/pesquisa-satisfacao/assets/municipios/caps-tabuleiro-ana-rita.jpeg',
+  '/pesquisa-satisfacao/assets/municipios/forquilha.png',
+  '/pesquisa-satisfacao/assets/municipios/guaraciaba-do-norte.png',
+  '/pesquisa-satisfacao/assets/municipios/iguatu.png',
+  '/pesquisa-satisfacao/assets/municipios/lavras-da-mangabeira.png',
+  '/pesquisa-satisfacao/assets/municipios/massape.png',
+  '/pesquisa-satisfacao/assets/municipios/oros.png',
+  '/pesquisa-satisfacao/assets/municipios/pacatuba.png',
+  '/pesquisa-satisfacao/assets/municipios/pedra-branca.png',
+  '/pesquisa-satisfacao/assets/municipios/tabuleiro-do-norte.png',
+  '/pesquisa-satisfacao/assets/municipios/varzea-alegre.png',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
 ];
 
