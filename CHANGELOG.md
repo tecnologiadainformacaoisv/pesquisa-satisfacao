@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.58] — 2026-10-15
+### Alterado
+- `dashboard.html`: padding de baixo ajustado no painel do gerador de QR code (`#qrToolSection`) e na caixa de preview do cartaz (`.qr-poster-box`), a gosto do usuário via teste visual no live server.
+
+---
+
 ## [1.1.57] — 2026-10-15
 ### Alterado
 - `dashboard.html`: fórmula do "NPS Score" muda a pedido da diretoria — passa a ser `(promotores + neutros − detratores) / total × 100`, em vez da fórmula clássica de mercado `(promotores − detratores) / total × 100`. Afeta só a exibição no dashboard; não muda os dados salvos nem o cálculo de % de promotores/neutros/detratores individualmente.

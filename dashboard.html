@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.57">
+<meta name="app-version" content="1.1.58">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.57 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.58 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -70,6 +70,7 @@
 
   /* Gerador de QR code — toolbar centralizada, selects com o mesmo
      arredondamento dos filtros principais (fora nativos sem estilo). */
+  #qrToolSection { padding: 20px 24px 20px; }
   #qrToolSection .chart-title, #qrToolSection .chart-sub { text-align: center; }
   #qrToolSection .filters-row { justify-content: center; }
   #qrToolSection select {
@@ -88,7 +89,7 @@
     z-index: 998; padding: 24px;
   }
   .qr-poster-box {
-    background: white; border-radius: 20px; padding: 28px;
+    background: white; border-radius: 20px; padding: 28px 28px 20px;
     width: min(600px, 92vw); max-height: 90vh;
     box-shadow: 0 24px 64px rgba(0,0,0,0.35);
     display: flex; flex-direction: column; gap: 14px; position: relative;
@@ -511,7 +512,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.57</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.58</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
