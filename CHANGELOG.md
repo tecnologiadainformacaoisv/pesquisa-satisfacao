@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.56] — 2026-10-15
+### Revertido
+- `css/instituto.css`: desfeita a borda de 2px em `.card-panel` (adicionada na v1.1.55) — usuário não gostou do resultado visual, a reavaliar depois.
+
+---
+
 ## [1.1.55] — 2026-10-15
 ### Alterado
 - `dashboard.html`: nome do PDF do cartaz passa a ser legível ("Unidade - Município.pdf", com acentos e espaços) em vez de slug ASCII, pra identificar o equipamento só pelo nome do arquivo baixado.

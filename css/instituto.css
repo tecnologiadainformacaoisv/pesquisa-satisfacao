@@ -90,7 +90,6 @@ a {
   background: var(--instituto-surface);
   border-radius: var(--instituto-radius);
   box-shadow: var(--instituto-shadow);
-  border: 2px solid var(--instituto-primary-2);
 }
 
 .btn {
