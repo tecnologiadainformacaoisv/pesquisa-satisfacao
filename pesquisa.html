@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pesquisa de Satisfação">
-<meta name="app-version" content="1.1.58">
+<meta name="app-version" content="1.1.59">
 <link rel="stylesheet" href="css/instituto.css">
 <title>Pesquisa de Satisfação</title>
 <style>
@@ -402,7 +402,7 @@
     </div>
     <div class="unit-badge" id="unitBadge">📍 Carregando...</div>
     <div class="time-badge">⏱ Menos de 1 minuto</div>
-    <button class="btn-next" id="btnIniciar" onclick="nextStep()">Iniciar Pesquisa</button>
+    <button class="btn-next" id="btnIniciar" onclick="nextStep()" disabled>Carregando...</button>
     <button class="btn-config-inline" id="btnConfigInline">⚙ Configurar unidade</button>
   </div>
 
@@ -493,7 +493,7 @@
 
 <button class="admin-link" id="adminBtn" title="Configurar tablet">⚙</button>
 
-<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.58</div>
+<div style="position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);pointer-events:none;">Instituto São Vicente · Pesquisa de Satisfação · v1.1.59</div>
 
 <iframe id="form_target" name="form_target" style="display:none"></iframe>
 
@@ -549,7 +549,7 @@
     const params = new URLSearchParams(location.search);
     const municipio = params.get('municipio');
     const unidade = params.get('unidade');
-    if (!municipio || !unidade) return;
+    if (!municipio || !unidade) { aplicarConfig(); return; }
 
     try {
       const resp = await fetch(SCRIPT_URL + '?action=config');
@@ -558,12 +558,15 @@
         equipamentos.some(e => e.municipio === municipio && e.unidade === unidade);
       if (existe) {
         configDaUrlValidada = { municipio, unidade };
-        aplicarConfig();
       }
       // Município/unidade na URL mas não encontrados na aba Equipamentos
       // (link com erro de digitação, ou unidade desativada) — ignora
       // silenciosamente e cai no fluxo normal (overlay de configuração).
-    } catch (e) {}
+    } catch (e) {
+      // Falha de rede validando a URL — segue pro fallback abaixo (config
+      // salva localmente, se houver, ou tela de "não configurado").
+    }
+    aplicarConfig();
   }
 
   function aplicarConfig() {
@@ -995,8 +998,13 @@
 
   // ── Init ────────────────────────────────────────────────────────────────────
   buildStars();
-  aplicarConfig();
-  aplicarConfigDaUrlSeHouver(); // assíncrono — se validar, chama aplicarConfig() de novo
+  // Com ?municipio=&unidade= na URL, não renderiza a config antiga do
+  // localStorage de cara (evita piscar uma unidade errada em celulares que já
+  // configuraram algum tablet antes) — fica no "Carregando..." do HTML até
+  // aplicarConfigDaUrlSeHouver() validar e chamar aplicarConfig() ela mesma.
+  const temParamsDeUrl = new URLSearchParams(location.search).has('municipio');
+  if (!temParamsDeUrl) aplicarConfig();
+  aplicarConfigDaUrlSeHouver();
 
   // Busca senha da planilha imediatamente (antes de qualquer interação)
   const configSenhaPromise = fetch(SCRIPT_URL + '?action=configuracao')

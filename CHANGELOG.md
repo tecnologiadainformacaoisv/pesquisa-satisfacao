@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.59] — 2026-10-15
+### Corrigido
+- `pesquisa.html`: ao abrir um QR code de acesso direto (`?municipio=&unidade=`) num celular que já tinha configurado algum tablet antes, a tela mostrava por alguns segundos a unidade antiga salva no `localStorage` antes de trocar pra unidade correta do QR ("flash" da unidade errada). Agora, quando a URL traz esses parâmetros, a tela fica em estado de carregamento neutro até a validação terminar, em vez de renderizar a config antiga primeiro.
+- `pesquisa.html`: botão "Iniciar Pesquisa" nasce desabilitado ("Carregando...") até a configuração da unidade (local ou validada por QR) ser confirmada — evita iniciar a pesquisa antes da unidade certa estar definida.
+- `pesquisa.html`: corrigido caso extremo de link de QR malformado (só `municipio` ou só `unidade` na URL, sem o par completo) que deixava a tela presa em "Carregando..." permanentemente — agora cai no fallback normal (config local ou tela de "não configurada").
+
+---
+
 ## [1.1.58] — 2026-10-15
 ### Alterado
 - `dashboard.html`: padding de baixo ajustado no painel do gerador de QR code (`#qrToolSection`) e na caixa de preview do cartaz (`.qr-poster-box`), a gosto do usuário via teste visual no live server.
