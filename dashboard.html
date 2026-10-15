@@ -1097,7 +1097,11 @@
       const nomeArquivo = (s) => s.replace(/[\\/:*?"<>|]/g, '').trim();
 
       document.getElementById('qrPosterTitulo').textContent = `${unidade} — ${municipio}`;
-      document.getElementById('qrPosterFrame').src = blobUrl;
+      // #toolbar=0 tira a barra de ferramentas nativa do visualizador de PDF
+      // do navegador — o ícone de salvar dela ignora nosso nome de arquivo
+      // (usa o título da aba), então só o botão "Baixar PDF" abaixo deve
+      // ser usado pra baixar.
+      document.getElementById('qrPosterFrame').src = blobUrl + '#toolbar=0';
       const link = document.getElementById('btnBaixarPoster');
       link.href = blobUrl;
       link.setAttribute('download', `${nomeArquivo(unidade)} - ${nomeArquivo(municipio)}.pdf`);
