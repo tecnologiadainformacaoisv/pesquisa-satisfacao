@@ -5,6 +5,12 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.57] — 2026-10-15
+### Alterado
+- `dashboard.html`: fórmula do "NPS Score" muda a pedido da diretoria — passa a ser `(promotores + neutros − detratores) / total × 100`, em vez da fórmula clássica de mercado `(promotores − detratores) / total × 100`. Afeta só a exibição no dashboard; não muda os dados salvos nem o cálculo de % de promotores/neutros/detratores individualmente.
+
+---
+
 ## [1.1.56] — 2026-10-15
 ### Revertido
 - `css/instituto.css`: desfeita a borda de 2px em `.card-panel` (adicionada na v1.1.55) — usuário não gostou do resultado visual, a reavaliar depois.

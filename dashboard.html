@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.56">
+<meta name="app-version" content="1.1.57">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.56 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.57 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -511,7 +511,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.56</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.57</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -1758,7 +1758,9 @@
       const promoters = comNPS.filter(d => d.nps >= 9).length;
       const passives = comNPS.filter(d => d.nps >= 7 && d.nps <= 8).length;
       const detractors = comNPS.filter(d => d.nps <= 6).length;
-      const nps = total ? Math.round(((promoters - detractors) / total) * 100) : null;
+      // Fórmula a pedido da diretoria (2026-10): promotores + neutros -
+      // detratores (antes era o NPS padrão, promotores - detratores).
+      const nps = total ? Math.round(((promoters + passives - detractors) / total) * 100) : null;
 
       const npsStr = nps === null ? '—' : (nps > 0 ? '+' : '') + nps;
       document.getElementById('npsScoreBig').textContent = npsStr;
