@@ -5,6 +5,15 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.55] — 2026-10-15
+### Alterado
+- `dashboard.html`: nome do PDF do cartaz passa a ser legível ("Unidade - Município.pdf", com acentos e espaços) em vez de slug ASCII, pra identificar o equipamento só pelo nome do arquivo baixado.
+- `dashboard.html`: preview do cartaz esconde a barra de ferramentas nativa do visualizador de PDF do navegador (`#toolbar=0`) — o ícone de salvar dela ignorava o nome de arquivo definido pelo app; só o botão "Baixar PDF" deve ser usado.
+- `dashboard.html`: título/subtítulo do gerador de QR code centralizados.
+- `css/instituto.css`: `.card-panel` (base de todas as caixas do dashboard — filtros, métricas, gráficos, comentários, gerador de QR) ganha borda de 2px na cor institucional (`--instituto-primary-2`), separando visualmente os setores da tela.
+
+---
+
 ## [1.1.54] — 2026-10-15
 ### Adicionado
 - `dashboard.html`: botão "Gerar QR Code" agora compõe o cartaz completo (template oficial + logo do município + QR) em vez de gerar só o QR cru, e o resultado vira um PDF (via jsPDF) exibido numa caixa sobreposta à tela (modal) para visualização e download — não fica mais embutido na própria aba do dashboard.
