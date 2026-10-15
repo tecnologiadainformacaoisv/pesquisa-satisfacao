@@ -1,4 +1,4 @@
-const APP_VERSION = '1.1.53';
+const APP_VERSION = '1.1.54';
 const CACHE_NAME = `pesquisa-satisfacao-${APP_VERSION}`;
 
 const URLS = [
@@ -30,7 +30,9 @@ const URLS = [
   '/pesquisa-satisfacao/assets/municipios/pedra-branca.png',
   '/pesquisa-satisfacao/assets/municipios/tabuleiro-do-norte.png',
   '/pesquisa-satisfacao/assets/municipios/varzea-alegre.png',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
+  '/pesquisa-satisfacao/docs/qrcodes/Template-QR-Code-Pesquisa-ISV.png',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'
 ];
 
 self.addEventListener('install', event => {

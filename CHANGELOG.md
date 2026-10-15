@@ -5,6 +5,14 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.54] — 2026-10-15
+### Adicionado
+- `dashboard.html`: botão "Gerar QR Code" agora compõe o cartaz completo (template oficial + logo do município + QR) em vez de gerar só o QR cru, e o resultado vira um PDF (via jsPDF) exibido numa caixa sobreposta à tela (modal) para visualização e download — não fica mais embutido na própria aba do dashboard.
+### Alterado
+- `dashboard.html`: toolbar do gerador de QR code centralizada, com os selects de Município/Unidade ganhando o mesmo estilo arredondado dos demais filtros do dashboard (antes usavam o select nativo do navegador, sem estilo).
+
+---
+
 ## [1.1.53] — 2026-10-15
 ### Adicionado
 - `pesquisa.html`: logos oficiais de mais 10 municípios em `MUNICIPIO_LOGOS` (baixados dos sites oficiais das prefeituras) — Forquilha, Guaraciaba do Norte, Iguatu, Lavras da Mangabeira, Massapé, Orós, Pacatuba, Pedra Branca, Tabuleiro do Norte, Várzea Alegre. Aparecem no header do formulário quando o tablet/QR code está configurado pra esses municípios.

@@ -10,11 +10,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dashboard Satisfação">
-<meta name="app-version" content="1.1.53">
+<meta name="app-version" content="1.1.54">
 <link rel="stylesheet" href="css/instituto.css">
-<title>Dashboard v1.1.53 — Pesquisa de Satisfação</title>
+<title>Dashboard v1.1.54 — Pesquisa de Satisfação</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,6 +67,42 @@
   }
   .login-box button:hover { opacity: 0.9; }
   .login-error { color: #e74c3c; font-size: 13px; margin-top: 10px; display: none; }
+
+  /* Gerador de QR code — toolbar centralizada, selects com o mesmo
+     arredondamento dos filtros principais (fora nativos sem estilo). */
+  #qrToolSection .filters-row { justify-content: center; }
+  #qrToolSection select {
+    padding: 10px 14px; border: 2px solid #dce6f0; border-radius: 10px;
+    font-size: 14px; color: #2c3e50; outline: none; cursor: pointer;
+    background: white; max-width: 240px;
+  }
+  #qrToolSection select:focus { border-color: #2980b9; }
+
+  /* Cartaz gerado (PDF) — exibido sobreposto à tela, não embutido no
+     dashboard; a pessoa visualiza e baixa, sem poluir o relatório. */
+  #qrPosterModal {
+    position: fixed; inset: 0;
+    background: rgba(10, 61, 98, 0.75);
+    display: none; align-items: center; justify-content: center;
+    z-index: 998; padding: 24px;
+  }
+  .qr-poster-box {
+    background: white; border-radius: 20px; padding: 28px;
+    width: min(600px, 92vw); max-height: 90vh;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    display: flex; flex-direction: column; gap: 14px; position: relative;
+  }
+  .qr-poster-box__close {
+    position: absolute; top: 14px; right: 14px; border: none; background: #eef2f6;
+    width: 32px; height: 32px; border-radius: 50%; font-size: 16px; color: #7f8c8d;
+    cursor: pointer; line-height: 1;
+  }
+  .qr-poster-box__close:hover { background: #dde4ea; color: #2c3e50; }
+  .qr-poster-box h3 { font-size: 16px; color: #1e5f8a; padding-right: 36px; }
+  .qr-poster-box iframe {
+    width: 100%; flex: 1; min-height: 60vh; border: 1px solid #dce6f0; border-radius: 12px;
+  }
+  .qr-poster-box__actions { display: flex; justify-content: flex-end; }
 
   /* Filters — 2 linhas para não causar overflow em landscape */
   /* Seletor de base (Pesquisa Nova / Antiga) */
@@ -371,7 +408,7 @@
   @media print {
     /* Tudo que é interface de navegação/interação some — o relatório
        impresso não é "a tela", é um documento à parte (#printHeader). */
-    #loginOverlay, header.page-header, .base-switch, .filters, #erroCarregamento, #qrToolSection { display: none !important; }
+    #loginOverlay, header.page-header, .base-switch, .filters, #erroCarregamento, #qrToolSection, #qrPosterModal { display: none !important; }
     #printHeader, #printFooter, .print-section-title { display: block; }
     .print-header__logo { display: none; } /* já vem no timbrado */
 
@@ -473,7 +510,7 @@
 
 <header class="page-header">
   <div class="header-left">
-    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.53</span></h1>
+    <h1 class="page-header__title">🏥 Dashboard de Satisfação <span class="version-badge" id="versionBadge">v1.1.54</span></h1>
     <p class="page-header__subtitle" id="headerDate">Carregando...</p>
   </div>
   <div class="page-header__actions">
@@ -553,10 +590,16 @@
       <select id="qrUnidade" disabled><option value="">Selecione a unidade...</option></select>
       <button type="button" id="btnGerarQr" class="btn btn--primary" disabled>Gerar QR Code</button>
     </div>
-    <div id="qrResultado" style="display:none; margin-top:14px;">
-      <img id="qrImagem" alt="QR Code" style="max-width:260px;display:block;border:1px solid #dce6f0;border-radius:8px;">
-      <div style="margin-top:10px;font-size:12.5px;color:#7f8c8d;word-break:break-all;" id="qrUrlTexto"></div>
-      <button type="button" id="btnBaixarQr" class="btn btn-green" style="margin-top:10px;">⬇ Baixar PNG</button>
+  </div>
+
+  <div id="qrPosterModal">
+    <div class="qr-poster-box">
+      <button type="button" class="qr-poster-box__close" id="btnFecharPoster" aria-label="Fechar">✕</button>
+      <h3 id="qrPosterTitulo"></h3>
+      <iframe id="qrPosterFrame" title="Pré-visualização do cartaz"></iframe>
+      <div class="qr-poster-box__actions">
+        <a id="btnBaixarPoster" class="btn btn-green" download>⬇ Baixar PDF</a>
+      </div>
     </div>
   </div>
 
@@ -926,6 +969,52 @@
   // ao Apps Script. Município aqui NÃO é travado pelo escopo do usuário —
   // decisão explícita: o analista de qualidade/gestor contata unidades de
   // qualquer município, não só o(s) vinculado(s) ao próprio perfil.
+  // Logos pro cartaz (espelha MUNICIPIO_LOGOS/UNIDADE_LOGOS de pesquisa.html
+  // — mesma lógica de prioridade: unidade específica > logo do município).
+  const QR_MUNICIPIO_LOGOS = {
+    'Caucaia': 'assets/municipios/caucaia.png',
+    'Maracanaú': 'assets/municipios/maracanau.jpeg',
+    'Forquilha': 'assets/municipios/forquilha.png',
+    'Guaraciaba do Norte': 'assets/municipios/guaraciaba-do-norte.png',
+    'Iguatu': 'assets/municipios/iguatu.png',
+    'Lavras da Mangabeira': 'assets/municipios/lavras-da-mangabeira.png',
+    'Massapé': 'assets/municipios/massape.png',
+    'Orós': 'assets/municipios/oros.png',
+    'Pacatuba': 'assets/municipios/pacatuba.png',
+    'Pedra Branca': 'assets/municipios/pedra-branca.png',
+    'Tabuleiro do Norte': 'assets/municipios/tabuleiro-do-norte.png',
+    'Várzea Alegre': 'assets/municipios/varzea-alegre.png'
+  };
+  const QR_UNIDADE_LOGOS = {
+    'Tabuleiro do Norte|Ana Rita Bezerra Maia Moreira': 'assets/municipios/caps-tabuleiro-ana-rita.jpeg'
+  };
+  const QR_TEMPLATE_CARTAZ = 'docs/qrcodes/Template-QR-Code-Pesquisa-ISV.png';
+  // Caixas do template (2480x3508px — proporção A4) onde QR e logo entram,
+  // definidas empiricamente no teste aprovado do cartaz de Maracanaú.
+  const QR_CAIXA = { x: 100, y: 1600, w: 750, h: 750 };
+  const LOGO_CAIXA = { x: 1680, y: 250, w: 720, h: 330 };
+
+  function logoParaCartaz(municipio, unidade) {
+    return QR_UNIDADE_LOGOS[municipio + '|' + unidade] || QR_MUNICIPIO_LOGOS[municipio] || null;
+  }
+
+  function carregarImagem(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  // Desenha preservando proporção, centralizado dentro da caixa alvo.
+  function desenharAjustado(ctx, img, caixa) {
+    const escala = Math.min(caixa.w / img.width, caixa.h / img.height);
+    const dw = img.width * escala, dh = img.height * escala;
+    const dx = caixa.x + (caixa.w - dw) / 2, dy = caixa.y + (caixa.h - dh) / 2;
+    ctx.drawImage(img, dx, dy, dw, dh);
+  }
+
   function popularQrMunicipio() {
     const sel = document.getElementById('qrMunicipio');
     const atual = sel.value;
@@ -939,7 +1028,6 @@
       document.getElementById('qrUnidade').innerHTML = '<option value="">Selecione a unidade...</option>';
       document.getElementById('qrUnidade').disabled = true;
       document.getElementById('btnGerarQr').disabled = true;
-      document.getElementById('qrResultado').style.display = 'none';
     }
   }
 
@@ -954,47 +1042,74 @@
       unidades.map(u => `<option value="${u.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}">${u.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</option>`).join('');
     selUni.disabled = !municipio;
     document.getElementById('btnGerarQr').disabled = true;
-    document.getElementById('qrResultado').style.display = 'none';
   });
 
   document.getElementById('qrUnidade').addEventListener('change', () => {
     document.getElementById('btnGerarQr').disabled = !document.getElementById('qrUnidade').value;
-    document.getElementById('qrResultado').style.display = 'none';
   });
 
-  document.getElementById('btnGerarQr').addEventListener('click', () => {
+  document.getElementById('btnGerarQr').addEventListener('click', async () => {
     const municipio = document.getElementById('qrMunicipio').value;
     const unidade = document.getElementById('qrUnidade').value;
     if (!municipio || !unidade) return;
 
-    // Relativo à própria página (dashboard.html, na raiz do site) — bate
-    // com pesquisa.html, que também está na raiz.
-    const urlPesquisa = new URL('pesquisa.html', location.href);
-    urlPesquisa.searchParams.set('municipio', municipio);
-    urlPesquisa.searchParams.set('unidade', unidade);
-    const url = urlPesquisa.toString();
+    const btn = document.getElementById('btnGerarQr');
+    const textoOriginal = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Gerando...';
 
     try {
+      // Relativo à própria página (dashboard.html, na raiz do site) — bate
+      // com pesquisa.html, que também está na raiz.
+      const urlPesquisa = new URL('pesquisa.html', location.href);
+      urlPesquisa.searchParams.set('municipio', municipio);
+      urlPesquisa.searchParams.set('unidade', unidade);
+      const url = urlPesquisa.toString();
+
       const qr = qrcode(0, 'M'); // 0 = tamanho detectado automaticamente; M = correção de erro média
       qr.addData(url);
       qr.make();
-      document.getElementById('qrImagem').src = qr.createDataURL(8, 2);
-      document.getElementById('qrUrlTexto').textContent = url;
-      document.getElementById('qrResultado').style.display = 'block';
+
+      const [template, qrImg] = await Promise.all([
+        carregarImagem(QR_TEMPLATE_CARTAZ),
+        carregarImagem(qr.createDataURL(8, 2))
+      ]);
+      const logoSrc = logoParaCartaz(municipio, unidade);
+      const logoImg = logoSrc ? await carregarImagem(logoSrc).catch(() => null) : null;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = template.naturalWidth;
+      canvas.height = template.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(template, 0, 0);
+      desenharAjustado(ctx, qrImg, QR_CAIXA);
+      if (logoImg) desenharAjustado(ctx, logoImg, LOGO_CAIXA);
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+      const blobUrl = URL.createObjectURL(pdf.output('blob'));
+
+      const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      document.getElementById('qrPosterTitulo').textContent = `${unidade} — ${municipio}`;
+      document.getElementById('qrPosterFrame').src = blobUrl;
+      const link = document.getElementById('btnBaixarPoster');
+      link.href = blobUrl;
+      link.setAttribute('download', `cartaz-${slug(municipio)}-${slug(unidade)}.pdf`);
+      document.getElementById('qrPosterModal').style.display = 'flex';
     } catch (err) {
-      console.warn('[Dashboard] Falha ao gerar QR:', err);
+      console.warn('[Dashboard] Falha ao gerar cartaz:', err);
+      alert('Não foi possível gerar o cartaz. Tente novamente.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = textoOriginal;
     }
   });
 
-  document.getElementById('btnBaixarQr').addEventListener('click', () => {
-    const municipio = document.getElementById('qrMunicipio').value;
-    const unidade = document.getElementById('qrUnidade').value;
-    const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
-      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const a = document.createElement('a');
-    a.href = document.getElementById('qrImagem').src;
-    a.download = `qr-${slug(municipio)}-${slug(unidade)}.png`;
-    a.click();
+  document.getElementById('btnFecharPoster').addEventListener('click', () => {
+    document.getElementById('qrPosterModal').style.display = 'none';
   });
 
   async function fazerLogin() {
