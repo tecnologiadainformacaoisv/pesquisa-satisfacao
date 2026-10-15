@@ -1090,14 +1090,16 @@
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
       const blobUrl = URL.createObjectURL(pdf.output('blob'));
 
-      const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      // Nome legível (unidade + município, acentos e espaços mantidos) pra
+      // identificar o equipamento só pelo nome do arquivo baixado — só tira
+      // os caracteres realmente inválidos em nome de arquivo.
+      const nomeArquivo = (s) => s.replace(/[\\/:*?"<>|]/g, '').trim();
 
       document.getElementById('qrPosterTitulo').textContent = `${unidade} — ${municipio}`;
       document.getElementById('qrPosterFrame').src = blobUrl;
       const link = document.getElementById('btnBaixarPoster');
       link.href = blobUrl;
-      link.setAttribute('download', `cartaz-${slug(municipio)}-${slug(unidade)}.pdf`);
+      link.setAttribute('download', `${nomeArquivo(unidade)} - ${nomeArquivo(municipio)}.pdf`);
       document.getElementById('qrPosterModal').style.display = 'flex';
     } catch (err) {
       console.warn('[Dashboard] Falha ao gerar cartaz:', err);
