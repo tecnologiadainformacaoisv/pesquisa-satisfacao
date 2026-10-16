@@ -1,4 +1,4 @@
-const APP_VERSION = '1.1.59';
+const APP_VERSION = '1.1.60';
 const CACHE_NAME = `pesquisa-satisfacao-${APP_VERSION}`;
 
 const URLS = [
@@ -15,6 +15,7 @@ const URLS = [
   '/pesquisa-satisfacao/assets/logo-72.png',
   '/pesquisa-satisfacao/assets/logo-192.png',
   '/pesquisa-satisfacao/assets/logo-512.png',
+  '/pesquisa-satisfacao/assets/logo-branco.png',
   '/pesquisa-satisfacao/assets/Logo-isv.svg',
   '/pesquisa-satisfacao/assets/timbrado-isv.png',
   '/pesquisa-satisfacao/assets/municipios/caucaia.png',

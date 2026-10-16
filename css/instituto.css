@@ -173,3 +173,15 @@ a {
   color: var(--instituto-muted);
   line-height: 1.6;
 }
+
+/* Respeita a preferência de movimento reduzido do sistema operacional —
+   desliga animações/transições decorativas (hover lift de botão, etc.) pra
+   quem pediu isso no SO, sem afetar ninguém mais. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

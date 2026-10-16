@@ -5,6 +5,26 @@ Todas as versões seguem [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ---
 
+## [1.1.60] — 2026-10-16
+### Corrigido
+- `dashboard.html`: dropdown de Mês somava respostas de todos os anos juntos, ignorando o filtro de Ano (ex: "Dezembro" aparecia com total alto mesmo sem o ano corrente ter chegado lá) — `contagemPorMes()` agora respeita o Ano selecionado, igual `contagemPorDia()` já fazia.
+
+### Alterado — UX/UI do dashboard (sessão de revisão visual)
+- NPS Score vira o elemento "hero" da tela: banner escuro em destaque, primeiro na ordem (antes do bloco de métricas gerais), número bem maior; removido o card duplicado de NPS na grade de métricas (o número só aparecia uma vez agora).
+- Fundo da página trocado de um azul claro (quase a mesma cor da marca) para um cinza neutro — dá mais contraste pro azul institucional se destacar onde importa.
+- Cards de filtro/seletor de base/gerador de QR ficam mais discretos (sem sombra, borda fina) vs. cards de conteúdo (gráficos/métricas/comentários), que mantêm a elevação.
+- Removido o padrão "eyebrow label" (texto pequeno e espaçado) dos rótulos dos cards de métrica — mantido caixa alta, mas maior e mais legível.
+- Fonte Manrope (Google Fonts) adicionada pra títulos/números grandes, dando hierarquia tipográfica real; corpo de texto continua em Segoe UI. Gráficos (Chart.js) passam a usar Segoe UI em vez da fonte padrão dele.
+- Ícones de emoji decorativos dos cards de métrica tiveram a opacidade ajustada (estavam quase invisíveis); logo do ISV (versão branca, gerada a partir do PNG oficial) adicionada ao lado do título do cabeçalho, substituindo o emoji 🏥.
+- Contraste de texto secundário melhorado (`#95a5a6` → `#64748b`) em vários pontos: subtítulos de gráfico, "sub" dos cards de métrica, nota do seletor de base, data dos comentários, estado vazio, "Atualizado às...", contador de comentários.
+- Foco de teclado visível (`:focus-visible`) adicionado a botões/selects/inputs/links — antes dependia só de troca de cor de borda, indicador fraco pra navegação por teclado.
+- `css/instituto.css`: suporte a `prefers-reduced-motion` — desliga hover lift/transições decorativas pra quem pediu isso no sistema operacional.
+- Layouts que quebram linha em telas estreitas agora centralizam a linha incompleta em vez de ficar grudados à esquerda (cabeçalho, botões de base de dados, grade de métricas — ex: "Tempo Espera" sozinho numa segunda fileira).
+- Botão "Atualizar" do cabeçalho ganha destaque visual (sólido, igual o "Gerar QR Code") por ser a ação mais usada.
+- Gráfico de barras do NPS (Detratores/Neutros/Promotores) mantém o fundo escuro também na impressão (decisão deliberada — alternar cores dinamicamente no `beforeprint` se provou instável com o Chart.js, cortando barras/eixos na prévia de impressão do Chrome).
+
+---
+
 ## [1.1.59] — 2026-10-15
 ### Corrigido
 - `pesquisa.html`: ao abrir um QR code de acesso direto (`?municipio=&unidade=`) num celular que já tinha configurado algum tablet antes, a tela mostrava por alguns segundos a unidade antiga salva no `localStorage` antes de trocar pra unidade correta do QR ("flash" da unidade errada). Agora, quando a URL traz esses parâmetros, a tela fica em estado de carregamento neutro até a validação terminar, em vez de renderizar a config antiga primeiro.
